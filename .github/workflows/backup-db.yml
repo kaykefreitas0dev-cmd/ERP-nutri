@@ -1,0 +1,59 @@
+name: Backup DB (Supabase → Cloudflare R2)
+
+on:
+  schedule:
+    # Diario 06:00 UTC = 03:00 BRT (ADR 0043)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  pg_dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # SUPABASE_TIER definido em GitHub Actions vars/secrets
+      # Free tier: backup diario. Pro tier (SUPABASE_TIER=pro): apenas domingos.
+      SUPABASE_TIER: ${{ vars.SUPABASE_TIER || 'free' }}
+    steps:
+      - name: Skip if Pro tier active and not Sunday
+        run: |
+          DOW=$(date -u +%u)
+          if [ "$SUPABASE_TIER" = "pro" ] && [ "$DOW" != "7" ]; then
+            echo "Pro tier ativo. Backup apenas aos domingos. Pulando."
+            exit 0
+          fi
+          echo "Continuando backup (tier=$SUPABASE_TIER, dow=$DOW)"
+
+      - name: Install postgres-client + awscli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client awscli
+
+      - name: Dump Supabase
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          TS=$(date -u +%Y%m%d-%H%M%S)
+          # Lock 13: incluir schema auth para preservar auth.users + auth.identities
+          # Lock 15: pg_dump SEM --no-acl para preservar policies RLS
+          pg_dump --schema=public --schema=auth --no-owner \
+            -h ${{ secrets.SUPABASE_DB_HOST }} -p 5432 \
+            -U postgres -d postgres > backup-$TS.sql
+          gzip backup-$TS.sql
+          ls -lh backup-*.sql.gz
+
+      - name: Upload to Cloudflare R2 (S3-compatible)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_KEY }}
+        run: |
+          aws s3 cp backup-*.sql.gz s3://nutricore-backups/daily/ \
+            --endpoint-url https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.SENTRY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"message":"Backup DB falhou em '"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","severity":"error"}' \
+            || true

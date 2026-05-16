@@ -1,0 +1,57 @@
+name: Cleanup R2 Backups
+
+on:
+  schedule:
+    # Domingos 07:00 UTC = 04:00 BRT (ADR 0043 + v11.2 Diff B.1)
+    - cron: '0 7 * * 0'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_KEY }}
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      BUCKET: nutricore-backups
+    steps:
+      - run: sudo apt-get install -y awscli
+
+      - name: Promote latest daily → weekly (Sundays)
+        run: |
+          TS=$(date -u +%Y%m%d)
+          LATEST=$(aws s3 ls s3://$BUCKET/daily/ --endpoint-url $R2_ENDPOINT | grep "backup-$TS" | head -1 | awk '{print $4}' || true)
+          if [ -n "$LATEST" ]; then
+            aws s3 cp s3://$BUCKET/daily/$LATEST s3://$BUCKET/weekly/ --endpoint-url $R2_ENDPOINT
+          fi
+
+      - name: Promote weekly → monthly (1st Sunday of month)
+        run: |
+          DAY=$(date -u +%-d)
+          if [ "$DAY" -le 7 ]; then
+            LATEST_WEEKLY=$(aws s3 ls s3://$BUCKET/weekly/ --endpoint-url $R2_ENDPOINT | sort | tail -1 | awk '{print $4}' || true)
+            if [ -n "$LATEST_WEEKLY" ]; then
+              aws s3 cp s3://$BUCKET/weekly/$LATEST_WEEKLY s3://$BUCKET/monthly/ --endpoint-url $R2_ENDPOINT
+            fi
+          fi
+
+      - name: Delete daily backups > 30 days
+        run: |
+          CUTOFF=$(date -u -d '30 days ago' +%Y-%m-%d)
+          aws s3 ls s3://$BUCKET/daily/ --endpoint-url $R2_ENDPOINT | \
+            awk -v cutoff="$CUTOFF" '$1 < cutoff {print $4}' | \
+            xargs -I {} -r aws s3 rm s3://$BUCKET/daily/{} --endpoint-url $R2_ENDPOINT
+
+      - name: Delete weekly backups > 84 days (12 weeks)
+        run: |
+          CUTOFF=$(date -u -d '84 days ago' +%Y-%m-%d)
+          aws s3 ls s3://$BUCKET/weekly/ --endpoint-url $R2_ENDPOINT | \
+            awk -v cutoff="$CUTOFF" '$1 < cutoff {print $4}' | \
+            xargs -I {} -r aws s3 rm s3://$BUCKET/weekly/{} --endpoint-url $R2_ENDPOINT
+
+      - name: Delete monthly backups > 365 days
+        run: |
+          CUTOFF=$(date -u -d '365 days ago' +%Y-%m-%d)
+          aws s3 ls s3://$BUCKET/monthly/ --endpoint-url $R2_ENDPOINT | \
+            awk -v cutoff="$CUTOFF" '$1 < cutoff {print $4}' | \
+            xargs -I {} -r aws s3 rm s3://$BUCKET/monthly/{} --endpoint-url $R2_ENDPOINT

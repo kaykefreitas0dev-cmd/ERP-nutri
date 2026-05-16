@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint + Typecheck + Test + Build (Turbo)
+        run: pnpm turbo run lint typecheck test build
+
+      - name: Semgrep SAST (built-in + NutriCore custom)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "auto .semgrep/nutricore-rules.yml"
+
+      - name: pnpm audit
+        run: pnpm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: gitleaks secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: sqlfluff migrations (warn-only S1; obrigatorio S3)
+        run: |
+          pip install sqlfluff
+          sqlfluff lint packages/db/prisma/migrations/ || true
+        continue-on-error: true
+
+      - name: Lighthouse CI
+        run: pnpm dlx @lhci/cli@latest autorun || true
+        continue-on-error: true
+
+  sherlock-required:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: changed
+        name: Detect sensitive paths
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -E '(apps/(web|patient)/(src/)?app/api/(v1/(payments|fiscal)|auth|internal/workers/(payments|fiscal|auth))/|packages/db/(prisma/migrations|src)/.*\.(policy|rls)\.sql|packages/db/src/(payments|fiscal|auth)/)' > /dev/null; then
+            echo "needs_sherlock=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_sherlock=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR
+        if: steps.changed.outputs.needs_sherlock == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **Sherlock Review Required** — este PR toca paths sensiveis (payments/auth/fiscal/policy/rls). PM, agendar revisao humana antes do merge (ADR 0042).'
+            })

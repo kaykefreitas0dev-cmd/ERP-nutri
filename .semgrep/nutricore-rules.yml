@@ -1,0 +1,74 @@
+rules:
+  - id: no-tenant-leak
+    pattern: prisma.$ENTITY.findMany($...ARGS)
+    pattern-not: prisma.$ENTITY.findMany({..., where: {..., organizationId: ...}, ...})
+    paths:
+      include:
+        - "apps/web/src/app/api/**/*.ts"
+        - "apps/web/app/api/**/*.ts"
+        - "apps/patient/src/app/api/**/*.ts"
+        - "apps/patient/app/api/**/*.ts"
+        - "packages/**/*.ts"
+      exclude:
+        - "**/*public/**"
+        - "**/*internal/workers/**"
+        - "**/*health/**"
+    message: "findMany sem organizationId em codigo tenant-aware (Lock 6 - RLS depende). Use withTenant() wrapper (ADR 0048)."
+    severity: ERROR
+    languages: [typescript]
+
+  - id: no-delete-user
+    pattern: $X.auth.admin.deleteUser($...ARGS)
+    message: "PROIBIDO deletar auth.users (Lock 13 + CFN 599/2018). Use lgpd.anonymize-patient worker (UPDATE email + DELETE identities + ban_duration 876000h)."
+    severity: ERROR
+    languages: [typescript]
+
+  - id: no-kyc-upload
+    pattern: |
+      $METHOD($...ARGS, formidable)
+    paths:
+      include:
+        - "**/*kyc*.ts"
+        - "**/*document*.ts"
+        - "**/*identity*.ts"
+    message: "PROIBIDO upload de docs KYC pela plataforma (Lock 17 + Bacen 3.978/2020). Use redirect Asaas/Stripe hospedado."
+    severity: ERROR
+    languages: [typescript]
+
+  - id: no-direct-food-update
+    pattern: prisma.food.update({ data: { $...NUTRIENT_FIELDS } })
+    paths:
+      exclude:
+        - "packages/db/src/food-versioning/**"
+        - "apps/web/src/app/api/**/foods/versioning/**"
+    message: "PROIBIDO update direto em food (Lock 15). Use food-versioning service que cria nova versao. Trigger Postgres bloqueia tambem."
+    severity: ERROR
+    languages: [typescript]
+
+  - id: no-route-without-with-tenant
+    patterns:
+      - pattern-either:
+          - pattern: |
+              export async function GET($REQ) { ... await prisma.$... ... }
+          - pattern: |
+              export async function POST($REQ) { ... await prisma.$... ... }
+          - pattern: |
+              export async function PUT($REQ) { ... await prisma.$... ... }
+          - pattern: |
+              export async function DELETE($REQ) { ... await prisma.$... ... }
+          - pattern: |
+              export async function PATCH($REQ) { ... await prisma.$... ... }
+      - pattern-not-inside: |
+          return withTenant($REQ, async ($CTX) => { ... });
+    paths:
+      include:
+        - "apps/web/src/app/api/v1/**"
+        - "apps/web/app/api/v1/**"
+      exclude:
+        - "**/*public/**"
+        - "**/*internal/**"
+        - "**/*health/**"
+        - "**/*auth/**"
+    message: "Route Handler tenant-aware deve usar withTenant() wrapper (ADR 0048)."
+    severity: ERROR
+    languages: [typescript]
