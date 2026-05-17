@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileText, Hospital } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -65,13 +66,15 @@ export default async function MyDocumentsPage() {
                     <p className="font-semibold text-slate-900 truncate">
                       {d.title}
                     </p>
-                    <p className="mt-1 text-xs text-slate-600">
-                      📄 {TYPE_LABELS[d.documentType] ?? d.documentType} •{" "}
+                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600">
+                      <FileText className="h-3 w-3" strokeWidth={1.75} />
+                      {TYPE_LABELS[d.documentType] ?? d.documentType} •{" "}
                       {d.issuerName}
                       {d.issuerCrn && ` (CRN ${d.issuerCrn})`}
                     </p>
-                    <p className="text-xs text-slate-500">
-                      🏥 {d.patient.organization.name}
+                    <p className="flex items-center gap-1 text-xs text-slate-500">
+                      <Hospital className="h-3 w-3" strokeWidth={1.75} />
+                      {d.patient.organization.name}
                     </p>
                     {d.issuedAt && (
                       <p className="text-xs text-slate-500">

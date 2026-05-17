@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { CircleCheck, Mail, ClipboardCopy } from "lucide-react";
 import { createInviteAction, revokeInviteAction } from "./actions";
 
 interface Props {
@@ -33,8 +34,9 @@ export function InvitePatientButton({
 
   if (hasLinkedAccount) {
     return (
-      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-        ✅ Paciente acessou plataforma
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+        <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+        Paciente acessou plataforma
       </span>
     );
   }
@@ -85,9 +87,10 @@ export function InvitePatientButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
+        className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
       >
-        📧 Convidar para acessar app
+        <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
+        Convidar para acessar app
       </button>
     );
   }
@@ -160,8 +163,9 @@ export function InvitePatientButton({
         <div className="rounded-md border border-green-300 bg-green-50 p-2">
           {emailSent ? (
             <>
-              <p className="text-xs font-semibold text-green-800">
-                ✅ Email enviado para {email}!
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-green-800">
+                <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                Email enviado para {email}!
               </p>
               <p className="mt-1 text-[10px] text-green-700">
                 O paciente receberá um email com o link de acesso. Se ele não
@@ -169,8 +173,9 @@ export function InvitePatientButton({
               </p>
             </>
           ) : (
-            <p className="text-xs font-medium text-green-800">
-              ✅ Link gerado! (sem provider de email configurado — envie
+            <p className="flex items-center gap-1.5 text-xs font-medium text-green-800">
+              <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+              Link gerado! (sem provider de email configurado — envie
               manualmente abaixo)
             </p>
           )}
@@ -183,9 +188,19 @@ export function InvitePatientButton({
           <button
             type="button"
             onClick={handleCopy}
-            className="mt-1 rounded bg-green-700 px-2 py-1 text-xs font-medium text-white hover:bg-green-800"
+            className="mt-1 inline-flex items-center gap-1 rounded bg-green-700 px-2 py-1 text-xs font-medium text-white hover:bg-green-800"
           >
-            {copied ? "✅ Copiado" : "📋 Copiar link"}
+            {copied ? (
+              <>
+                <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                Copiado
+              </>
+            ) : (
+              <>
+                <ClipboardCopy className="h-3.5 w-3.5" strokeWidth={2} />
+                Copiar link
+              </>
+            )}
           </button>
         </div>
       )}
@@ -196,9 +211,16 @@ export function InvitePatientButton({
             type="button"
             onClick={handleCreate}
             disabled={pending}
-            className="rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800 disabled:opacity-50"
           >
-            {pending ? "Enviando..." : "📧 Enviar convite"}
+            {pending ? (
+              "Enviando..."
+            ) : (
+              <>
+                <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Enviar convite
+              </>
+            )}
           </button>
         )}
         <button

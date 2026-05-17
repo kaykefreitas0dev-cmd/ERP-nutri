@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Download, Package, CircleCheck } from "lucide-react";
 import { exportPatientDataAction } from "./actions";
 
 interface Props {
@@ -39,9 +40,19 @@ export function ExportDataButton({ patientId }: Props) {
         type="button"
         onClick={handleExport}
         disabled={pending}
-        className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs hover:bg-slate-50 disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs hover:bg-slate-50 disabled:opacity-50"
       >
-        {pending ? "📦 Gerando ZIP..." : "📥 Exportar dados (LGPD)"}
+        {pending ? (
+          <>
+            <Package className="h-3.5 w-3.5 animate-pulse" strokeWidth={1.75} />
+            Gerando ZIP...
+          </>
+        ) : (
+          <>
+            <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Exportar dados (LGPD)
+          </>
+        )}
       </button>
 
       {error && (
@@ -52,14 +63,18 @@ export function ExportDataButton({ patientId }: Props) {
 
       {result && (
         <div className="rounded-md border border-green-300 bg-green-50 p-3">
-          <p className="text-xs font-semibold text-green-900">✅ ZIP gerado!</p>
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-green-900">
+            <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+            ZIP gerado!
+          </p>
           <a
             href={result.url}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-1 inline-block text-xs font-medium text-green-700 underline"
           >
-            📥 Baixar ZIP
+            <Download className="inline h-3 w-3" strokeWidth={1.75} /> Baixar
+            ZIP
           </a>
           <p className="mt-1 text-[10px] text-green-700">
             Link válido até {new Date(result.expiresAt).toLocaleString("pt-BR")}

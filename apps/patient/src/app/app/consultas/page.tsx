@@ -1,3 +1,4 @@
+import { MapPin, Video, Phone, Hospital, type LucideIcon } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -13,10 +14,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   NO_SHOW: { label: "Não compareci", color: "bg-red-100 text-red-800" },
 };
 
-const MODALITY_ICON: Record<string, string> = {
-  in_person: "📍",
-  video: "📹",
-  phone: "📞",
+const MODALITY_ICON: Record<string, LucideIcon> = {
+  in_person: MapPin,
+  video: Video,
+  phone: Phone,
 };
 
 export default async function PatientAppointmentsPage() {
@@ -162,11 +163,20 @@ function AppointmentItem({
                 minute: "2-digit",
               })}
             </span>
-            <span className="text-base" aria-hidden>
-              {MODALITY_ICON[a.modality] ?? ""}
-            </span>
+            {(() => {
+              const ModIcon = MODALITY_ICON[a.modality];
+              return ModIcon ? (
+                <ModIcon
+                  className="h-4 w-4 text-slate-500"
+                  strokeWidth={1.75}
+                />
+              ) : null;
+            })()}
           </div>
-          <p className="mt-1 text-xs text-slate-500">🏥 {a.organizationName}</p>
+          <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+            <Hospital className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {a.organizationName}
+          </p>
           {a.notes && (
             <p className="mt-1 text-xs text-slate-600 italic">
               &ldquo;{a.notes}&rdquo;

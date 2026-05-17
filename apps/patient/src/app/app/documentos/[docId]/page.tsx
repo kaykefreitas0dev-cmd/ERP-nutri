@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FileText, Hospital, Calendar, Download } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -50,20 +51,22 @@ export default async function MyDocumentPage({ params }: Props) {
 
       <header className="mt-2">
         <h1 className="text-2xl font-bold text-slate-900">{doc.title}</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          📄 {TYPE_LABELS[doc.documentType] ?? doc.documentType} •{" "}
-          {doc.issuerName}
+        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-600">
+          <FileText className="h-4 w-4" strokeWidth={1.75} />
+          {TYPE_LABELS[doc.documentType] ?? doc.documentType} • {doc.issuerName}
           {doc.issuerCrn &&
             ` (CRN-${doc.issuerCrnUf ?? "—"}: ${doc.issuerCrn})`}
         </p>
-        <p className="text-xs text-slate-500">
-          🏥 {doc.patient.organization.name}
+        <p className="flex items-center gap-1 text-xs text-slate-500">
+          <Hospital className="h-3 w-3" strokeWidth={1.75} />
+          {doc.patient.organization.name}
         </p>
       </header>
 
       {doc.validUntil && (
-        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          📅 Válido até {new Date(doc.validUntil).toLocaleDateString("pt-BR")}
+        <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <Calendar className="h-4 w-4" strokeWidth={1.75} />
+          Válido até {new Date(doc.validUntil).toLocaleDateString("pt-BR")}
         </div>
       )}
 
@@ -96,7 +99,7 @@ export default async function MyDocumentPage({ params }: Props) {
           rel="noopener noreferrer"
           className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
         >
-          📥 Baixar PDF
+          <Download className="inline h-4 w-4" strokeWidth={1.75} /> Baixar PDF
         </a>
       </div>
 

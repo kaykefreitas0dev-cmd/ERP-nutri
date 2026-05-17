@@ -1,16 +1,26 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Smartphone,
+  CreditCard,
+  Banknote,
+  Landmark,
+  HelpCircle,
+  BarChart3,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Financeiro — NutriCore" };
 
-const METHOD_LABEL: Record<string, { label: string; icon: string }> = {
-  PIX: { label: "PIX", icon: "📲" },
-  CARD_EXTERNAL: { label: "Cartão", icon: "💳" },
-  CASH: { label: "Dinheiro", icon: "💵" },
-  BANK_TRANSFER: { label: "Transferência", icon: "🏦" },
-  OTHER: { label: "Outro", icon: "❓" },
+const METHOD_LABEL: Record<string, { label: string; Icon: LucideIcon }> = {
+  PIX: { label: "PIX", Icon: Smartphone },
+  CARD_EXTERNAL: { label: "Cartão", Icon: CreditCard },
+  CASH: { label: "Dinheiro", Icon: Banknote },
+  BANK_TRANSFER: { label: "Transferência", Icon: Landmark },
+  OTHER: { label: "Outro", Icon: HelpCircle },
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -210,9 +220,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
               const top = Object.entries(data.totals.byMethod).sort(
                 (a, b) => b[1].totalCents - a[1].totalCents,
               )[0];
-              return top
-                ? `${METHOD_LABEL[top[0]]?.icon ?? ""} ${METHOD_LABEL[top[0]]?.label ?? top[0]}`
-                : "—";
+              return top ? (METHOD_LABEL[top[0]]?.label ?? top[0]) : "—";
             })()}
             sub={(() => {
               const top = Object.entries(data.totals.byMethod).sort(
@@ -233,7 +241,8 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         {/* 6-month chart */}
         <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">
-            📊 Últimos 6 meses
+            <BarChart3 className="inline h-4 w-4" strokeWidth={1.75} /> Últimos
+            6 meses
           </h2>
           <div className="mt-4 flex items-end gap-2 h-32">
             {data.monthsRollup.map((m) => {
@@ -313,7 +322,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
               <option value="">Todos</option>
               {Object.entries(METHOD_LABEL).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v.icon} {v.label}
+                  {v.label}
                 </option>
               ))}
             </select>
@@ -389,8 +398,15 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                         </td>
                         <td className="px-4 py-2 text-center text-xs">
                           {m ? (
-                            <span title={m.label}>
-                              {m.icon} {m.label}
+                            <span
+                              title={m.label}
+                              className="inline-flex items-center gap-1"
+                            >
+                              <m.Icon
+                                className="h-3.5 w-3.5"
+                                strokeWidth={1.75}
+                              />
+                              {m.label}
                             </span>
                           ) : (
                             "—"
@@ -417,7 +433,11 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                               rel="noopener noreferrer"
                               className="rounded border border-slate-300 bg-white px-2 py-1 text-xs hover:bg-slate-50"
                             >
-                              📄 PDF
+                              <FileText
+                                className="inline h-3.5 w-3.5"
+                                strokeWidth={1.75}
+                              />{" "}
+                              PDF
                             </a>
                           ) : (
                             "—"

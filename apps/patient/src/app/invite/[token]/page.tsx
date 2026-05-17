@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createHash } from "node:crypto";
+import { Search, Ban, CircleCheck, Clock, type LucideIcon } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { AcceptInviteForm } from "./AcceptInviteForm";
 
@@ -37,7 +38,7 @@ export default async function InviteLandingPage({ params }: Props) {
   if (!invite) {
     return (
       <ErrorScreen
-        emoji="🔍"
+        Icon={Search}
         title="Convite não encontrado"
         message="Este link pode estar incorreto ou ter expirado. Peça à sua(seu) nutricionista para gerar um novo convite."
       />
@@ -47,7 +48,7 @@ export default async function InviteLandingPage({ params }: Props) {
   if (invite.revokedAt) {
     return (
       <ErrorScreen
-        emoji="🚫"
+        Icon={Ban}
         title="Convite revogado"
         message="Este convite foi revogado. Peça à sua(seu) nutricionista para gerar um novo."
       />
@@ -57,7 +58,7 @@ export default async function InviteLandingPage({ params }: Props) {
   if (invite.acceptedAt) {
     return (
       <ErrorScreen
-        emoji="✅"
+        Icon={CircleCheck}
         title="Convite já aceito"
         message="Você já criou seu acesso. Faça login para entrar."
         ctaHref="/login"
@@ -69,7 +70,7 @@ export default async function InviteLandingPage({ params }: Props) {
   if (new Date(invite.expiresAt) < new Date()) {
     return (
       <ErrorScreen
-        emoji="⏰"
+        Icon={Clock}
         title="Convite expirado"
         message="Este convite expirou. Peça à sua(seu) nutricionista para gerar um novo."
       />
@@ -88,7 +89,7 @@ export default async function InviteLandingPage({ params }: Props) {
         <div className="mx-auto max-w-md">
           <div className="rounded-lg border border-teal-200 bg-teal-50 p-5">
             <h2 className="text-xl font-bold text-teal-900">
-              Olá, {invite.patient.fullName.split(" ")[0]}! 👋
+              Olá, {invite.patient.fullName.split(" ")[0]}!
             </h2>
             <p className="mt-2 text-sm text-teal-800">
               Você foi convidado(a) por{" "}
@@ -133,13 +134,13 @@ export default async function InviteLandingPage({ params }: Props) {
 }
 
 function ErrorScreen({
-  emoji,
+  Icon,
   title,
   message,
   ctaHref,
   ctaLabel,
 }: {
-  emoji: string;
+  Icon: LucideIcon;
   title: string;
   message: string;
   ctaHref?: string;
@@ -148,7 +149,8 @@ function ErrorScreen({
   return (
     <main className="flex min-h-screen items-center justify-center p-5">
       <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-5xl">{emoji}</p>
+        <Icon className="mx-auto h-12 w-12 text-slate-400" strokeWidth={1.5} />
+        <div className="h-3" />
         <h1 className="mt-3 text-xl font-bold text-slate-900">{title}</h1>
         <p className="mt-2 text-sm text-slate-600">{message}</p>
         {ctaHref && ctaLabel && (

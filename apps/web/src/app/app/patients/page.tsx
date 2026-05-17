@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Lock, Archive } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
@@ -141,10 +142,20 @@ export default async function PatientsListPage({ searchParams }: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/app/patients/${p.id}`}
-                        className="font-medium text-slate-900 hover:text-teal-700"
+                        className="inline-flex items-center gap-1.5 font-medium text-slate-900 hover:text-teal-700"
                       >
-                        {p.status === "ANONYMIZED" && "🔒 "}
-                        {p.status === "ARCHIVED" && "📦 "}
+                        {p.status === "ANONYMIZED" && (
+                          <Lock
+                            className="h-3.5 w-3.5 text-slate-500"
+                            strokeWidth={2}
+                          />
+                        )}
+                        {p.status === "ARCHIVED" && (
+                          <Archive
+                            className="h-3.5 w-3.5 text-slate-500"
+                            strokeWidth={2}
+                          />
+                        )}
                         {p.fullName}
                       </Link>
                     </td>

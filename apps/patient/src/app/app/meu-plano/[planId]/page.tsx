@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Hospital, Calendar, Utensils } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -89,8 +90,9 @@ export default async function PlanDetailPage({ params }: Props) {
 
       <header className="mt-2">
         <h1 className="text-2xl font-bold text-slate-900">{plan.name}</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          🏥 {plan.patient.organization.name}
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
+          <Hospital className="h-4 w-4 text-teal-600" strokeWidth={1.75} />
+          {plan.patient.organization.name}
         </p>
       </header>
 
@@ -117,8 +119,9 @@ export default async function PlanDetailPage({ params }: Props) {
             className="rounded-lg border border-slate-200 bg-white shadow-sm"
           >
             <header className="border-b border-slate-200 bg-slate-50 px-4 py-2">
-              <h2 className="text-base font-semibold text-slate-900">
-                📅 {day.dayLabel}
+              <h2 className="flex items-center gap-1.5 text-base font-semibold text-slate-900">
+                <Calendar className="h-4 w-4" strokeWidth={1.75} />
+                {day.dayLabel}
               </h2>
             </header>
 
@@ -130,8 +133,12 @@ export default async function PlanDetailPage({ params }: Props) {
                 return (
                   <div key={meal.id} className="px-4 py-3">
                     <header className="flex items-center justify-between">
-                      <h3 className="font-medium text-slate-900">
-                        🍽️ {meal.name}
+                      <h3 className="flex items-center gap-1.5 font-medium text-slate-900">
+                        <Utensils
+                          className="h-3.5 w-3.5 text-teal-600"
+                          strokeWidth={1.75}
+                        />
+                        {meal.name}
                         {meal.scheduledTime && (
                           <span className="ml-2 text-xs font-normal text-slate-500">
                             {meal.scheduledTime}

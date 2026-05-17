@@ -1,15 +1,25 @@
+import {
+  Smartphone,
+  CreditCard,
+  Banknote,
+  Landmark,
+  HelpCircle,
+  Hospital,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pagamentos — NutriCore" };
 
-const METHOD_LABEL: Record<string, { label: string; icon: string }> = {
-  PIX: { label: "PIX", icon: "📲" },
-  CARD_EXTERNAL: { label: "Cartão", icon: "💳" },
-  CASH: { label: "Dinheiro", icon: "💵" },
-  BANK_TRANSFER: { label: "Transferência", icon: "🏦" },
-  OTHER: { label: "Outro", icon: "❓" },
+const METHOD_LABEL: Record<string, { label: string; Icon: LucideIcon }> = {
+  PIX: { label: "PIX", Icon: Smartphone },
+  CARD_EXTERNAL: { label: "Cartão", Icon: CreditCard },
+  CASH: { label: "Dinheiro", Icon: Banknote },
+  BANK_TRANSFER: { label: "Transferência", Icon: Landmark },
+  OTHER: { label: "Outro", Icon: HelpCircle },
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -117,17 +127,19 @@ export default async function PatientPaymentsPage() {
                           {s.label}
                         </span>
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-600">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-slate-600">
                         {new Date(p.paymentDate).toLocaleDateString("pt-BR")}
                         {m && (
                           <>
                             {" · "}
-                            {m.icon} {m.label}
+                            <m.Icon className="h-3 w-3" strokeWidth={1.75} />
+                            {m.label}
                           </>
                         )}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        🏥 {p.patient.organization.name}
+                      <p className="flex items-center gap-1 text-xs text-slate-500">
+                        <Hospital className="h-3 w-3" strokeWidth={1.75} />
+                        {p.patient.organization.name}
                       </p>
                       {p.description && (
                         <p className="mt-1 text-xs text-slate-600 italic">
@@ -140,9 +152,10 @@ export default async function PatientPaymentsPage() {
                         href={`${process.env.NEXT_PUBLIC_NUTRI_APP_URL ?? ""}/api/v1/documents/${p.receiptDocumentId}/pdf`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
                       >
-                        📄 Recibo
+                        <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        Recibo
                       </a>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MailCheck, Mail } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface Props {
@@ -53,7 +54,10 @@ export function AcceptInviteForm({ token, defaultEmail }: Props) {
   if (sent) {
     return (
       <div className="rounded-md border border-green-300 bg-green-50 p-4 text-center text-sm text-green-800">
-        <p className="text-3xl">📬</p>
+        <MailCheck
+          className="mx-auto h-10 w-10 text-green-600"
+          strokeWidth={1.5}
+        />
         <p className="mt-2 font-medium">Email enviado!</p>
         <p className="mt-1 text-xs">
           Verifique sua caixa de entrada em <strong>{email}</strong>. Clique no
@@ -91,7 +95,14 @@ export function AcceptInviteForm({ token, defaultEmail }: Props) {
         disabled={sending}
         className="block w-full rounded-md bg-teal-700 px-4 py-3 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
       >
-        {sending ? "Enviando..." : "📧 Aceitar convite e receber link"}
+        {sending ? (
+          "Enviando..."
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <Mail className="h-4 w-4" strokeWidth={1.75} />
+            Aceitar convite e receber link
+          </span>
+        )}
       </button>
     </form>
   );
