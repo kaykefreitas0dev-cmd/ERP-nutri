@@ -429,6 +429,7 @@ model Allergen {
   createdAt     DateTime @default(now()) @map("created_at")
 
   patientAllergies PatientAllergy[]
+  foodAllergens    FoodAllergen[]
 
   @@map("allergens")
 }
@@ -779,6 +780,154 @@ model AvailabilityRule {
 
   @@index([bookingPageId, dayOfWeek])
   @@map("availability_rules")
+}
+
+// =====================================================================
+// FOOD LIBRARY (S8 — Fase 2)
+// =====================================================================
+// TACO 4ª edição + IBGE POF + receitas próprias
+// Lock 15 — Food versionado
+
+model Food {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String?  @map("organization_id") @db.Uuid
+  source          FoodSource @default(CUSTOM)
+  externalId      String?  @map("external_id")
+  name            String
+  description     String?
+  brand           String?
+  category        String?
+
+  kcalPer100g     Decimal? @map("kcal_per_100g") @db.Decimal(7, 2)
+  proteinG        Decimal? @map("protein_g") @db.Decimal(6, 2)
+  carbG           Decimal? @map("carb_g") @db.Decimal(6, 2)
+  fatG            Decimal? @map("fat_g") @db.Decimal(6, 2)
+  fiberG          Decimal? @map("fiber_g") @db.Decimal(6, 2)
+  sodiumMg        Decimal? @map("sodium_mg") @db.Decimal(7, 2)
+  micronutrients  Json     @default("{}")
+
+  version             Int      @default(1)
+  isActive            Boolean  @default(true) @map("is_active")
+  supersededById      String?  @map("superseded_by_id") @db.Uuid
+  supersededAt        DateTime? @map("superseded_at")
+
+  conversionFactor Decimal? @map("conversion_factor") @db.Decimal(4, 3)
+  cookingIndex     Decimal? @map("cooking_index") @db.Decimal(4, 3)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  supersededBy    Food?    @relation("FoodVersion", fields: [supersededById], references: [id])
+  versions        Food[]   @relation("FoodVersion")
+  prices          FoodPrice[]
+  foodAllergens   FoodAllergen[]
+  recipeIngredients RecipeIngredient[]
+
+  @@index([source, externalId])
+  @@index([name])
+  @@index([organizationId, isActive])
+  @@map("foods")
+}
+
+enum FoodSource {
+  TACO
+  POF
+  USDA
+  CUSTOM
+}
+
+model FoodAllergen {
+  id         String   @id @default(uuid()) @db.Uuid
+  foodId     String   @map("food_id") @db.Uuid
+  allergenId String   @map("allergen_id") @db.Uuid
+  trace      Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  food     Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+
+  @@unique([foodId, allergenId])
+  @@map("food_allergens")
+}
+
+model FoodPrice {
+  id              String   @id @default(uuid()) @db.Uuid
+  foodId          String   @map("food_id") @db.Uuid
+  organizationId  String?  @map("organization_id") @db.Uuid
+  professionalUserId String? @map("professional_user_id") @db.Uuid
+  unit            PriceUnit
+  unitGrams       Decimal? @map("unit_grams") @db.Decimal(10, 3)
+  priceCents      Int      @map("price_cents")
+  currency        String   @default("BRL")
+  source          String   @default("MANUAL")
+  region          String?
+  validFrom       DateTime @default(now()) @map("valid_from")
+  validUntil      DateTime? @map("valid_until")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@index([foodId, organizationId, validFrom(sort: Desc)])
+  @@map("food_prices")
+}
+
+enum PriceUnit {
+  KG
+  G
+  L
+  ML
+  UNIT
+  DUZIA
+}
+
+model Recipe {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  name            String
+  description     String?
+  servings        Int      @default(1)
+  prepTimeMinutes Int?     @map("prep_time_minutes")
+
+  version         Int      @default(1)
+  isActive        Boolean  @default(true) @map("is_active")
+  supersededById  String?  @map("superseded_by_id") @db.Uuid
+  supersededAt    DateTime? @map("superseded_at")
+
+  totalKcal       Decimal? @map("total_kcal") @db.Decimal(8, 2)
+  totalProteinG   Decimal? @map("total_protein_g") @db.Decimal(7, 2)
+  totalCarbG      Decimal? @map("total_carb_g") @db.Decimal(7, 2)
+  totalFatG       Decimal? @map("total_fat_g") @db.Decimal(7, 2)
+
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  supersededBy Recipe? @relation("RecipeVersion", fields: [supersededById], references: [id])
+  versions     Recipe[] @relation("RecipeVersion")
+  ingredients  RecipeIngredient[]
+
+  @@index([organizationId, isActive])
+  @@index([name])
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id          String   @id @default(uuid()) @db.Uuid
+  recipeId    String   @map("recipe_id") @db.Uuid
+  foodId      String   @map("food_id") @db.Uuid
+  foodVersion Int      @map("food_version")
+  quantityG   Decimal  @map("quantity_g") @db.Decimal(8, 2)
+  notes       String?
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Restrict)
+
+  @@index([recipeId])
+  @@map("recipe_ingredients")
 }
 
 // =====================================================================
