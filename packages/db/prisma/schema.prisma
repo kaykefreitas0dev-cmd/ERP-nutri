@@ -827,6 +827,7 @@ model Food {
   prices          FoodPrice[]
   foodAllergens   FoodAllergen[]
   recipeIngredients RecipeIngredient[]
+  mealItems       MealItem[]
 
   @@index([source, externalId])
   @@index([name])
@@ -1039,6 +1040,10 @@ model MealItem {
   fatG            Decimal? @map("fat_g") @db.Decimal(6, 2)
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  // Relation pra mostrar nome/source no UI. NÃO usar `food.kcal/protein/etc`
+  // pra cálculos — esses já estão snapshotados nos campos kcal/proteinG/etc
+  // acima (Lock 15). Food atual pode ter sido superseded com valores diferentes.
+  food Food @relation(fields: [foodId], references: [id], onDelete: Restrict)
 
   @@index([mealId])
   @@map("meal_items")

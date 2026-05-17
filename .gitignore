@@ -58,3 +58,5 @@ packages/db/prisma/migrations/dev.db*
 *.local.env
 *.env.local
 secrets/
+test-results/
+e2e/report/

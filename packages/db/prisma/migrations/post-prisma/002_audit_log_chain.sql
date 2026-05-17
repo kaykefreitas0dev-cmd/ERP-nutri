@@ -23,7 +23,9 @@ CREATE OR REPLACE FUNCTION audit.append_log(
 ) RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+-- inclui `extensions` (Supabase install pgcrypto lá) — sem isso, `digest()`
+-- usado pra hash chain quebra com "function digest(text, unknown) does not exist"
+SET search_path = public, extensions, pg_catalog
 AS $$
 DECLARE
   v_prev_hash text;
