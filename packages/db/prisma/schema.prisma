@@ -401,6 +401,7 @@ model Patient {
   clinicalConditions  PatientClinicalCondition[]
   clinicalNotes       ClinicalNote[]
   examAttachments     ExamAttachment[]
+  anthropometryRecords Anthropometry[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -535,12 +536,51 @@ model ExamAttachment {
 }
 
 // =====================================================================
+// ANTROPOMETRIA (S4)
+// =====================================================================
+// Cada Anthropometry é uma medição em um momento (snapshot histórico)
+// Resultados calculados são preenchidos pelo engine @nutricore/nutrition
+
+model Anthropometry {
+  id                     String   @id @default(uuid()) @db.Uuid
+  organizationId         String   @map("organization_id") @db.Uuid
+  patientId              String   @map("patient_id") @db.Uuid
+  measuredByUserId       String   @map("measured_by_user_id") @db.Uuid
+  measuredAt             DateTime @default(now()) @map("measured_at")
+  protocol               String   @default("pollock_3")
+
+  weightKg               Decimal? @map("weight_kg") @db.Decimal(5, 2)
+  heightCm               Decimal? @map("height_cm") @db.Decimal(5, 2)
+
+  circumferences         Json     @default("{}")
+  skinfolds              Json     @default("{}")
+  bia                    Json     @default("{}")
+
+  bodyMassIndex          Decimal? @map("body_mass_index") @db.Decimal(4, 2)
+  bodyFatPctCalc         Decimal? @map("body_fat_pct_calc") @db.Decimal(5, 2)
+  leanMassKgCalc         Decimal? @map("lean_mass_kg_calc") @db.Decimal(5, 2)
+  basalMetabolismMifflin Decimal? @map("basal_metabolism_mifflin") @db.Decimal(7, 1)
+  basalMetabolismHarris  Decimal? @map("basal_metabolism_harris") @db.Decimal(7, 1)
+  basalMetabolismFao     Decimal? @map("basal_metabolism_fao") @db.Decimal(7, 1)
+
+  omsZScores             Json?    @map("oms_z_scores")
+
+  notes                  String?
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, measuredAt(sort: Desc)])
+  @@index([organizationId, measuredAt(sort: Desc)])
+  @@map("anthropometry")
+}
+
+// =====================================================================
 // ESQUELETO RESERVADO (implementação em sprints futuras)
 // =====================================================================
 //
-// FASE 1 restante (S4-S5):
-//   - Anthropometry (S4 - protocolos Pollock 7/3 + Jackson-Pollock + OMS pediátrico),
-//     DataImport, ImportColumnMapping (S5 - ETL Dietbox/Webdiet)
+// FASE 1 restante (S5):
+//   - DataImport, ImportColumnMapping (S5 - ETL Dietbox/Webdiet)
 //
 // FASE 2 (S6-S9):
 //   - Food (com version + isActive + supersededById + FC + IC — Lock 15 trigger),
