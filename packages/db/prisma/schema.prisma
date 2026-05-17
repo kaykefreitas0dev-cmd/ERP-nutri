@@ -576,6 +576,212 @@ model Anthropometry {
 }
 
 // =====================================================================
+// AGENDA + CALENDAR SYNC (S6)
+// =====================================================================
+// BookingPage: configuração pública /c/:slug por profissional
+// ServiceOffering: tipos de consulta (Inicial, Retorno, etc.) com preço+duração
+// Appointment: agendamento atômico com GiST exclusion constraint anti-overlap
+// AppointmentStatusEvent: append-only state machine
+// ExternalCalendarConnection: OAuth tokens Google Calendar (encrypted)
+// CalendarBusyBlock: bloqueios externos (Google sync) + bloqueios manuais
+// AvailabilityRule: regras semanais (seg-sex 8h-18h, etc.)
+
+model BookingPage {
+  id                       String   @id @default(uuid()) @db.Uuid
+  organizationId           String   @map("organization_id") @db.Uuid
+  professionalUserId       String   @map("professional_user_id") @db.Uuid
+  slug                     String   @unique // /c/:slug — pública
+  displayName              String   @map("display_name")
+  bio                      String?
+  photoUrl                 String?  @map("photo_url")
+  crn                      String?  // CRN-3/12345
+  crnUf                    String?  @map("crn_uf") @db.Char(2)
+  specialties              String[] // tags livres
+  bufferBeforeMinutes      Int      @default(15) @map("buffer_before_minutes")
+  bufferAfterMinutes       Int      @default(15) @map("buffer_after_minutes")
+  minNoticeHours           Int      @default(4) @map("min_notice_hours")
+  maxAdvanceDays           Int      @default(60) @map("max_advance_days")
+  isPublished              Boolean  @default(false) @map("is_published")
+  acceptsNewPatients       Boolean  @default(true) @map("accepts_new_patients")
+  timezone                 String   @default("America/Sao_Paulo")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  serviceOfferings ServiceOffering[]
+  appointments     Appointment[]
+  availabilityRules AvailabilityRule[]
+
+  @@index([organizationId, professionalUserId])
+  @@index([slug, isPublished])
+  @@map("booking_pages")
+}
+
+model ServiceOffering {
+  id              String   @id @default(uuid()) @db.Uuid
+  bookingPageId   String   @map("booking_page_id") @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  name            String // ex: "Consulta inicial"
+  description     String?
+  durationMinutes Int      @map("duration_minutes")
+  priceCents      Int?     @map("price_cents") // null = "a combinar"
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  bookingPage  BookingPage  @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([organizationId, isActive])
+  @@map("service_offerings")
+}
+
+model Appointment {
+  id                   String            @id @default(uuid()) @db.Uuid
+  organizationId       String            @map("organization_id") @db.Uuid
+  bookingPageId        String?           @map("booking_page_id") @db.Uuid // null = agendamento direto (não public booking)
+  professionalUserId   String            @map("professional_user_id") @db.Uuid
+  patientId            String?           @map("patient_id") @db.Uuid // null = paciente externo (criado depois)
+  serviceOfferingId    String?           @map("service_offering_id") @db.Uuid
+
+  // Time
+  startsAt             DateTime          @map("starts_at")
+  endsAt               DateTime          @map("ends_at")
+  timezone             String // tz do nutri no momento da criação (snapshot)
+
+  // External patient info (caso patientId seja null — booking público)
+  externalPatientName  String?           @map("external_patient_name")
+  externalPatientEmail String?           @map("external_patient_email")
+  externalPatientPhone String?           @map("external_patient_phone")
+
+  // Status
+  status               AppointmentStatus @default(SCHEDULED)
+  cancellationReason   String?           @map("cancellation_reason")
+  cancelledByUserId    String?           @map("cancelled_by_user_id") @db.Uuid
+  cancelledAt          DateTime?         @map("cancelled_at")
+  completedAt          DateTime?         @map("completed_at")
+
+  // Modality
+  modality             String            @default("in_person") // 'in_person' | 'video' | 'phone'
+  meetingUrl           String?           @map("meeting_url") // Google Meet auto-gerado (S15)
+  meetingNotes         String?           @map("meeting_notes")
+
+  // Source
+  source               String            @default("manual") // 'manual' | 'public_booking' | 'imported'
+  idempotencyKey       String?           @unique @map("idempotency_key") // anti-duplicate (booking público)
+
+  // External sync
+  googleCalendarEventId String?          @map("google_calendar_event_id")
+
+  notes                String?
+
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  bookingPage     BookingPage?     @relation(fields: [bookingPageId], references: [id], onDelete: SetNull)
+  serviceOffering ServiceOffering? @relation(fields: [serviceOfferingId], references: [id], onDelete: SetNull)
+  statusEvents    AppointmentStatusEvent[]
+
+  @@index([organizationId, startsAt])
+  @@index([professionalUserId, startsAt])
+  @@index([patientId])
+  @@index([organizationId, status])
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// Append-only audit das mudanças de status (CFN 599/2018 requer histórico)
+model AppointmentStatusEvent {
+  id              String            @id @default(uuid()) @db.Uuid
+  appointmentId   String            @map("appointment_id") @db.Uuid
+  fromStatus      AppointmentStatus? @map("from_status")
+  toStatus        AppointmentStatus @map("to_status")
+  changedByUserId String?           @map("changed_by_user_id") @db.Uuid
+  reason          String?
+  metadata        Json              @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, createdAt(sort: Desc)])
+  @@map("appointment_status_events")
+}
+
+model ExternalCalendarConnection {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  provider        String // 'google' | 'apple' | 'outlook'
+  accountEmail    String   @map("account_email")
+  // Tokens criptografados via envelope encryption (Vault DEK por org)
+  encryptedAccessToken  Bytes  @map("encrypted_access_token")
+  encryptedRefreshToken Bytes? @map("encrypted_refresh_token")
+  tokenExpiresAt        DateTime? @map("token_expires_at")
+  scopes                String[]
+  syncEnabled           Boolean  @default(true) @map("sync_enabled")
+  lastSyncAt            DateTime? @map("last_sync_at")
+  syncStatus            String   @default("pending") // 'pending' | 'syncing' | 'ok' | 'error'
+  syncErrorMessage      String?  @map("sync_error_message")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  busyBlocks CalendarBusyBlock[]
+
+  @@unique([userId, provider, accountEmail])
+  @@index([organizationId, syncEnabled])
+  @@map("external_calendar_connections")
+}
+
+model CalendarBusyBlock {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  connectionId    String?  @map("connection_id") @db.Uuid // null = bloqueio manual
+  source          String   @default("external") // 'external' | 'manual'
+  externalEventId String?  @map("external_event_id")
+  title           String?
+  startsAt        DateTime @map("starts_at")
+  endsAt          DateTime @map("ends_at")
+  isAllDay        Boolean  @default(false) @map("is_all_day")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  connection ExternalCalendarConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startsAt])
+  @@index([organizationId, startsAt])
+  @@index([externalEventId])
+  @@map("calendar_busy_blocks")
+}
+
+model AvailabilityRule {
+  id              String   @id @default(uuid()) @db.Uuid
+  bookingPageId   String   @map("booking_page_id") @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  // Recurrence rule: dia da semana + janela
+  dayOfWeek       Int      @map("day_of_week") // 0=domingo, 1=seg, ... 6=sábado
+  startTime       String   @map("start_time") // 'HH:mm' (no tz da BookingPage)
+  endTime         String   @map("end_time")
+  validFrom       DateTime? @map("valid_from") @db.Date
+  validUntil      DateTime? @map("valid_until") @db.Date
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  bookingPage BookingPage @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
+
+  @@index([bookingPageId, dayOfWeek])
+  @@map("availability_rules")
+}
+
+// =====================================================================
 // ETL — IMPORTAÇÃO DE DADOS (S5)
 // =====================================================================
 // Wizard de migração CSV (Dietbox, Webdiet, genérico)

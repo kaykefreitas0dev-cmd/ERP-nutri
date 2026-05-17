@@ -1,10 +1,6 @@
 # PM Required — Ações que dependem de você
 
 > Lista de itens que **só você pode fazer**. Atualizada continuamente durante modo agêntico.
->
-> **Modelo operacional atualizado** (2026-05-17 — ADR 0058):
-> Claude Code agora **mergeia PRs automaticamente** quando CI verde + threads resolvidos.
-> Você foca em estratégia (produto + bloqueios externos). Audita o `auto-execution-log.md` semanalmente.
 
 ## ✅ Rotação service_role — COMPLETA
 
