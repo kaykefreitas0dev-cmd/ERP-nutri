@@ -26,7 +26,10 @@ export interface TenantContext {
 }
 
 export class TenantContextError extends Error {
-  constructor(message: string, public status: number = 401) {
+  constructor(
+    message: string,
+    public status: number = 401,
+  ) {
     super(message);
     this.name = "TenantContextError";
   }
@@ -58,9 +61,7 @@ export async function extractTenantFromRequest(
 
   let payload: Record<string, unknown>;
   try {
-    payload = JSON.parse(
-      Buffer.from(parts[1]!, "base64url").toString("utf-8"),
-    );
+    payload = JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf-8"));
   } catch {
     throw new TenantContextError("Cannot decode JWT payload", 401);
   }
@@ -127,11 +128,13 @@ export async function withTenant<T>(
 
   return prisma.$transaction(async (tx) => {
     // SET LOCAL é transacional — não vaza entre transações
+    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
+    // `current_user` é palavra reservada do Postgres.
     await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_org = '${organizationId}'`,
+      `SELECT set_config('app.current_org', '${organizationId}', true)`,
     );
     await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_user = '${userId}'`,
+      `SELECT set_config('app.current_user', '${userId}', true)`,
     );
     return handler({ organizationId, userId, prisma: tx });
   });
@@ -151,11 +154,13 @@ export async function withTenantUnsafe<T>(
   handler: (ctx: TenantContext) => Promise<T>,
 ): Promise<T> {
   return prisma.$transaction(async (tx) => {
+    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
+    // `current_user` é palavra reservada do Postgres.
     await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_org = '${organizationId}'`,
+      `SELECT set_config('app.current_org', '${organizationId}', true)`,
     );
     await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_user = '${userId}'`,
+      `SELECT set_config('app.current_user', '${userId}', true)`,
     );
     return handler({ organizationId, userId, prisma: tx });
   });
