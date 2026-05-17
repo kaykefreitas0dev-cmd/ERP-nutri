@@ -403,6 +403,7 @@ model Patient {
   examAttachments     ExamAttachment[]
   anthropometryRecords Anthropometry[]
   mealPlans           MealPlan[]
+  clinicalDocuments   ClinicalDocument[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -1057,6 +1058,150 @@ model MealPlanTemplate {
 
   @@index([organizationId, name])
   @@map("meal_plan_templates")
+}
+
+// =====================================================================
+// CLINICAL DOCUMENTS (S11 — Fase 3)
+// =====================================================================
+// PDFs assinados (digital mock no MVP — ICP-Brasil Fase 7):
+//   - PLANO_ALIMENTAR (snapshot do MealPlan em PDF)
+//   - ATESTADO (justificativa para empresa/escola)
+//   - RECEITA_SUPLEMENTO (suplementação com posologia)
+//   - ENCAMINHAMENTO (referral para outro profissional)
+//   - RECIBO (S15a — fora deste sprint, schema preparado)
+// CID-10: códigos DATASUS para diagnósticos relevantes em nutrição
+// Lock 15 — versionado: documento congela hash do conteúdo + signature
+
+model Cid10Code {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique // "E66.0", "E10.9", "K59.0"
+  description String // "Obesidade devida a excesso de calorias"
+  category    String? // capítulo ("Doenças endócrinas", "Aparelho digestivo")
+  isCommonInNutrition Boolean @default(false) @map("is_common_in_nutrition")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  documents ClinicalDocumentCid[]
+
+  @@index([code])
+  @@index([isCommonInNutrition])
+  @@map("cid10_codes")
+}
+
+model DocumentTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  documentType    ClinicalDocumentType @map("document_type")
+  name            String // ex: "Atestado padrão consulta"
+  // Conteúdo com placeholders: {{patient.fullName}}, {{nutri.crn}}, {{date}}
+  bodyMarkdown    String   @map("body_markdown")
+  isShared        Boolean  @default(false) @map("is_shared") // visível para toda org
+  usageCount      Int      @default(0) @map("usage_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId, documentType])
+  @@map("document_templates")
+}
+
+model ClinicalDocument {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  issuedByUserId  String   @map("issued_by_user_id") @db.Uuid // CRN do emissor
+  documentType    ClinicalDocumentType @map("document_type")
+
+  title           String // ex: "Atestado — 15/03/2026"
+  // Conteúdo final renderizado (markdown pronto, placeholders já resolvidos)
+  bodyMarkdown    String   @map("body_markdown")
+
+  // Snapshot dados emissor (CFN/CRN deve aparecer no PDF — Lei CFN)
+  issuerName      String   @map("issuer_name")
+  issuerCrn       String?  @map("issuer_crn") // ex: "12345"
+  issuerCrnUf     String?  @map("issuer_crn_uf") @db.Char(2)
+
+  // Snapshot dados paciente (mesmo se anonimizado depois)
+  patientNameSnapshot String @map("patient_name_snapshot")
+  patientCpfSnapshot  String? @map("patient_cpf_snapshot") @db.VarChar(14)
+
+  // Para receitas/encaminhamentos: validade
+  validUntil      DateTime? @map("valid_until") @db.Date
+
+  // PDF gerado: storage path + hash imutável
+  pdfStorageKey   String?  @map("pdf_storage_key") // bucket Supabase Storage
+  pdfHash         String?  @map("pdf_hash") // SHA-256 hex do PDF — Lock 15
+  pdfGeneratedAt  DateTime? @map("pdf_generated_at")
+
+  // Vínculo opcional a outras entidades
+  mealPlanId      String?  @map("meal_plan_id") @db.Uuid // se documentType=PLANO_ALIMENTAR
+  appointmentId   String?  @map("appointment_id") @db.Uuid // origem (consulta)
+
+  status          ClinicalDocumentStatus @default(DRAFT)
+  issuedAt        DateTime? @map("issued_at") // quando assinado
+  revokedAt       DateTime? @map("revoked_at")
+  revokedReason   String?  @map("revoked_reason")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  cidCodes  ClinicalDocumentCid[]
+  signature DigitalSignature?
+
+  @@index([organizationId, patientId, createdAt(sort: Desc)])
+  @@index([issuedByUserId, documentType, createdAt(sort: Desc)])
+  @@index([status, issuedAt])
+  @@map("clinical_documents")
+}
+
+enum ClinicalDocumentType {
+  PLANO_ALIMENTAR
+  ATESTADO
+  RECEITA_SUPLEMENTO
+  ENCAMINHAMENTO
+  RECIBO
+}
+
+enum ClinicalDocumentStatus {
+  DRAFT
+  ISSUED
+  REVOKED
+}
+
+// CIDs anexados ao documento (M:N)
+model ClinicalDocumentCid {
+  id          String   @id @default(uuid()) @db.Uuid
+  documentId  String   @map("document_id") @db.Uuid
+  cidId       String   @map("cid_id") @db.Uuid
+
+  document ClinicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  cid      Cid10Code        @relation(fields: [cidId], references: [id], onDelete: Restrict)
+
+  @@unique([documentId, cidId])
+  @@index([documentId])
+  @@map("clinical_document_cids")
+}
+
+// Assinatura digital — MOCK no MVP (ICP-Brasil real Fase 7)
+// Registra: hash do PDF + timestamp + nome+CRN do signatário + chave pública mock
+model DigitalSignature {
+  id              String   @id @default(uuid()) @db.Uuid
+  documentId      String   @unique @map("document_id") @db.Uuid
+
+  // Mock signature: SHA-256(pdfHash + issuedAt + crn + secret)
+  signatureValue  String   @map("signature_value") // hex
+  signedAt        DateTime @map("signed_at")
+  signerName      String   @map("signer_name")
+  signerCrn       String?  @map("signer_crn")
+  signerCrnUf     String?  @map("signer_crn_uf") @db.Char(2)
+
+  // Para futuro ICP-Brasil: armazenar cert + chain
+  algorithm       String   @default("SHA256-MOCK") // depois: "SHA256-RSA"
+  certThumbprint  String?  @map("cert_thumbprint")
+
+  document ClinicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("digital_signatures")
 }
 
 // =====================================================================
