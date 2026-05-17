@@ -12,7 +12,10 @@ const UpdatePatientSchema = z.object({
   phone: z.string().max(40).nullable().optional(),
   cpf: z.string().max(14).nullable().optional(),
   birthDate: z.string().nullable().optional(),
-  biologicalSex: z.enum(["female", "male", "intersex", "undisclosed"]).nullable().optional(),
+  biologicalSex: z
+    .enum(["female", "male", "intersex", "undisclosed"])
+    .nullable()
+    .optional(),
   city: z.string().max(120).nullable().optional(),
   state: z.string().length(2).nullable().optional(),
   occupation: z.string().max(120).nullable().optional(),
@@ -26,7 +29,10 @@ interface Ctx {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(req: NextRequest, { params }: Ctx) {
+export async function GET(
+  req: NextRequest,
+  { params }: Ctx,
+): Promise<Response> {
   const { id } = await params;
 
   try {
@@ -34,7 +40,9 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       const patient = await prisma.patient.findFirst({
         where: { id },
         include: {
-          allergies: { include: { allergen: { select: { name: true, slug: true } } } },
+          allergies: {
+            include: { allergen: { select: { name: true, slug: true } } },
+          },
           clinicalConditions: true,
           dietaryRestrictions: true,
         },
@@ -70,7 +78,10 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: Ctx) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: Ctx,
+): Promise<Response> {
   const { id } = await params;
 
   try {
@@ -89,7 +100,9 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
         where: { id },
         data: {
           ...data,
-          birthDate: data.birthDate ? new Date(data.birthDate) : data.birthDate as null | undefined,
+          birthDate: data.birthDate
+            ? new Date(data.birthDate)
+            : (data.birthDate as null | undefined),
         },
       });
 

@@ -13,6 +13,7 @@
     "@nutricore/db": "workspace:^",
     "@nutricore/nutrition": "workspace:*",
     "@nutricore/types": "workspace:^",
+    "@repo/ui": "workspace:^",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "jszip": "^3.10.1",
