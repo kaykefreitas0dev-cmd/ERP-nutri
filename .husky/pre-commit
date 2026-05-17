@@ -1,1 +1,2 @@
-pnpm exec lint-staged
+export PATH="/c/Program Files/nodejs:$HOME/AppData/Roaming/npm:$PATH"
+npx lint-staged
