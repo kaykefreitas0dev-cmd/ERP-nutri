@@ -1,0 +1,16 @@
+[
+  { "slug": "gluten", "name": "Glúten", "category": "major", "crossReactsTo": [], "description": "Trigo, cevada, centeio e derivados" },
+  { "slug": "lactose", "name": "Lactose", "category": "major", "crossReactsTo": [], "description": "Açúcar do leite" },
+  { "slug": "proteina_leite", "name": "Proteína do leite (caseína/soro)", "category": "major", "crossReactsTo": ["soja"], "description": "Cross-reactivity com soja em <1 ano" },
+  { "slug": "ovo", "name": "Ovo", "category": "major", "crossReactsTo": [], "description": "Albumina e gema" },
+  { "slug": "amendoim", "name": "Amendoim", "category": "major", "crossReactsTo": ["tree_nuts"], "description": "Leguminosa frequentemente confundida com nuts" },
+  { "slug": "tree_nuts", "name": "Castanhas e nozes", "category": "tree_nut", "crossReactsTo": ["amendoim"], "description": "Castanha-do-pará, caju, amêndoa, noz, avelã, pistache" },
+  { "slug": "soja", "name": "Soja", "category": "major", "crossReactsTo": ["proteina_leite"], "description": "Inclui derivados (proteína texturizada, lecitina, etc.)" },
+  { "slug": "peixe", "name": "Peixe", "category": "major", "crossReactsTo": [], "description": "Pescados em geral" },
+  { "slug": "crustaceo", "name": "Crustáceo", "category": "shellfish", "crossReactsTo": [], "description": "Camarão, lagosta, caranguejo, lagostim" },
+  { "slug": "molusco", "name": "Molusco", "category": "shellfish", "crossReactsTo": [], "description": "Polvo, lula, ostra, vieira" },
+  { "slug": "sesamo", "name": "Gergelim (sésamo)", "category": "major", "crossReactsTo": [], "description": "Sementes de gergelim e tahine" },
+  { "slug": "mostarda", "name": "Mostarda", "category": "major", "crossReactsTo": [], "description": "Sementes e molhos" },
+  { "slug": "sulfitos", "name": "Sulfitos", "category": "other", "crossReactsTo": [], "description": "Conservante em vinhos e frutas secas (>10 mg/kg)" },
+  { "slug": "aipo", "name": "Aipo (salsão)", "category": "other", "crossReactsTo": [], "description": "Caule, raiz e sementes" }
+]

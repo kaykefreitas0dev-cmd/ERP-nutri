@@ -25,3 +25,5 @@ export {
   computePayloadHash,
 } from "./audit";
 export type { AuditEntry, ChainValidationResult } from "./audit";
+
+export { encryptForOrg, decryptForOrg, ensureOrgDek } from "./phi";
