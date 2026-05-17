@@ -28,6 +28,7 @@ export function InvitePatientButton({
   const [email, setEmail] = useState(defaultEmail ?? "");
   const [error, setError] = useState<string | null>(null);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (hasLinkedAccount) {
@@ -52,6 +53,7 @@ export function InvitePatientButton({
         return;
       }
       setInviteUrl(r.inviteUrl ?? null);
+      setEmailSent(Boolean(r.emailSent));
     });
   }
 
@@ -156,14 +158,27 @@ export function InvitePatientButton({
 
       {inviteUrl && (
         <div className="rounded-md border border-green-300 bg-green-50 p-2">
-          <p className="text-xs font-medium text-green-800">
-            ✅ Link gerado! Envie ao paciente:
-          </p>
+          {emailSent ? (
+            <>
+              <p className="text-xs font-semibold text-green-800">
+                ✅ Email enviado para {email}!
+              </p>
+              <p className="mt-1 text-[10px] text-green-700">
+                O paciente receberá um email com o link de acesso. Se ele não
+                receber em alguns minutos, pode usar o link abaixo manualmente.
+              </p>
+            </>
+          ) : (
+            <p className="text-xs font-medium text-green-800">
+              ✅ Link gerado! (sem provider de email configurado — envie
+              manualmente abaixo)
+            </p>
+          )}
           <input
             readOnly
             value={inviteUrl}
             onClick={(e) => (e.target as HTMLInputElement).select()}
-            className="mt-1 block w-full rounded border border-green-300 bg-white px-2 py-1 font-mono text-[10px]"
+            className="mt-2 block w-full rounded border border-green-300 bg-white px-2 py-1 font-mono text-[10px]"
           />
           <button
             type="button"
@@ -183,7 +198,7 @@ export function InvitePatientButton({
             disabled={pending}
             className="rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800 disabled:opacity-50"
           >
-            {pending ? "Gerando..." : "Gerar link de convite"}
+            {pending ? "Enviando..." : "📧 Enviar convite"}
           </button>
         )}
         <button
