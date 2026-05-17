@@ -184,9 +184,9 @@ runIfDb("Multi-tenant isolation (Lock 1)", () => {
     const result = await setup.prisma!.$transaction(async (tx: any) => {
       await tx.$executeRawUnsafe(`SET LOCAL ROLE authenticated`);
       // Sem set_config app.current_org — policy retorna null → 0 rows
-      const rows = await tx.$queryRawUnsafe<{ count: number }[]>(
+      const rows = (await tx.$queryRawUnsafe(
         `SELECT COUNT(*)::int AS count FROM memberships`,
-      );
+      )) as Array<{ count: number }>;
       return rows[0]?.count ?? -1;
     });
     expect(result).toBe(0);
