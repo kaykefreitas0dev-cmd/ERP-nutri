@@ -1,81 +1,129 @@
 "use client";
 
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils";
 
-export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "outline"
-  | "ghost"
-  | "destructive"
-  | "link";
-export type ButtonSize = "sm" | "md" | "lg" | "icon";
+/**
+ * Button — NutriCore Design System (Phase 1)
+ *
+ * Variantes: primary | secondary | ghost | danger | link
+ * Tamanhos:  sm (32) | md (36, default) | lg (40) | xl (48) | icon (36²)
+ *
+ * Detalhes invisíveis:
+ *  - `active:scale-[0.98]` em variantes sólidas (feedback tátil de clique).
+ *  - Transição com easing customizado (out-expo, igual Linear).
+ *  - Loading: substitui conteúdo por spinner mantendo largura (min-w via slot).
+ *  - Focus ring sempre 2px brand + offset 2px.
+ *  - Ícones esquerdo/direito via children — gap-2 nativo do flex.
+ */
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+const buttonVariants = cva(
+  [
+    "inline-flex items-center justify-center gap-2 font-medium",
+    "rounded-md select-none",
+    "transition-all duration-base",
+    "[transition-timing-function:var(--ease-out-expo)]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+  ],
+  {
+    variants: {
+      variant: {
+        primary: [
+          "bg-brand-primary text-white shadow-sm",
+          "hover:bg-brand-primary-hover hover:shadow-md",
+          "active:scale-[0.98]",
+        ],
+        secondary: [
+          "bg-bg-surface text-text-primary border border-border-default",
+          "hover:bg-bg-surface-hover hover:border-border-strong",
+          "active:scale-[0.98]",
+        ],
+        ghost: [
+          "bg-transparent text-text-primary",
+          "hover:bg-bg-subtle",
+          "active:scale-[0.98]",
+        ],
+        danger: [
+          "bg-danger text-white shadow-sm",
+          "hover:opacity-90 hover:shadow-md",
+          "focus-visible:ring-danger",
+          "active:scale-[0.98]",
+        ],
+        link: [
+          "h-auto px-0 text-text-link underline-offset-4",
+          "hover:underline",
+        ],
+        // Backwards-compat aliases (gradualmente migrar uso → primary/secondary)
+        outline: [
+          "bg-bg-surface text-text-primary border border-border-default",
+          "hover:bg-bg-surface-hover hover:border-border-strong",
+          "active:scale-[0.98]",
+        ],
+        destructive: [
+          "bg-danger text-white shadow-sm",
+          "hover:opacity-90 hover:shadow-md",
+          "focus-visible:ring-danger",
+          "active:scale-[0.98]",
+        ],
+      },
+      size: {
+        sm: "h-8 px-3 text-tiny [&_svg]:size-3.5",
+        md: "h-9 px-4 text-body [&_svg]:size-4",
+        lg: "h-10 px-5 text-body [&_svg]:size-4",
+        xl: "h-12 px-6 text-h3 [&_svg]:size-5",
+        icon: "h-9 w-9 [&_svg]:size-4",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  },
+);
+
+export type ButtonVariant = NonNullable<
+  VariantProps<typeof buttonVariants>["variant"]
+>;
+export type ButtonSize = NonNullable<
+  VariantProps<typeof buttonVariants>["size"]
+>;
+
+export interface ButtonProps
+  extends
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   loading?: boolean;
   children: ReactNode;
 }
 
-const variantClass: Record<ButtonVariant, string> = {
-  primary:
-    "bg-teal-700 text-white hover:bg-teal-800 focus-visible:ring-teal-500 disabled:bg-gray-400",
-  secondary:
-    "bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-400 disabled:opacity-50",
-  outline:
-    "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus-visible:ring-teal-500 disabled:opacity-50",
-  ghost:
-    "bg-transparent text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-400 disabled:opacity-50",
-  destructive:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 disabled:bg-gray-400",
-  link: "text-teal-700 underline-offset-4 hover:underline focus-visible:ring-teal-500 disabled:opacity-50",
-};
-
-const sizeClass: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-base",
-  icon: "h-10 w-10",
-};
-
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    {
-      variant = "primary",
-      size = "md",
-      loading = false,
-      disabled,
-      className,
-      children,
-      ...props
-    },
+    { variant, size, loading = false, disabled, className, children, ...props },
     ref,
   ) => (
     <button
       ref={ref}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed",
-        variantClass[variant],
-        sizeClass[size],
-        className,
-      )}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     >
-      {loading && (
-        <span
-          aria-hidden
-          className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-        />
-      )}
+      {loading && <Spinner />}
       {children}
     </button>
   ),
 );
 
 Button.displayName = "Button";
+
+function Spinner() {
+  return (
+    <span
+      aria-hidden
+      className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+    />
+  );
+}

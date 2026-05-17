@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { KeyRound, Mail, MailCheck } from "lucide-react";
+import { KeyRound, Mail, MailCheck, TriangleAlert } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "magic" | "password";
@@ -204,8 +204,9 @@ export function LoginForm() {
           >
             {sending ? "Enviando..." : "Enviar link mágico"}
           </button>
-          <p className="text-[10px] text-slate-500">
-            ⚠️ Se não chegar email, use senha acima.
+          <p className="flex items-center gap-1.5 text-[10px] text-slate-500">
+            <TriangleAlert className="h-3 w-3" strokeWidth={2} />
+            Se não chegar email, use senha acima.
           </p>
         </form>
       )}

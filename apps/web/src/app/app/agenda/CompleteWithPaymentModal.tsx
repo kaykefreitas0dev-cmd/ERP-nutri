@@ -8,6 +8,7 @@ import {
   Banknote,
   Landmark,
   HelpCircle,
+  TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
 import { completeAppointmentWithPaymentAction } from "./payment-actions";
@@ -227,9 +228,15 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               />
               <span>
                 <strong>Gerar recibo simples (PDF)</strong>
-                <span className="block text-xs text-slate-600">
-                  Recibo assinado eletronicamente. ⚠️ Não substitui a NF-e —
-                  emita NF-e manualmente em seu sistema fiscal.
+                <span className="mt-1 flex items-start gap-1.5 text-xs text-slate-600">
+                  <TriangleAlert
+                    className="mt-0.5 h-3 w-3 shrink-0"
+                    strokeWidth={2}
+                  />
+                  <span>
+                    Recibo assinado eletronicamente. Não substitui a NF-e —
+                    emita NF-e manualmente em seu sistema fiscal.
+                  </span>
                 </span>
               </span>
             </label>

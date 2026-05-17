@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { UtensilsCrossed, CalendarDays } from "lucide-react";
 import {
   addMealItemAction,
   removeMealItemAction,
@@ -96,8 +97,12 @@ export function MealPlanEditor({ days }: Props) {
           className="rounded-lg border border-slate-200 bg-white shadow-sm"
         >
           <header className="border-b border-slate-200 bg-slate-50 px-5 py-3">
-            <h2 className="text-lg font-semibold text-slate-900">
-              📅 {day.dayLabel}
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <CalendarDays
+                className="h-4 w-4 text-slate-500"
+                strokeWidth={1.75}
+              />
+              {day.dayLabel}
             </h2>
           </header>
 
@@ -119,10 +124,14 @@ export function MealPlanEditor({ days }: Props) {
                 <div key={meal.id} className="p-4">
                   <header className="mb-2 flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-slate-900">
-                        🍽️ {meal.name}
+                      <h3 className="flex items-center gap-2 font-medium text-slate-900">
+                        <UtensilsCrossed
+                          className="h-4 w-4 text-slate-500"
+                          strokeWidth={1.75}
+                        />
+                        {meal.name}
                         {meal.scheduledTime && (
-                          <span className="ml-2 text-xs text-slate-500">
+                          <span className="ml-1 text-xs text-slate-500 tabular-nums">
                             {meal.scheduledTime}
                           </span>
                         )}

@@ -70,7 +70,9 @@ export function OnboardingWizard({
   return (
     <div className="mx-auto max-w-2xl px-4">
       <header className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-teal-700">Bem-vindo ao NutriCore</h1>
+        <h1 className="text-2xl font-bold text-teal-700">
+          Bem-vindo ao NutriCore
+        </h1>
         <p className="mt-2 text-sm text-slate-600">
           Vamos configurar sua conta em poucos passos
         </p>
@@ -176,7 +178,9 @@ function Step1Welcome({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">Olá! Vamos começar.</h2>
+      <h2 className="text-xl font-semibold text-slate-900">
+        Olá! Vamos começar.
+      </h2>
       <p className="mt-2 text-sm text-slate-600">
         Vamos personalizar sua conta para começar a atender pacientes.
       </p>
@@ -271,7 +275,9 @@ function Step2ProfessionalType({
               className="mt-1 h-4 w-4 text-teal-700 focus:ring-teal-500"
             />
             <div>
-              <div className="text-sm font-medium text-slate-900">{opt.label}</div>
+              <div className="text-sm font-medium text-slate-900">
+                {opt.label}
+              </div>
               <div className="text-xs text-slate-600">{opt.desc}</div>
             </div>
           </label>
@@ -316,7 +322,8 @@ function Step3CRN({
     <div>
       <h2 className="text-xl font-semibold text-slate-900">CRN (opcional)</h2>
       <p className="mt-2 text-sm text-slate-600">
-        Aparecerá em receitas, atestados e encaminhamentos. Pode adicionar depois.
+        Aparecerá em receitas, atestados e encaminhamentos. Pode adicionar
+        depois.
       </p>
 
       <div className="mt-6">
@@ -380,9 +387,12 @@ function Step4Organization({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">Nome da sua clínica</h2>
+      <h2 className="text-xl font-semibold text-slate-900">
+        Nome da sua clínica
+      </h2>
       <p className="mt-2 text-sm text-slate-600">
-        Para autônomo: pode ser seu nome profissional. Para clínica: o nome fantasia.
+        Para autônomo: pode ser seu nome profissional. Para clínica: o nome
+        fantasia.
       </p>
 
       <div className="mt-6 space-y-4">
@@ -459,7 +469,9 @@ function Step5Confirm({
 }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">Confirmar e finalizar</h2>
+      <h2 className="text-xl font-semibold text-slate-900">
+        Confirmar e finalizar
+      </h2>
       <p className="mt-2 text-sm text-slate-600">
         Revise os dados antes de criar sua organização.
       </p>
@@ -468,38 +480,60 @@ function Step5Confirm({
         <dl className="space-y-2">
           <div className="flex justify-between">
             <dt className="text-slate-600">Nome:</dt>
-            <dd className="font-medium text-slate-900">{String(data.fullName ?? "—")}</dd>
+            <dd className="font-medium text-slate-900">
+              {String(data.fullName ?? "—")}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-600">Tipo:</dt>
-            <dd className="font-medium text-slate-900">{String(data.professionalType ?? "—")}</dd>
+            <dd className="font-medium text-slate-900">
+              {String(data.professionalType ?? "—")}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-600">CRN:</dt>
-            <dd className="font-medium text-slate-900">{String(data.crn || "Não informado")}</dd>
+            <dd className="font-medium text-slate-900">
+              {String(data.crn || "Não informado")}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-600">Organização:</dt>
-            <dd className="font-medium text-slate-900">{String(data.orgName ?? "—")}</dd>
+            <dd className="font-medium text-slate-900">
+              {String(data.orgName ?? "—")}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-600">Slug:</dt>
-            <dd className="font-mono text-slate-900">{String(data.orgSlug ?? "—")}</dd>
+            <dd className="font-mono text-slate-900">
+              {String(data.orgSlug ?? "—")}
+            </dd>
           </div>
         </dl>
       </div>
 
       <form action={onComplete} className="mt-6">
         {/* Re-enviar campos como hidden para validação no server action */}
-        <input type="hidden" name="fullName" value={String(data.fullName ?? "")} />
+        <input
+          type="hidden"
+          name="fullName"
+          value={String(data.fullName ?? "")}
+        />
         <input
           type="hidden"
           name="professionalType"
           value={String(data.professionalType ?? "nutricionista_autonomo")}
         />
         <input type="hidden" name="crn" value={String(data.crn ?? "")} />
-        <input type="hidden" name="orgName" value={String(data.orgName ?? "")} />
-        <input type="hidden" name="orgSlug" value={String(data.orgSlug ?? "")} />
+        <input
+          type="hidden"
+          name="orgName"
+          value={String(data.orgName ?? "")}
+        />
+        <input
+          type="hidden"
+          name="orgSlug"
+          value={String(data.orgSlug ?? "")}
+        />
 
         <label className="flex items-start gap-2 text-sm text-slate-700">
           <input
@@ -510,11 +544,19 @@ function Step5Confirm({
           />
           <span>
             Li e concordo com os{" "}
-            <a href="/termos" className="text-teal-700 underline" target="_blank">
+            <a
+              href="/termos"
+              className="text-teal-700 underline"
+              target="_blank"
+            >
               Termos de uso
             </a>{" "}
             e{" "}
-            <a href="/privacidade" className="text-teal-700 underline" target="_blank">
+            <a
+              href="/privacidade"
+              className="text-teal-700 underline"
+              target="_blank"
+            >
               Política de privacidade (LGPD)
             </a>
             .
@@ -534,7 +576,7 @@ function Step5Confirm({
             disabled={pending}
             className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
           >
-            {pending ? "Criando organização…" : "Finalizar configuração 🎉"}
+            {pending ? "Criando organização…" : "Finalizar configuração"}
           </button>
         </div>
       </form>

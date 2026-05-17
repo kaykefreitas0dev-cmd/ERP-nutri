@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { TriangleAlert } from "lucide-react";
 import { createPatientAction, updatePatientAction } from "./actions";
 
 interface PatientFormProps {
@@ -57,7 +58,10 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
       {patient && <input type="hidden" name="patientId" value={patient.id} />}
 
       {error && (
-        <div role="alert" className="rounded-md bg-red-50 p-4 text-sm text-red-800">
+        <div
+          role="alert"
+          className="rounded-md bg-red-50 p-4 text-sm text-red-800"
+        >
           {error}
         </div>
       )}
@@ -217,9 +221,12 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
           placeholder="Preferências de agendamento, observações não-clínicas..."
           className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
         />
-        <p className="mt-1 text-xs text-slate-500">
-          ⚠️ Anotações clínicas (anamnese, evolução) ficam em &quot;Prontuário&quot; — esses
-          são criptografados.
+        <p className="mt-1 flex items-start gap-1.5 text-xs text-slate-500">
+          <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
+          <span>
+            Anotações clínicas (anamnese, evolução) ficam em
+            &ldquo;Prontuário&rdquo; — esses são criptografados.
+          </span>
         </p>
       </div>
 
@@ -229,7 +236,11 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
           disabled={pending}
           className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
         >
-          {pending ? "Salvando…" : mode === "create" ? "Criar paciente" : "Salvar alterações"}
+          {pending
+            ? "Salvando…"
+            : mode === "create"
+              ? "Criar paciente"
+              : "Salvar alterações"}
         </button>
       </div>
     </form>

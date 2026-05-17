@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { CircleCheck } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/card";
-import {
-  submitPublicBookingAction,
-  getAvailableSlotsAction,
-} from "./actions";
+import { submitPublicBookingAction, getAvailableSlotsAction } from "./actions";
 
 interface Service {
   id: string;
@@ -18,7 +16,11 @@ interface Service {
 interface Props {
   bookingPageId: string;
   services: Service[];
-  availabilityRules: Array<{ dayOfWeek: number; startTime: string; endTime: string }>;
+  availabilityRules: Array<{
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+  }>;
   timezone: string;
   minNoticeHours: number;
   maxAdvanceDays: number;
@@ -26,9 +28,10 @@ interface Props {
 
 function formatPrice(cents: number | null): string {
   if (cents == null) return "A combinar";
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    cents / 100,
-  );
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
 }
 
 export function BookingForm({
@@ -52,7 +55,9 @@ export function BookingForm({
     const now = Date.now();
     return {
       today: new Date(now).toISOString().slice(0, 10),
-      maxDate: new Date(now + maxAdvanceDays * 24 * 3600_000).toISOString().slice(0, 10),
+      maxDate: new Date(now + maxAdvanceDays * 24 * 3600_000)
+        .toISOString()
+        .slice(0, 10),
     };
   });
   const today = dateBounds.today;
@@ -102,14 +107,18 @@ export function BookingForm({
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <div className="text-5xl">✅</div>
-          <h2 className="mt-4 text-xl font-bold text-slate-900">Agendamento confirmado!</h2>
-          <p className="mt-2 text-slate-600">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-bg text-success">
+            <CircleCheck className="h-9 w-9" strokeWidth={1.75} />
+          </div>
+          <h2 className="mt-4 text-xl font-bold text-text-primary">
+            Agendamento confirmado!
+          </h2>
+          <p className="mt-2 text-text-secondary">
             Você receberá um email com os detalhes em alguns minutos.
           </p>
-          <p className="mt-4 text-sm text-slate-500">
-            Em caso de dúvida ou para cancelar, entre em contato diretamente com o
-            profissional.
+          <p className="mt-4 text-sm text-text-muted">
+            Em caso de dúvida ou para cancelar, entre em contato diretamente com
+            o profissional.
           </p>
         </CardContent>
       </Card>
@@ -119,7 +128,9 @@ export function BookingForm({
   return (
     <Card>
       <CardContent className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Agende sua consulta</h2>
+        <h2 className="text-lg font-semibold text-slate-900">
+          Agende sua consulta
+        </h2>
 
         {/* Progress steps */}
         <div className="mt-4 flex items-center gap-2 text-xs">
@@ -137,7 +148,11 @@ export function BookingForm({
                 {i + 1}
               </span>
               <span className="capitalize">
-                {s === "service" ? "Serviço" : s === "datetime" ? "Horário" : "Dados"}
+                {s === "service"
+                  ? "Serviço"
+                  : s === "datetime"
+                    ? "Horário"
+                    : "Dados"}
               </span>
               {i < 2 && <span className="text-slate-300">→</span>}
             </div>
@@ -145,7 +160,10 @@ export function BookingForm({
         </div>
 
         {error && (
-          <div role="alert" className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+          <div
+            role="alert"
+            className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-800"
+          >
             {error}
           </div>
         )}
@@ -153,7 +171,9 @@ export function BookingForm({
         <div className="mt-6">
           {step === "service" && (
             <div className="space-y-3">
-              <p className="text-sm text-slate-600">Escolha o tipo de consulta:</p>
+              <p className="text-sm text-slate-600">
+                Escolha o tipo de consulta:
+              </p>
               {services.length === 0 ? (
                 <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
                   Sem serviços configurados pelo profissional ainda.
@@ -171,9 +191,13 @@ export function BookingForm({
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-slate-900">{s.name}</div>
+                        <div className="font-medium text-slate-900">
+                          {s.name}
+                        </div>
                         {s.description && (
-                          <p className="mt-1 text-sm text-slate-600">{s.description}</p>
+                          <p className="mt-1 text-sm text-slate-600">
+                            {s.description}
+                          </p>
                         )}
                       </div>
                       <div className="text-right">
@@ -207,7 +231,10 @@ export function BookingForm({
               </div>
 
               <div>
-                <label htmlFor="bookingDate" className="block text-sm font-medium">
+                <label
+                  htmlFor="bookingDate"
+                  className="block text-sm font-medium"
+                >
                   Data *
                 </label>
                 <input
@@ -227,9 +254,13 @@ export function BookingForm({
 
               {selectedDate && (
                 <div>
-                  <span className="block text-sm font-medium">Horário disponível *</span>
+                  <span className="block text-sm font-medium">
+                    Horário disponível *
+                  </span>
                   {loadingSlots ? (
-                    <p className="mt-2 text-sm text-slate-500">Buscando horários…</p>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Buscando horários…
+                    </p>
                   ) : availableSlots.length === 0 ? (
                     <p className="mt-2 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
                       Nenhum horário disponível nesse dia. Tente outra data.
@@ -284,7 +315,10 @@ export function BookingForm({
               </div>
 
               <div>
-                <label htmlFor="patientName" className="block text-sm font-medium">
+                <label
+                  htmlFor="patientName"
+                  className="block text-sm font-medium"
+                >
                   Seu nome *
                 </label>
                 <input
@@ -298,7 +332,10 @@ export function BookingForm({
               </div>
 
               <div>
-                <label htmlFor="patientEmail" className="block text-sm font-medium">
+                <label
+                  htmlFor="patientEmail"
+                  className="block text-sm font-medium"
+                >
                   Email *
                 </label>
                 <input
@@ -312,7 +349,10 @@ export function BookingForm({
               </div>
 
               <div>
-                <label htmlFor="patientPhone" className="block text-sm font-medium">
+                <label
+                  htmlFor="patientPhone"
+                  className="block text-sm font-medium"
+                >
                   WhatsApp / Telefone
                 </label>
                 <input

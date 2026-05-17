@@ -1,94 +1,165 @@
 /**
- * Design tokens centralizados do NutriCore.
+ * NutriCore — Design Tokens (TypeScript mirror de theme.css)
  *
- * Mudar valores aqui afeta TODOS os apps (web, patient, admin, marketing)
- * após rebuild. Não use cores hardcoded em componentes — sempre referencie
- * estes tokens via classes Tailwind extendidas (ex: bg-brand-primary) ou
- * via CSS variables (ex: var(--color-brand-primary)).
+ * Use os tokens TS quando precisar dos valores em JS/TS (ex: configurar
+ * recharts, gerar SVG de empty state, computar cores em runtime).
+ *
+ * Para CSS/Tailwind: use as utilities derivadas de @theme inline em theme.css
+ * (ex: `bg-brand-primary`, `text-text-primary`, `shadow-md`).
  *
  * Hierarquia:
- *   1. Cores primitivas (slate-50, teal-700, etc) — Tailwind defaults
- *   2. Tokens semânticos (brand, surface, danger) — ESTE arquivo
- *   3. Componentes que consomem os tokens
+ *   1. Cores primitivas (escala 50-950) — definidas em theme.css
+ *   2. Tokens semânticos (brand-primary, success, etc.) — este arquivo
+ *   3. Componentes consomem semânticos, nunca primitivos
  *
- * Para dark mode futuro, basta adicionar bloco `[data-theme="dark"]` em
- * theme.css com overrides — JS/components não precisam mudar.
+ * Dark mode via `[data-theme="dark"]` no <html> (next-themes) — só CSS muda;
+ * estes valores TS são os do modo light (referência para cálculos).
  */
 
 export const tokens = {
-  // ─── Brand ──────────────────────────────────────────────────────────────
-  // Identidade visual primária. Trocar aqui = trocar em todo o sistema.
+  // ─── Brand — verde nutricional ─────────────────────────────────────────
   brand: {
-    primary: "#0f766e", // teal-700 — botões CTA, links, ícones primários
-    primaryHover: "#115e59", // teal-800
-    primaryLight: "#ccfbf1", // teal-100 — backgrounds suaves
-    primaryDark: "#134e4a", // teal-900
-
-    secondary: "#0f172a", // slate-900 — admin app, headers escuros
-    secondaryHover: "#1e293b", // slate-800
-
-    accent: "#f59e0b", // amber-500 — destaques, badges
+    50: "#f0fdf4",
+    100: "#dcfce7",
+    200: "#bbf7d0",
+    300: "#86efac",
+    400: "#4ade80",
+    500: "#22c55e",
+    600: "#16a34a", // primary (light)
+    700: "#15803d",
+    800: "#166534",
+    900: "#14532d",
+    950: "#052e16",
+    primary: "#16a34a",
+    primaryHover: "#15803d",
+    primaryBg: "#f0fdf4",
+    primaryFg: "#ffffff",
   },
 
-  // ─── Status semântico ───────────────────────────────────────────────────
-  status: {
-    success: "#16a34a", // green-600
-    successBg: "#dcfce7", // green-100
-    danger: "#dc2626", // red-600
-    dangerBg: "#fee2e2", // red-100
-    warning: "#d97706", // amber-600
-    warningBg: "#fef3c7", // amber-100
-    info: "#2563eb", // blue-600
-    infoBg: "#dbeafe", // blue-100
+  // ─── Semânticos ────────────────────────────────────────────────────────
+  semantic: {
+    success: "#16a34a",
+    successBg: "#dcfce7",
+    successBorder: "#86efac",
+    warning: "#ea580c", // laranja queimado (orange-600)
+    warningBg: "#ffedd5",
+    warningBorder: "#fdba74",
+    danger: "#dc2626",
+    dangerBg: "#fee2e2",
+    dangerBorder: "#fca5a5",
+    info: "#0284c7",
+    infoBg: "#e0f2fe",
+    infoBorder: "#7dd3fc",
   },
 
-  // ─── Surfaces (fundos, bordas, divisores) ──────────────────────────────
-  surface: {
-    page: "#f8fafc", // slate-50 — fundo geral
-    card: "#ffffff", // white — cards, modais
-    cardHover: "#f1f5f9", // slate-100
-    border: "#e2e8f0", // slate-200 — bordas padrão
-    borderStrong: "#cbd5e1", // slate-300
-    overlay: "rgba(15, 23, 42, 0.5)", // overlay de modais
+  // ─── Macros — cores FIXAS em todo o sistema ────────────────────────────
+  // Nutri vê âmbar e sabe "carboidrato". Não mudar.
+  macros: {
+    protein: "#ef4444", // red-500
+    proteinBg: "#fee2e2",
+    carb: "#f59e0b", // amber-500
+    carbBg: "#fef3c7",
+    fat: "#a855f7", // purple-500
+    fatBg: "#f3e8ff",
+    fiber: "#10b981", // emerald-500
+    fiberBg: "#d1fae5",
+    water: "#06b6d4", // cyan-500
+    waterBg: "#cffafe",
   },
 
-  // ─── Texto ──────────────────────────────────────────────────────────────
+  // ─── Backgrounds — warm whites (stone) ─────────────────────────────────
+  bg: {
+    page: "#fafaf9",
+    surface: "#ffffff",
+    surfaceHover: "#f5f5f4",
+    elevated: "#ffffff",
+    subtle: "#f5f5f4",
+    muted: "#e7e5e4",
+    overlay: "rgba(28, 25, 23, 0.5)",
+  },
+
+  // ─── Borders ───────────────────────────────────────────────────────────
+  border: {
+    subtle: "#e7e5e4",
+    default: "#d6d3d1",
+    strong: "#a8a29e",
+  },
+
+  // ─── Text ──────────────────────────────────────────────────────────────
   text: {
-    primary: "#0f172a", // slate-900 — texto principal
-    secondary: "#475569", // slate-600 — texto secundário
-    muted: "#94a3b8", // slate-400 — placeholders, captions
-    inverse: "#ffffff", // texto sobre fundo escuro
+    primary: "#1c1917",
+    secondary: "#44403c",
+    muted: "#78716c",
+    subtle: "#a8a29e",
+    inverse: "#fafaf9",
+    onBrand: "#ffffff",
+    link: "#15803d",
   },
 
-  // ─── Tipografia ─────────────────────────────────────────────────────────
+  // ─── Tipografia ────────────────────────────────────────────────────────
   font: {
-    sans: '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    mono: '"Geist Mono", "SF Mono", Monaco, Consolas, monospace',
+    sans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    mono: '"JetBrains Mono", "SF Mono", Monaco, Consolas, monospace',
   },
 
-  // ─── Spacing scale (rem) ────────────────────────────────────────────────
-  // Mesma scale do Tailwind por consistência. Tokens semânticos abaixo.
-  space: {
-    componentPad: "0.75rem", // 12px — padding interno de cards
-    sectionGap: "1.5rem", // 24px — entre seções
-    pageMargin: "1.5rem", // 24px — margem da página
+  fontSize: {
+    display: "2rem", // 32px
+    h1: "1.5rem", // 24px
+    h2: "1.125rem", // 18px
+    h3: "1rem", // 16px
+    body: "0.875rem", // 14px
+    caption: "0.8125rem", // 13px
+    tiny: "0.75rem", // 12px
   },
 
-  // ─── Border radius ──────────────────────────────────────────────────────
+  // ─── Radii ─────────────────────────────────────────────────────────────
   radius: {
-    sm: "0.25rem", // 4px — inputs pequenos
-    md: "0.375rem", // 6px — botões padrão
-    lg: "0.5rem", // 8px — cards
-    xl: "0.75rem", // 12px — modais
-    full: "9999px", // pills, avatars
+    xs: "0.25rem", // 4px
+    sm: "0.375rem", // 6px
+    md: "0.5rem", // 8px
+    lg: "0.75rem", // 12px
+    xl: "1rem", // 16px
+    "2xl": "1.5rem", // 24px
+    full: "9999px",
   },
 
-  // ─── Sombras ────────────────────────────────────────────────────────────
+  // ─── Shadows — matiz stone-900 sutil ───────────────────────────────────
   shadow: {
-    sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-    md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-    lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-    overlay: "0 25px 50px -12px rgb(0 0 0 / 0.25)", // modais
+    xs: "0 1px 2px 0 rgb(28 25 23 / 0.04)",
+    sm: "0 1px 3px 0 rgb(28 25 23 / 0.06), 0 1px 2px -1px rgb(28 25 23 / 0.04)",
+    md: "0 4px 6px -1px rgb(28 25 23 / 0.07), 0 2px 4px -2px rgb(28 25 23 / 0.05)",
+    lg: "0 10px 15px -3px rgb(28 25 23 / 0.08), 0 4px 6px -4px rgb(28 25 23 / 0.05)",
+    xl: "0 20px 25px -5px rgb(28 25 23 / 0.1), 0 8px 10px -6px rgb(28 25 23 / 0.06)",
+    focusRing: "0 0 0 3px rgb(22 163 74 / 0.15)",
+    focusRingDanger: "0 0 0 3px rgb(220 38 38 / 0.15)",
+  },
+
+  // ─── Motion ────────────────────────────────────────────────────────────
+  duration: {
+    fast: "150ms",
+    base: "200ms",
+    slow: "300ms",
+    slower: "400ms",
+  },
+
+  easing: {
+    outExpo: "cubic-bezier(0.16, 1, 0.3, 1)", // padrão de chegada
+    outQuart: "cubic-bezier(0.25, 1, 0.5, 1)",
+    spring: "cubic-bezier(0.34, 1.56, 0.64, 1)", // overshoot pontual
+  },
+
+  // ─── Z-index stack ─────────────────────────────────────────────────────
+  z: {
+    base: 0,
+    sticky: 30,
+    fixed: 40,
+    dropdown: 50,
+    overlay: 60,
+    modalBackdrop: 70,
+    modal: 80,
+    popover: 90,
+    tooltip: 100,
+    toast: 110,
   },
 } as const;
 
