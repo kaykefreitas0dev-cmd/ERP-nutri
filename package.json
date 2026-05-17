@@ -9,7 +9,8 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "pnpm --filter @nutricore/db exec prisma generate || true"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
