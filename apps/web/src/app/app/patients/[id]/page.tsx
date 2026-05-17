@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ClinicalNotesSection } from "./ClinicalNotesSection";
+import { InvitePatientButton } from "./invites/InvitePatientButton";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function PatientDetailPage({ params }: Props) {
     occupation: string | null;
     notes: string | null;
     status: string;
+    userId: string | null;
     createdAt: Date;
     updatedAt: Date;
     allergies: Array<{
@@ -38,6 +40,13 @@ export default async function PatientDetailPage({ params }: Props) {
       conditionName: string;
       severity: string | null;
     }>;
+    invites: Array<{
+      id: string;
+      email: string;
+      expiresAt: Date;
+      acceptedAt: Date | null;
+      revokedAt: Date | null;
+    }>;
   } | null = null;
 
   try {
@@ -49,6 +58,17 @@ export default async function PatientDetailPage({ params }: Props) {
             include: { allergen: { select: { name: true, slug: true } } },
           },
           clinicalConditions: { orderBy: { createdAt: "desc" } },
+          invites: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              email: true,
+              expiresAt: true,
+              acceptedAt: true,
+              revokedAt: true,
+            },
+          },
         },
       });
 
@@ -147,6 +167,60 @@ export default async function PatientDetailPage({ params }: Props) {
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Coluna 1: dados pessoais */}
           <div className="space-y-4">
+            {/* Acesso ao app paciente */}
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Acesso ao app
+              </h2>
+              <div className="mt-3">
+                <InvitePatientButton
+                  patientId={patient.id}
+                  patientName={patient.fullName}
+                  defaultEmail={patient.email}
+                  hasLinkedAccount={Boolean(patient.userId)}
+                  hasActiveInvite={(() => {
+                    const now = new Date();
+                    return patient.invites.some(
+                      (inv) =>
+                        !inv.acceptedAt &&
+                        !inv.revokedAt &&
+                        new Date(inv.expiresAt) > now,
+                    );
+                  })()}
+                  activeInviteId={(() => {
+                    const now = new Date();
+                    const inv = patient.invites.find(
+                      (i) =>
+                        !i.acceptedAt &&
+                        !i.revokedAt &&
+                        new Date(i.expiresAt) > now,
+                    );
+                    return inv?.id ?? null;
+                  })()}
+                  activeInviteEmail={(() => {
+                    const now = new Date();
+                    const inv = patient.invites.find(
+                      (i) =>
+                        !i.acceptedAt &&
+                        !i.revokedAt &&
+                        new Date(i.expiresAt) > now,
+                    );
+                    return inv?.email ?? null;
+                  })()}
+                  activeInviteExpiresAt={(() => {
+                    const now = new Date();
+                    const inv = patient.invites.find(
+                      (i) =>
+                        !i.acceptedAt &&
+                        !i.revokedAt &&
+                        new Date(i.expiresAt) > now,
+                    );
+                    return inv?.expiresAt ?? null;
+                  })()}
+                />
+              </div>
+            </div>
+
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900">Contato</h2>
               <dl className="mt-3 space-y-2 text-sm">

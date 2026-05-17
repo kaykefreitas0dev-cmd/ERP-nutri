@@ -1,0 +1,13 @@
+{
+  "name": "NutriCore — Meu plano",
+  "short_name": "NutriCore",
+  "description": "Acompanhe seu plano alimentar, agenda e check-ins diários.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f766e",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "icons": []
+}
