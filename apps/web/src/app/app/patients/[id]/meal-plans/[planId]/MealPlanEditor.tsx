@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { UtensilsCrossed, CalendarDays } from "lucide-react";
+import { UtensilsCrossed, CalendarDays, Plus, X, Search } from "lucide-react";
 import {
   addMealItemAction,
   removeMealItemAction,
@@ -94,16 +94,20 @@ export function MealPlanEditor({ days }: Props) {
       {days.map((day) => (
         <section
           key={day.id}
-          className="rounded-lg border border-border-subtle bg-white shadow-sm"
+          className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
         >
-          <header className="border-b border-border-subtle bg-bg-subtle px-5 py-3">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+          <header className="flex items-center justify-between border-b border-border-subtle bg-bg-subtle px-5 py-3">
+            <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
               <CalendarDays
                 className="h-4 w-4 text-text-muted"
                 strokeWidth={1.75}
               />
               {day.dayLabel}
             </h2>
+            <span className="text-tiny font-medium uppercase tracking-wider text-text-muted tabular-nums">
+              {day.meals.length}{" "}
+              {day.meals.length === 1 ? "refeição" : "refeições"}
+            </span>
           </header>
 
           <div className="divide-y divide-border-subtle">
@@ -120,74 +124,113 @@ export function MealPlanEditor({ days }: Props) {
                 if (item.fatG) mealF += Number(item.fatG);
               }
 
+              const isOpen = openMealId === meal.id;
+
               return (
                 <div key={meal.id} className="p-4">
-                  <header className="mb-2 flex items-center justify-between">
-                    <div>
-                      <h3 className="flex items-center gap-2 font-medium text-text-primary">
-                        <UtensilsCrossed
-                          className="h-4 w-4 text-text-muted"
-                          strokeWidth={1.75}
-                        />
+                  <header className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="flex flex-wrap items-center gap-2 text-body font-semibold text-text-primary">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-primary-bg text-brand-primary">
+                          <UtensilsCrossed
+                            className="h-3.5 w-3.5"
+                            strokeWidth={1.75}
+                          />
+                        </span>
                         {meal.name}
                         {meal.scheduledTime && (
-                          <span className="ml-1 text-xs text-text-muted tabular-nums">
+                          <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-tiny font-medium text-text-secondary tabular-nums">
                             {meal.scheduledTime}
                           </span>
                         )}
                       </h3>
-                      {meal.items.length > 0 && (
-                        <p className="text-xs tabular-nums text-text-secondary">
-                          {mealKcal.toFixed(0)} kcal · PTN {mealP.toFixed(0)}g ·
-                          CHO {mealC.toFixed(0)}g · LIP {mealF.toFixed(0)}g
+                      {meal.items.length > 0 ? (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5 text-tiny tabular-nums">
+                          <span className="rounded-full bg-bg-subtle px-2 py-0.5 font-medium text-text-primary">
+                            {mealKcal.toFixed(0)} kcal
+                          </span>
+                          <MacroPill
+                            color="var(--color-macro-protein)"
+                            label="PTN"
+                            value={`${mealP.toFixed(0)}g`}
+                          />
+                          <MacroPill
+                            color="var(--color-macro-carb)"
+                            label="CHO"
+                            value={`${mealC.toFixed(0)}g`}
+                          />
+                          <MacroPill
+                            color="var(--color-macro-fat)"
+                            label="LIP"
+                            value={`${mealF.toFixed(0)}g`}
+                          />
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-tiny text-text-subtle">
+                          Sem alimentos. Adicione abaixo.
                         </p>
                       )}
                     </div>
                     <button
                       type="button"
-                      onClick={() =>
-                        setOpenMealId(openMealId === meal.id ? null : meal.id)
+                      onClick={() => setOpenMealId(isOpen ? null : meal.id)}
+                      aria-expanded={isOpen}
+                      className={
+                        "inline-flex h-8 shrink-0 items-center gap-1 rounded-md px-3 text-tiny font-medium transition-all duration-fast active:scale-[0.98] " +
+                        (isOpen
+                          ? "border border-border-default bg-bg-surface text-text-primary hover:bg-bg-surface-hover"
+                          : "bg-brand-primary text-white [box-shadow:var(--shadow-sm)] hover:bg-brand-primary-hover")
                       }
-                      className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover"
                     >
-                      {openMealId === meal.id ? "Fechar" : "+ Adicionar"}
+                      {isOpen ? (
+                        <>
+                          <X className="h-3.5 w-3.5" strokeWidth={2} />
+                          Fechar
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                          Adicionar
+                        </>
+                      )}
                     </button>
                   </header>
 
                   {/* Lista de items */}
-                  {meal.items.length === 0 ? (
-                    <p className="text-xs text-text-subtle">Sem alimentos.</p>
-                  ) : (
-                    <ul className="space-y-1">
+                  {meal.items.length > 0 && (
+                    <ul className="space-y-1.5">
                       {meal.items.map((item) => (
                         <li
                           key={item.id}
-                          className="flex items-center justify-between rounded-md bg-bg-subtle px-3 py-2 text-sm"
+                          className="group flex items-center justify-between gap-3 rounded-md border border-border-subtle bg-bg-surface px-3 py-2 text-body transition-colors hover:border-border-default hover:bg-bg-surface-hover"
                         >
-                          <div className="flex-1">
-                            <span className="font-medium">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-medium text-text-primary">
                               {item.food.name}
                             </span>
-                            <span className="ml-2 text-xs text-text-muted">
+                            <span className="ml-2 text-caption text-text-muted tabular-nums">
                               {item.quantityG.toString()}g
                             </span>
                             {item.preparationNotes && (
-                              <span className="ml-1 text-xs text-text-subtle">
+                              <span className="ml-1 text-caption text-text-subtle">
                                 ({item.preparationNotes})
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-text-secondary tabular-nums">
+                          <div className="flex shrink-0 items-center gap-3 text-caption text-text-secondary tabular-nums">
                             {item.kcal && (
-                              <span>{item.kcal.toString()} kcal</span>
+                              <span className="font-medium">
+                                {item.kcal.toString()} kcal
+                              </span>
                             )}
                             <button
                               type="button"
                               onClick={() => handleRemove(item.id)}
                               disabled={pending}
-                              className="text-red-600 hover:underline disabled:opacity-50"
+                              aria-label={`Remover ${item.food.name}`}
+                              className="inline-flex h-6 w-6 items-center justify-center rounded-md text-text-muted opacity-0 transition-all hover:bg-danger-bg hover:text-danger disabled:opacity-50 group-hover:opacity-100"
                             >
-                              ✕
+                              <X className="h-3.5 w-3.5" strokeWidth={2} />
                             </button>
                           </div>
                         </li>
@@ -196,30 +239,37 @@ export function MealPlanEditor({ days }: Props) {
                   )}
 
                   {/* Picker de alimento */}
-                  {openMealId === meal.id && (
+                  {isOpen && (
                     <div className="mt-3 rounded-md border border-brand-200 bg-brand-primary-bg p-3">
                       <div className="flex gap-2">
-                        <input
-                          type="search"
-                          placeholder="Buscar alimento..."
-                          value={foodQuery}
-                          onChange={(e) => handleSearchFoods(e.target.value)}
-                          className="flex-1 rounded-md border border-border-default px-3 py-2 text-sm"
-                          autoFocus
-                        />
+                        <div className="relative flex-1">
+                          <Search
+                            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+                            strokeWidth={1.75}
+                            aria-hidden
+                          />
+                          <input
+                            type="search"
+                            placeholder="Buscar alimento (TACO, POF, receita)..."
+                            value={foodQuery}
+                            onChange={(e) => handleSearchFoods(e.target.value)}
+                            className="h-9 w-full rounded-sm border border-border-default bg-bg-surface pl-9 pr-3 text-body text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                            autoFocus
+                          />
+                        </div>
                         <input
                           type="number"
                           min="1"
                           max="5000"
                           value={quantityG}
                           onChange={(e) => setQuantityG(e.target.value)}
-                          className="w-20 rounded-md border border-border-default px-2 py-2 text-sm tabular-nums"
+                          className="h-9 w-20 rounded-sm border border-border-default bg-bg-surface px-2 text-body tabular-nums focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
                           placeholder="g"
                         />
                       </div>
 
                       {searching && (
-                        <p className="mt-2 text-xs text-text-muted">
+                        <p className="mt-2 text-tiny text-text-muted">
                           Buscando…
                         </p>
                       )}
@@ -232,11 +282,13 @@ export function MealPlanEditor({ days }: Props) {
                                 type="button"
                                 onClick={() => handleAdd(meal.id, f.id)}
                                 disabled={pending}
-                                className="block w-full rounded-md border border-border-default bg-white px-3 py-2 text-left text-sm hover:border-brand-primary hover:bg-brand-100 disabled:opacity-50"
+                                className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-50 disabled:opacity-50"
                               >
-                                <span className="font-medium">{f.name}</span>
-                                <span className="ml-2 text-xs text-text-muted">
-                                  ({f.source})
+                                <span className="font-medium text-text-primary">
+                                  {f.name}
+                                </span>
+                                <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                                  {f.source}
                                 </span>
                               </button>
                             </li>
@@ -247,8 +299,9 @@ export function MealPlanEditor({ days }: Props) {
                       {foodQuery.length >= 2 &&
                         foodResults.length === 0 &&
                         !searching && (
-                          <p className="mt-2 text-xs text-text-muted">
-                            Nenhum alimento encontrado.
+                          <p className="mt-2 text-tiny text-text-muted">
+                            Nenhum alimento encontrado para &ldquo;{foodQuery}
+                            &rdquo;.
                           </p>
                         )}
                     </div>
@@ -266,5 +319,27 @@ export function MealPlanEditor({ days }: Props) {
         </div>
       )}
     </div>
+  );
+}
+
+function MacroPill({
+  color,
+  label,
+  value,
+}: {
+  color: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-bg-subtle px-2 py-0.5">
+      <span
+        aria-hidden
+        className="inline-block h-1.5 w-1.5 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <span className="text-text-muted">{label}</span>
+      <span className="font-medium text-text-primary">{value}</span>
+    </span>
   );
 }
