@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./with-tenant": "./src/with-tenant.ts",
-    "./audit": "./src/audit.ts"
+    "./audit": "./src/audit.ts",
+    "./phi": "./src/phi.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 100",

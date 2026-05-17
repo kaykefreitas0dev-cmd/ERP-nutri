@@ -66,6 +66,7 @@ model Organization {
   auditLogs          AuditLog[]
   consents           Consent[]
   subscriptionEvents SubscriptionStateEvent[]
+  patients           Patient[]
 
   @@index([slug])
   @@index([subscriptionStatus])
@@ -360,14 +361,186 @@ model ServiceHealth {
 }
 
 // =====================================================================
+// PACIENTE — Fase 1 (S3-S5)
+// =====================================================================
+// Lock 6 — Patient é tenant-scoped + ligação User (opcional, paciente pode
+// não ter User criado ainda — fluxo invite Lock 7 cria User depois)
+
+model Patient {
+  id                   String   @id @default(uuid()) @db.Uuid
+  organizationId       String   @map("organization_id") @db.Uuid
+  userId               String?  @map("user_id") @db.Uuid // criado quando paciente aceita invite
+  fullName             String   @map("full_name")
+  preferredName        String?  @map("preferred_name")
+  cpf                  String?  @db.VarChar(14) // formato 000.000.000-00 — opcional MVP
+  birthDate            DateTime? @map("birth_date") @db.Date
+  biologicalSex        String?  @map("biological_sex") // 'female' | 'male' | 'intersex' | 'undisclosed'
+  genderIdentity       String?  @map("gender_identity") // livre
+  email                String?
+  phone                String? // E.164
+  city                 String?
+  state                String?  @db.Char(2) // UF Brasil
+  postalCode           String?  @map("postal_code") @db.VarChar(10)
+  street               String?
+  number               String?
+  complement           String?
+  neighborhood         String?
+  occupation           String?
+  notes                String? // notas administrativas (NÃO clínicas — clinical_notes é separado)
+  status               PatientStatus @default(ACTIVE)
+  archivedAt           DateTime? @map("archived_at")
+  anonymizedAt         DateTime? @map("anonymized_at") // Lock 13 - LGPD
+  importedFromId       String?  @map("imported_from_id") @db.Uuid // FK DataImport (S5)
+  primaryNutritionistId String? @map("primary_nutritionist_id") @db.Uuid // User responsável (Lock 6)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  allergies           PatientAllergy[]
+  dietaryRestrictions PatientDietaryRestriction[]
+  clinicalConditions  PatientClinicalCondition[]
+  clinicalNotes       ClinicalNote[]
+  examAttachments     ExamAttachment[]
+
+  @@index([organizationId, fullName])
+  @@index([organizationId, status, updatedAt(sort: Desc)])
+  @@index([organizationId, primaryNutritionistId])
+  @@index([userId])
+  @@index([email])
+  @@index([phone])
+  @@map("patients")
+}
+
+enum PatientStatus {
+  ACTIVE
+  ARCHIVED
+  ANONYMIZED // Lock 13
+}
+
+// Master list de alérgenos (seed 14 majores — Lei 14.532)
+model Allergen {
+  id            String   @id @default(uuid()) @db.Uuid
+  slug          String   @unique // 'gluten' | 'lactose' | 'amendoim' | ...
+  name          String
+  description   String?
+  category      String // 'major' | 'tree_nut' | 'shellfish' | 'other'
+  crossReactsTo String[] @map("cross_reacts_to") // slugs de alérgenos cruzados
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  patientAllergies PatientAllergy[]
+
+  @@map("allergens")
+}
+
+model PatientAllergy {
+  id          String       @id @default(uuid()) @db.Uuid
+  patientId   String       @map("patient_id") @db.Uuid
+  allergenId  String       @map("allergen_id") @db.Uuid
+  severity    AllergySeverity
+  diagnosedAt DateTime?    @map("diagnosed_at") @db.Date
+  notes       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  patient  Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Restrict)
+
+  @@unique([patientId, allergenId])
+  @@index([patientId])
+  @@map("patient_allergies")
+}
+
+enum AllergySeverity {
+  LOW
+  MODERATE
+  HIGH
+  ANAPHYLAXIS
+}
+
+model PatientDietaryRestriction {
+  id          String   @id @default(uuid()) @db.Uuid
+  patientId   String   @map("patient_id") @db.Uuid
+  type        String   // 'vegano' | 'vegetariano' | 'low_carb' | 'halal' | 'kosher' | 'diabético' | etc.
+  rules       Json     @default("{}") // regras estruturadas
+  validFrom   DateTime @default(now()) @map("valid_from")
+  validUntil  DateTime? @map("valid_until")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("patient_dietary_restrictions")
+}
+
+model PatientClinicalCondition {
+  id              String   @id @default(uuid()) @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  conditionName   String   @map("condition_name")
+  cid10Code       String?  @map("cid10_code") // ref preparado para S11
+  severity        String?  // 'mild' | 'moderate' | 'severe'
+  diagnosedAt     DateTime? @map("diagnosed_at") @db.Date
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("patient_clinical_conditions")
+}
+
+// ClinicalNote: conteúdo CRIPTOGRAFADO via envelope encryption (DEK por org no Vault)
+// Plano v11 — anotações clínicas (PHI) ficam encriptadas em repouso
+model ClinicalNote {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  authorUserId    String   @map("author_user_id") @db.Uuid
+  encryptedContent Bytes   @map("encrypted_content") // bytea (pgp_sym_encrypt)
+  contentPreview  String?  @map("content_preview") // primeiros 60 chars não-criptografados (busca)
+  category        String   @default("evolution") // 'evolution' | 'anamnesis' | 'assessment' | 'plan'
+  consultationDate DateTime @default(now()) @map("consultation_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, consultationDate(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@map("clinical_notes")
+}
+
+// ExamAttachment: arquivo de exame com URL ao Supabase Storage + metadata criptografada
+model ExamAttachment {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  uploadedByUserId String  @map("uploaded_by_user_id") @db.Uuid
+  fileName        String   @map("file_name") // nome original
+  storagePath     String   @map("storage_path") // path no Supabase Storage (bucket exams)
+  fileSizeBytes   Int      @map("file_size_bytes")
+  mimeType        String   @map("mime_type")
+  examType        String?  @map("exam_type") // 'blood' | 'urine' | 'bioimpedance' | etc.
+  examDate        DateTime? @map("exam_date") @db.Date
+  encryptedMetadata Bytes? @map("encrypted_metadata") // metadados sensíveis (lab, médico) criptografados
+  notesPreview    String?  @map("notes_preview")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, examDate(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@map("exam_attachments")
+}
+
+// =====================================================================
 // ESQUELETO RESERVADO (implementação em sprints futuras)
 // =====================================================================
 //
-// FASE 1 (S3-S5):
-//   - Patient (Lock 6 vínculo User×Org), PatientContact, PatientAllergy,
-//     PatientDietaryRestriction, PatientClinicalCondition, Anthropometry,
-//     ClinicalNote (encrypted via pgcrypto), ExamAttachment (encrypted),
-//     Allergen (seed 14 majores), DataImport, ImportColumnMapping
+// FASE 1 restante (S4-S5):
+//   - Anthropometry (S4 - protocolos Pollock 7/3 + Jackson-Pollock + OMS pediátrico),
+//     DataImport, ImportColumnMapping (S5 - ETL Dietbox/Webdiet)
 //
 // FASE 2 (S6-S9):
 //   - Food (com version + isActive + supersededById + FC + IC — Lock 15 trigger),

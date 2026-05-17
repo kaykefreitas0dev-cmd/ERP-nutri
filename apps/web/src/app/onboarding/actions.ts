@@ -171,6 +171,15 @@ export async function completeOnboardingAction(
     return newOrg;
   });
 
+  // Provisionar DEK no Vault para envelope encryption de PHI (clinical notes, exames)
+  try {
+    const { ensureOrgDek } = await import("@nutricore/db/phi");
+    await ensureOrgDek(org.id);
+  } catch (err) {
+    // Não bloqueia onboarding — DEK pode ser criada lazily na primeira clinical note
+    console.error("[onboarding] DEK provisioning failed", err);
+  }
+
   // Audit log
   try {
     await prisma.$executeRaw`
