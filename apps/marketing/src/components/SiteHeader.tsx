@@ -35,6 +35,12 @@ export function SiteHeader() {
           <Link href="/#funcionalidades" className="hover:text-teal-700">
             Funcionalidades
           </Link>
+          <Link href="/para/nutri-solo" className="hover:text-teal-700">
+            Nutri autônomo
+          </Link>
+          <Link href="/para/clinica" className="hover:text-teal-700">
+            Clínicas
+          </Link>
           <Link href="/#precos" className="hover:text-teal-700">
             Preços
           </Link>

@@ -9,6 +9,7 @@ import {
   FileText,
   Salad,
   Download,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
@@ -220,6 +221,12 @@ export default async function AppDashboard() {
             title="Importar pacientes"
             description="Migrar de Dietbox, Webdiet ou CSV genérico."
             Icon={Download}
+          />
+          <NavCard
+            href="/app/settings"
+            title="Configurações"
+            description="Branding (logo, cores), nome no email, dados da org."
+            Icon={Settings}
           />
         </section>
 
