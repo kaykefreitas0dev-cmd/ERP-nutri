@@ -1,0 +1,22 @@
+# Cloudflare Worker — Healthcheck Supabase (ADR 0044)
+# Bate /api/health/db a cada 5 dias para evitar pausa Supabase Free.
+# v11.2 Diff B.7 — substitui cron-job.org (frágil)
+
+name = "nutricore-health-keepalive"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# Cron triggers: 5 dias (frequência mínima para anti-pausa Supabase Free)
+# Free tier permite crons com >5min de intervalo
+[triggers]
+crons = ["0 6 */5 * *"]  # A cada 5 dias às 06:00 UTC = 03:00 BRT
+
+# Vars (públicas; secrets vão via `wrangler secret put`)
+[vars]
+ENVIRONMENT = "production"
+# HEALTH_URL é setado por env override no deploy:
+# wrangler deploy --var HEALTH_URL:https://nutri.nutricore.app/api/health/db
+
+# Observability
+[observability]
+enabled = true

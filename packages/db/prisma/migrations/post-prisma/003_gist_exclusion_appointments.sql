@@ -1,0 +1,21 @@
+-- ============================================================
+-- 003 — GiST Exclusion Constraint para Appointments (preparado)
+-- ============================================================
+-- Sprint 7 (Agenda) implementará a tabela appointments.
+-- Esta migration é placeholder; será ativada quando appointments existir.
+-- ============================================================
+-- Quando ativar, descomentar:
+--
+-- CREATE EXTENSION IF NOT EXISTS btree_gist;
+--
+-- ALTER TABLE appointments
+--   ADD CONSTRAINT no_double_booking
+--   EXCLUDE USING gist (
+--     professional_user_id WITH =,
+--     tstzrange(starts_at, ends_at) WITH &&
+--   )
+--   WHERE (status NOT IN ('CANCELED', 'NO_SHOW'));
+-- ============================================================
+
+-- Placeholder: nada a executar nesta migration
+DO $$ BEGIN RAISE NOTICE 'Migration 003: GiST exclusion appointments — placeholder, ativado em Sprint 7'; END $$;

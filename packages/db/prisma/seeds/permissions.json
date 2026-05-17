@@ -1,0 +1,122 @@
+[
+  {
+    "slug": "patient.read.own",
+    "resource": "patient",
+    "action": "read.own",
+    "description": "Ler pacientes próprios (nutritionist)"
+  },
+  {
+    "slug": "patient.read.clinic",
+    "resource": "patient",
+    "action": "read.clinic",
+    "description": "Ler todos pacientes da clínica (clinic_admin, senior_nutritionist)"
+  },
+  {
+    "slug": "patient.read.organization",
+    "resource": "patient",
+    "action": "read.organization",
+    "description": "Ler todos pacientes da organização (org_owner)"
+  },
+  {
+    "slug": "patient.create",
+    "resource": "patient",
+    "action": "create",
+    "description": "Criar paciente"
+  },
+  {
+    "slug": "patient.update",
+    "resource": "patient",
+    "action": "update",
+    "description": "Editar dados do paciente"
+  },
+  {
+    "slug": "patient.archive",
+    "resource": "patient",
+    "action": "archive",
+    "description": "Arquivar paciente"
+  },
+  {
+    "slug": "patient.anonymize",
+    "resource": "patient",
+    "action": "anonymize",
+    "description": "Anonimizar paciente (Lock 4/13 — apenas org_owner ou patient self)"
+  },
+  {
+    "slug": "meal_plan.prescribe",
+    "resource": "meal_plan",
+    "action": "prescribe",
+    "description": "Prescrever plano alimentar"
+  },
+  {
+    "slug": "meal_plan.read",
+    "resource": "meal_plan",
+    "action": "read",
+    "description": "Ver plano alimentar"
+  },
+  {
+    "slug": "appointment.schedule",
+    "resource": "appointment",
+    "action": "schedule",
+    "description": "Agendar consulta"
+  },
+  {
+    "slug": "appointment.cancel",
+    "resource": "appointment",
+    "action": "cancel",
+    "description": "Cancelar consulta"
+  },
+  {
+    "slug": "payment.charge",
+    "resource": "payment",
+    "action": "charge",
+    "description": "Cobrar paciente (S14a)"
+  },
+  {
+    "slug": "payment.refund",
+    "resource": "payment",
+    "action": "refund",
+    "description": "Estornar pagamento"
+  },
+  {
+    "slug": "financial.view",
+    "resource": "financial",
+    "action": "view",
+    "description": "Ver dashboard financeiro"
+  },
+  {
+    "slug": "audit_log.read",
+    "resource": "audit_log",
+    "action": "read",
+    "description": "Ler audit logs (org_owner, clinic_admin)"
+  },
+  {
+    "slug": "billing.manage",
+    "resource": "billing",
+    "action": "manage",
+    "description": "Gerenciar assinatura SaaS da organização"
+  },
+  {
+    "slug": "membership.invite",
+    "resource": "membership",
+    "action": "invite",
+    "description": "Convidar novo membro para a organização"
+  },
+  {
+    "slug": "membership.revoke",
+    "resource": "membership",
+    "action": "revoke",
+    "description": "Revogar acesso de membro"
+  },
+  {
+    "slug": "organization.update_branding",
+    "resource": "organization",
+    "action": "update_branding",
+    "description": "Customizar branding da organização (logo, cores)"
+  },
+  {
+    "slug": "offboarding.export",
+    "resource": "offboarding",
+    "action": "export",
+    "description": "Solicitar export full LGPD/portabilidade (org_owner + MFA — S17)"
+  }
+]

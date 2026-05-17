@@ -2,3 +2,4 @@ packages:
   - "apps/*"
   - "apps/marketing/sanity"
   - "packages/*"
+  - "cf-workers/*"

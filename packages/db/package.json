@@ -4,16 +4,39 @@
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./with-tenant": "./src/with-tenant.ts",
+    "./audit": "./src/audit.ts"
+  },
   "scripts": {
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:isolation": "vitest run tests/multi-tenant-isolation.spec.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:post-prisma": "node -e \"console.log('Apply SQL in prisma/migrations/post-prisma/ via Supabase Studio or supabase db execute')\""
   },
   "devDependencies": {
-    "@types/node": "^25.8.0",
+    "@types/node": "^20.19.41",
     "prisma": "^7.8.0",
-    "typescript": "^6.0.3"
+    "typescript": "5.9.2"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0"
+  },
+  "peerDependencies": {
+    "next": "^16.0.0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
   }
 }
