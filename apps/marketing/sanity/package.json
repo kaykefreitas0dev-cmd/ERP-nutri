@@ -1,0 +1,17 @@
+{
+  "name": "nutricore-sanity-studio",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@sanity/vision": "^5.25.1",
+    "react": "19",
+    "react-dom": "19",
+    "sanity": "^5.25.1",
+    "styled-components": "^6.4.1"
+  },
+  "devDependencies": {
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "typescript": "^5.9.2"
+  }
+}
