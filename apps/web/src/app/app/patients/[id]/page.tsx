@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ClinicalNotesSection } from "./ClinicalNotesSection";
 import { InvitePatientButton } from "./invites/InvitePatientButton";
+import { AnonymizeButton } from "./anonymize/AnonymizeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -316,6 +317,24 @@ export default async function PatientDetailPage({ params }: Props) {
                 </p>
               </div>
             )}
+
+            {/* Privacidade / LGPD */}
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Privacidade (LGPD)
+              </h2>
+              <p className="mt-2 text-xs text-slate-600">
+                Arquive para ocultar das listas. Anonimização é irreversível —
+                use só com solicitação documentada do titular (Art. 18).
+              </p>
+              <div className="mt-3">
+                <AnonymizeButton
+                  patientId={patient.id}
+                  patientName={patient.fullName}
+                  status={patient.status}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Coluna 2-3: Prontuário (Clinical Notes) */}
