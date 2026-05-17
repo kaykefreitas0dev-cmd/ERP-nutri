@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateAppointmentStatusAction } from "./actions";
+import { CompleteWithPaymentModal } from "./CompleteWithPaymentModal";
 
 interface Appointment {
   id: string;
@@ -10,6 +11,7 @@ interface Appointment {
   endsAt: Date | string;
   status: string;
   modality: string;
+  patientId: string | null;
   patientName: string | null;
   externalPatientName: string | null;
   notes: string | null;
@@ -38,6 +40,7 @@ export function AppointmentList({ appointments }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [payingAppt, setPayingAppt] = useState<Appointment | null>(null);
 
   function updateStatus(
     appointmentId: string,
@@ -45,7 +48,10 @@ export function AppointmentList({ appointments }: Props) {
   ) {
     setUpdatingId(appointmentId);
     startTransition(async () => {
-      const result = await updateAppointmentStatusAction({ appointmentId, toStatus });
+      const result = await updateAppointmentStatusAction({
+        appointmentId,
+        toStatus,
+      });
       setUpdatingId(null);
       if (!result.ok) alert(result.message);
       else router.refresh();
@@ -55,7 +61,9 @@ export function AppointmentList({ appointments }: Props) {
   if (appointments.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-        <p className="text-slate-600">Nenhuma consulta agendada para este dia.</p>
+        <p className="text-slate-600">
+          Nenhuma consulta agendada para este dia.
+        </p>
         <p className="mt-2 text-sm text-slate-500">
           Use o formulário ao lado para criar uma nova.
         </p>
@@ -68,7 +76,10 @@ export function AppointmentList({ appointments }: Props) {
       {appointments.map((apt) => {
         const start = new Date(apt.startsAt);
         const end = new Date(apt.endsAt);
-        const statusInfo = STATUS_LABEL[apt.status] ?? { label: apt.status, color: "bg-slate-100" };
+        const statusInfo = STATUS_LABEL[apt.status] ?? {
+          label: apt.status,
+          color: "bg-slate-100",
+        };
         const patientName =
           apt.patientName ?? apt.externalPatientName ?? "(sem paciente)";
 
@@ -81,10 +92,17 @@ export function AppointmentList({ appointments }: Props) {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-semibold text-slate-900">
-                    {start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                    {start.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                   <span className="text-sm text-slate-500">
-                    – {end.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                    –{" "}
+                    {end.toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo.color}`}
@@ -95,7 +113,9 @@ export function AppointmentList({ appointments }: Props) {
                     {MODALITY_ICON[apt.modality] ?? ""}
                   </span>
                 </div>
-                <div className="mt-1 font-medium text-slate-900">{patientName}</div>
+                <div className="mt-1 font-medium text-slate-900">
+                  {patientName}
+                </div>
                 {apt.notes && (
                   <p className="mt-1 text-sm text-slate-600">{apt.notes}</p>
                 )}
@@ -142,21 +162,43 @@ export function AppointmentList({ appointments }: Props) {
                     </button>
                   </>
                 )}
-                {(apt.status === "CHECKED_IN" || apt.status === "CONFIRMED") && (
-                  <button
-                    type="button"
-                    onClick={() => updateStatus(apt.id, "COMPLETED")}
-                    disabled={pending && updatingId === apt.id}
-                    className="rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
-                  >
-                    Marcar realizada
-                  </button>
+                {(apt.status === "CHECKED_IN" ||
+                  apt.status === "CONFIRMED" ||
+                  apt.status === "SCHEDULED") && (
+                  <>
+                    {apt.patientId ? (
+                      <button
+                        type="button"
+                        onClick={() => setPayingAppt(apt)}
+                        disabled={pending && updatingId === apt.id}
+                        className="rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        ✅ Concluir + recibo
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(apt.id, "COMPLETED")}
+                        disabled={pending && updatingId === apt.id}
+                        className="rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        Marcar realizada
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           </li>
         );
       })}
+
+      {payingAppt && (
+        <CompleteWithPaymentModal
+          appointment={payingAppt}
+          onClose={() => setPayingAppt(null)}
+        />
+      )}
     </ul>
   );
 }

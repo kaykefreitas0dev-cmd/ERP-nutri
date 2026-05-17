@@ -405,6 +405,7 @@ model Patient {
   mealPlans           MealPlan[]
   clinicalDocuments   ClinicalDocument[]
   invites             PatientInvite[]
+  payments            PatientPayment[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -685,6 +686,7 @@ model Appointment {
   bookingPage     BookingPage?     @relation(fields: [bookingPageId], references: [id], onDelete: SetNull)
   serviceOffering ServiceOffering? @relation(fields: [serviceOfferingId], references: [id], onDelete: SetNull)
   statusEvents    AppointmentStatusEvent[]
+  payments        PatientPayment[]
 
   @@index([organizationId, startsAt])
   @@index([professionalUserId, startsAt])
@@ -1281,6 +1283,85 @@ model UserHealthStreak {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("user_health_streaks")
+}
+
+// =====================================================================
+// PATIENT PAYMENTS (S15a — Fase 5, escopo reduzido MVP)
+// =====================================================================
+// MVP S15a: apenas EXTERNAL_RECORDED (cobrança externa, plataforma só registra).
+// S22+: integração Asaas real (CHARGED, PAID, etc.)
+// Modelo permite múltiplos pagamentos por appointment (parcial, reembolso, etc.)
+
+model PatientPayment {
+  id                  String   @id @default(uuid()) @db.Uuid
+  organizationId      String   @map("organization_id") @db.Uuid
+  patientId           String   @map("patient_id") @db.Uuid
+  recordedByUserId    String   @map("recorded_by_user_id") @db.Uuid
+  appointmentId       String?  @map("appointment_id") @db.Uuid
+
+  amountCents         Int      @map("amount_cents") // R$ 100,00 = 10000
+  currency            String   @default("BRL")
+  status              PatientPaymentStatus @default(EXTERNAL_RECORDED)
+
+  // Para EXTERNAL_RECORDED (Lock 14 + v11.2 Diff 5)
+  externalPaymentMethod ExternalPaymentMethod? @map("external_payment_method")
+  externalReference   String?  @map("external_reference") // ID Asaas pessoal nutri, etc.
+  paidAt              DateTime? @map("paid_at")
+  paymentDate         DateTime @map("payment_date") @db.Date
+
+  description         String?
+  // Vínculo com recibo gerado
+  receiptDocumentId   String?  @map("receipt_document_id") @db.Uuid
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, patientId, paymentDate(sort: Desc)])
+  @@index([organizationId, paymentDate(sort: Desc)])
+  @@index([appointmentId])
+  @@map("patient_payments")
+}
+
+enum PatientPaymentStatus {
+  EXTERNAL_RECORDED // MVP — cobrança externa nutri, plataforma só registra
+  PENDING           // Futuro Asaas: aguardando pagamento
+  PAID              // Futuro Asaas: confirmado
+  REFUNDED          // Estornado
+  CANCELLED
+}
+
+enum ExternalPaymentMethod {
+  PIX
+  CARD_EXTERNAL
+  CASH
+  BANK_TRANSFER
+  OTHER
+}
+
+// =====================================================================
+// HEALTH DATA POINT STUB (S15a — Lock 3 Wearables YAGNI)
+// =====================================================================
+// Apenas tabela + RLS — sem workers/OAuth/UI. Reservado para Fase 7.
+// User-scoped cross-tenant (Lock 6).
+
+model HealthDataPoint {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  metricType  String   @map("metric_type") // 'steps' | 'sleep_hours' | 'hr_resting' | 'spo2' | etc.
+  value       Decimal  @db.Decimal(10, 2)
+  unit        String? // 'count' | 'h' | 'bpm' | '%' | etc.
+  recordedAt  DateTime @map("recorded_at")
+  source      String // 'manual' | 'google_fit' | 'apple_health' | 'garmin'
+  externalId  String? @map("external_id") // dedup key from source
+  metadata    Json   @default("{}") // raw payload from source
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, source, externalId])
+  @@index([userId, metricType, recordedAt(sort: Desc)])
+  @@map("health_data_points")
 }
 
 // =====================================================================
