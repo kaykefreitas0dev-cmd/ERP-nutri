@@ -3,7 +3,7 @@ import { Container } from "@repo/ui/container";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border-subtle bg-white/80 backdrop-blur">
       <Container className="flex h-16 items-center justify-between">
         <Link
           href="/"
@@ -30,7 +30,7 @@ export function SiteHeader() {
 
         <nav
           aria-label="Navegação principal"
-          className="hidden items-center gap-6 text-sm font-medium text-slate-700 md:flex"
+          className="hidden items-center gap-6 text-sm font-medium text-text-secondary md:flex"
         >
           <Link href="/#funcionalidades" className="hover:text-brand-primary">
             Funcionalidades
@@ -55,7 +55,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link
             href="https://erp-nutri-web.vercel.app/login"
-            className="hidden text-sm font-medium text-slate-700 hover:text-brand-primary sm:inline-block"
+            className="hidden text-sm font-medium text-text-secondary hover:text-brand-primary sm:inline-block"
           >
             Entrar
           </Link>

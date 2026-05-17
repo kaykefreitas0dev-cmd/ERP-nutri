@@ -22,7 +22,7 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={busy}
-      className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white disabled:opacity-50"
+      className="mt-1 inline-flex items-center gap-1.5 text-xs text-text-subtle hover:text-white disabled:opacity-50"
     >
       <LogOut className="h-3.5 w-3.5" strokeWidth={1.75} />
       {busy ? "Saindo..." : "Sair"}

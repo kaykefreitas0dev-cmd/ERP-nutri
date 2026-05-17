@@ -39,10 +39,10 @@ export function Pricing({ plans }: PricingProps) {
     return (
       <section
         id="precos"
-        className="border-b border-slate-100 bg-slate-50 py-20"
+        className="border-b border-border-subtle bg-bg-subtle py-20"
       >
         <Container>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-text-muted">
             Preços temporariamente indisponíveis. Tente novamente em alguns
             minutos ou veja em{" "}
             <Link
@@ -61,14 +61,14 @@ export function Pricing({ plans }: PricingProps) {
   return (
     <section
       id="precos"
-      className="border-b border-slate-100 bg-slate-50 py-20"
+      className="border-b border-border-subtle bg-bg-subtle py-20"
     >
       <Container>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
             Planos transparentes, sem surpresas
           </h2>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg text-text-secondary">
             Comece grátis por {plans[0]?.trial_days ?? 14} dias. Sem cartão de
             crédito.
           </p>
@@ -76,7 +76,7 @@ export function Pricing({ plans }: PricingProps) {
           <div
             role="group"
             aria-label="Periodicidade"
-            className="mt-8 inline-flex rounded-lg border border-slate-200 bg-white p-1"
+            className="mt-8 inline-flex rounded-lg border border-border-subtle bg-white p-1"
           >
             <button
               type="button"
@@ -85,7 +85,7 @@ export function Pricing({ plans }: PricingProps) {
               className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                 !isYearly
                   ? "bg-brand-primary text-white"
-                  : "text-slate-700 hover:text-slate-900"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Mensal
@@ -97,7 +97,7 @@ export function Pricing({ plans }: PricingProps) {
               className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                 isYearly
                   ? "bg-brand-primary text-white"
-                  : "text-slate-700 hover:text-slate-900"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Anual <span className="ml-1 text-xs">(2 meses grátis)</span>
@@ -130,22 +130,22 @@ export function Pricing({ plans }: PricingProps) {
                   </Badge>
                 )}
                 <CardContent className="pt-6">
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-bold text-text-primary">
                     {plan.name}
                   </h3>
                   {plan.description && (
-                    <p className="mt-2 text-sm text-slate-600">
+                    <p className="mt-2 text-sm text-text-secondary">
                       {plan.description}
                     </p>
                   )}
 
                   <div className="mt-6">
-                    <span className="text-4xl font-bold text-slate-900">
+                    <span className="text-4xl font-bold text-text-primary">
                       {formatCurrency(priceCents)}
                     </span>
-                    <span className="text-sm text-slate-500">/mês</span>
+                    <span className="text-sm text-text-muted">/mês</span>
                     {isYearly && (
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-text-muted">
                         Cobrado anualmente:{" "}
                         {formatCurrency(plan.price_yearly_cents)}
                       </p>
@@ -157,7 +157,7 @@ export function Pricing({ plans }: PricingProps) {
                     className={`mt-6 inline-flex h-11 w-full items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
                       isFeatured
                         ? "bg-brand-primary text-white hover:bg-brand-primary-hover"
-                        : "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+                        : "border border-border-default bg-white text-text-primary hover:bg-bg-subtle"
                     }`}
                   >
                     Começar grátis
@@ -165,7 +165,7 @@ export function Pricing({ plans }: PricingProps) {
 
                   {plan.features.included &&
                     plan.features.included.length > 0 && (
-                      <ul className="mt-6 space-y-2 text-sm text-slate-700">
+                      <ul className="mt-6 space-y-2 text-sm text-text-secondary">
                         {plan.features.included.map((item: string) => (
                           <li key={item} className="flex items-start gap-2">
                             <svg
@@ -193,7 +193,7 @@ export function Pricing({ plans }: PricingProps) {
           })}
         </div>
 
-        <p className="mt-8 text-center text-xs text-slate-500">
+        <p className="mt-8 text-center text-xs text-text-muted">
           Preços em reais (BRL). Cancela quando quiser. Sem multa.
         </p>
       </Container>

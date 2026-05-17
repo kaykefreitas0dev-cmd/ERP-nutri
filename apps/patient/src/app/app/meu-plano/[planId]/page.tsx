@@ -89,8 +89,8 @@ export default async function PlanDetailPage({ params }: Props) {
       </Link>
 
       <header className="mt-2">
-        <h1 className="text-2xl font-bold text-slate-900">{plan.name}</h1>
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">{plan.name}</h1>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
           <Hospital className="h-4 w-4 text-brand-primary" strokeWidth={1.75} />
           {plan.patient.organization.name}
         </p>
@@ -116,16 +116,16 @@ export default async function PlanDetailPage({ params }: Props) {
         {plan.days.map((day) => (
           <section
             key={day.id}
-            className="rounded-lg border border-slate-200 bg-white shadow-sm"
+            className="rounded-lg border border-border-subtle bg-white shadow-sm"
           >
-            <header className="border-b border-slate-200 bg-slate-50 px-4 py-2">
-              <h2 className="flex items-center gap-1.5 text-base font-semibold text-slate-900">
+            <header className="border-b border-border-subtle bg-bg-subtle px-4 py-2">
+              <h2 className="flex items-center gap-1.5 text-base font-semibold text-text-primary">
                 <Calendar className="h-4 w-4" strokeWidth={1.75} />
                 {day.dayLabel}
               </h2>
             </header>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-border-subtle">
               {day.meals.map((meal) => {
                 let mKcal = 0;
                 for (const it of meal.items)
@@ -133,26 +133,26 @@ export default async function PlanDetailPage({ params }: Props) {
                 return (
                   <div key={meal.id} className="px-4 py-3">
                     <header className="flex items-center justify-between">
-                      <h3 className="flex items-center gap-1.5 font-medium text-slate-900">
+                      <h3 className="flex items-center gap-1.5 font-medium text-text-primary">
                         <Utensils
                           className="h-3.5 w-3.5 text-brand-primary"
                           strokeWidth={1.75}
                         />
                         {meal.name}
                         {meal.scheduledTime && (
-                          <span className="ml-2 text-xs font-normal text-slate-500">
+                          <span className="ml-2 text-xs font-normal text-text-muted">
                             {meal.scheduledTime}
                           </span>
                         )}
                       </h3>
                       {meal.items.length > 0 && (
-                        <span className="text-xs tabular-nums text-slate-600">
+                        <span className="text-xs tabular-nums text-text-secondary">
                           {mKcal.toFixed(0)} kcal
                         </span>
                       )}
                     </header>
                     {meal.items.length === 0 ? (
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-text-subtle">
                         Sem alimentos.
                       </p>
                     ) : (
@@ -160,15 +160,15 @@ export default async function PlanDetailPage({ params }: Props) {
                         {meal.items.map((it) => (
                           <li
                             key={it.id}
-                            className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-1.5"
+                            className="flex items-center justify-between rounded-md bg-bg-subtle px-3 py-1.5"
                           >
                             <span>
                               {foodMap.get(it.foodId) ?? "—"}
-                              <span className="ml-2 text-xs text-slate-500">
+                              <span className="ml-2 text-xs text-text-muted">
                                 {it.quantityG.toString()}g
                               </span>
                               {it.preparationNotes && (
-                                <span className="ml-1 text-xs text-slate-400">
+                                <span className="ml-1 text-xs text-text-subtle">
                                   ({it.preparationNotes})
                                 </span>
                               )}

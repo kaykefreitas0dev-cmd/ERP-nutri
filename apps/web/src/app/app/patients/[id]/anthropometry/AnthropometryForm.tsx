@@ -53,7 +53,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
             name="measuredAt"
             type="datetime-local"
             defaultValue={new Date().toISOString().slice(0, 16)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
@@ -64,7 +64,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
             id="protocol"
             value={protocol}
             onChange={(e) => setProtocol(e.target.value as typeof protocol)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           >
             <option value="pollock_3">Pollock 3 dobras</option>
             <option value="pollock_7">Pollock 7 dobras</option>
@@ -74,7 +74,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
       </div>
 
       <fieldset>
-        <legend className="text-sm font-semibold text-slate-900">
+        <legend className="text-sm font-semibold text-text-primary">
           Medidas básicas
         </legend>
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -88,7 +88,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
               type="number"
               step="0.1"
               min="0"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               placeholder="70.5"
             />
           </div>
@@ -102,7 +102,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
               type="number"
               step="0.1"
               min="0"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               placeholder="170"
             />
           </div>
@@ -110,7 +110,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm font-semibold text-slate-900">
+        <legend className="text-sm font-semibold text-text-primary">
           Circunferências (cm)
         </legend>
         <div className="mt-2 grid grid-cols-3 gap-3">
@@ -119,28 +119,28 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
             type="number"
             step="0.1"
             placeholder="Cintura"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border-default px-3 py-2 text-sm"
           />
           <input
             name="hip"
             type="number"
             step="0.1"
             placeholder="Quadril"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border-default px-3 py-2 text-sm"
           />
           <input
             name="abdomen"
             type="number"
             step="0.1"
             placeholder="Abdômen"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-border-default px-3 py-2 text-sm"
           />
         </div>
       </fieldset>
 
       {protocol === "pollock_3" && (
         <fieldset>
-          <legend className="text-sm font-semibold text-slate-900">
+          <legend className="text-sm font-semibold text-text-primary">
             Dobras Pollock 3 (mm) - {patientSex === "male" ? "Homem" : "Mulher"}
           </legend>
           {patientSex === "male" ? (
@@ -150,21 +150,21 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
                 type="number"
                 step="0.1"
                 placeholder="Peitoral"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="abdominal"
                 type="number"
                 step="0.1"
                 placeholder="Abdominal"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="thigh"
                 type="number"
                 step="0.1"
                 placeholder="Coxa"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
           ) : (
@@ -174,21 +174,21 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
                 type="number"
                 step="0.1"
                 placeholder="Tricipital"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="suprailiac"
                 type="number"
                 step="0.1"
                 placeholder="Supra-ilíaca"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="thigh"
                 type="number"
                 step="0.1"
                 placeholder="Coxa"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -197,7 +197,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
 
       {protocol === "pollock_7" && (
         <fieldset>
-          <legend className="text-sm font-semibold text-slate-900">
+          <legend className="text-sm font-semibold text-text-primary">
             Dobras Pollock 7 (mm)
           </legend>
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -216,7 +216,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
                 type="number"
                 step="0.1"
                 placeholder={l}
-                className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                className="rounded-md border border-border-default px-2 py-2 text-sm"
               />
             ))}
           </div>
@@ -225,7 +225,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
 
       {protocol === "manual_bia" && (
         <fieldset>
-          <legend className="text-sm font-semibold text-slate-900">
+          <legend className="text-sm font-semibold text-text-primary">
             Bioimpedância
           </legend>
           <div className="mt-2 grid grid-cols-2 gap-3">
@@ -243,7 +243,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
                 step="0.1"
                 min="0"
                 max="80"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -259,7 +259,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
                 type="number"
                 step="0.1"
                 min="0"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -274,7 +274,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
           id="notes"
           name="notes"
           rows={2}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
         />
       </div>
 
@@ -286,7 +286,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
         {pending ? "Calculando + salvando…" : "Salvar medição"}
       </button>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-text-muted">
         💡 IMC, GEB (Mifflin/Harris/FAO) e %GC (Pollock) são calculados
         automaticamente usando idade + sexo do paciente.
       </p>

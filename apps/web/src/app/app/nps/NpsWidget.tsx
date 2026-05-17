@@ -127,7 +127,7 @@ export function NpsWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-4 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-lg transition hover:border-brand-400 hover:text-brand-primary"
+          className="fixed bottom-4 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-border-subtle bg-white px-4 text-sm font-medium text-text-secondary shadow-lg transition hover:border-brand-400 hover:text-brand-primary"
           aria-label="Enviar feedback"
         >
           <MessageSquare className="h-4 w-4" strokeWidth={1.75} />
@@ -140,7 +140,7 @@ export function NpsWidget() {
           role="dialog"
           aria-modal="false"
           aria-labelledby="nps-title"
-          className="fixed bottom-4 right-4 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white shadow-xl"
+          className="fixed bottom-4 right-4 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-border-subtle bg-white shadow-xl"
         >
           <div className="flex items-start justify-between px-4 pt-4">
             <div>
@@ -149,7 +149,7 @@ export function NpsWidget() {
               </p>
               <h3
                 id="nps-title"
-                className="mt-1 text-sm font-semibold text-slate-900"
+                className="mt-1 text-sm font-semibold text-text-primary"
               >
                 {done
                   ? "Obrigado!"
@@ -160,7 +160,7 @@ export function NpsWidget() {
               type="button"
               onClick={close}
               aria-label="Fechar"
-              className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              className="rounded-md p-1 text-text-subtle transition hover:bg-bg-subtle hover:text-text-secondary"
             >
               <X className="h-4 w-4" />
             </button>
@@ -197,7 +197,7 @@ export function NpsWidget() {
                         "flex h-9 items-center justify-center rounded-md border text-xs font-semibold transition " +
                         (selected
                           ? selectedTone
-                          : "bg-white text-slate-700 " + tone)
+                          : "bg-white text-text-secondary " + tone)
                       }
                       aria-pressed={selected}
                       aria-label={`Nota ${n}`}
@@ -208,13 +208,13 @@ export function NpsWidget() {
                 })}
               </div>
 
-              <div className="mt-2 flex justify-between text-[10px] text-slate-500">
+              <div className="mt-2 flex justify-between text-[10px] text-text-muted">
                 <span>Nem um pouco</span>
                 <span>Com certeza</span>
               </div>
 
               {score != null && (
-                <label className="mt-3 block text-xs font-medium text-slate-700">
+                <label className="mt-3 block text-xs font-medium text-text-secondary">
                   {score <= 6
                     ? "O que mais incomoda hoje?"
                     : score <= 8
@@ -226,7 +226,7 @@ export function NpsWidget() {
                     maxLength={800}
                     rows={3}
                     placeholder="Opcional"
-                    className="mt-1 block w-full resize-none rounded-md border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-900 outline-none transition focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+                    className="mt-1 block w-full resize-none rounded-md border border-border-default bg-white px-2.5 py-2 text-xs text-text-primary outline-none transition focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
                   />
                 </label>
               )}
@@ -238,18 +238,18 @@ export function NpsWidget() {
               )}
 
               <div className="mt-3 flex items-center justify-between">
-                <div className="flex gap-2 text-[11px] text-slate-500">
+                <div className="flex gap-2 text-[11px] text-text-muted">
                   <button
                     type="button"
                     onClick={snoozeShort}
-                    className="underline-offset-2 hover:text-slate-700 hover:underline"
+                    className="underline-offset-2 hover:text-text-secondary hover:underline"
                   >
                     Depois
                   </button>
                   <button
                     type="button"
                     onClick={dismissForever}
-                    className="underline-offset-2 hover:text-slate-700 hover:underline"
+                    className="underline-offset-2 hover:text-text-secondary hover:underline"
                   >
                     Não mostrar mais
                   </button>
@@ -257,7 +257,7 @@ export function NpsWidget() {
                 <button
                   type="submit"
                   disabled={score == null || pending}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-primary px-3 text-xs font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-primary px-3 text-xs font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-bg-muted"
                 >
                   {pending && (
                     <Loader2

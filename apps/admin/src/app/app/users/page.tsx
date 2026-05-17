@@ -35,8 +35,8 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Usuários</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">Usuários</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           {users.length} user(s) — busca limitada a 100 resultados
         </p>
       </header>
@@ -47,13 +47,13 @@ export default async function AdminUsersPage({ searchParams }: Props) {
           name="q"
           defaultValue={q ?? ""}
           placeholder="Buscar por email ou nome..."
-          className="block w-full max-w-md rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="block w-full max-w-md rounded-md border border-border-default px-3 py-2 text-sm"
         />
       </form>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-border-subtle bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+          <thead className="border-b border-border-subtle bg-bg-subtle text-xs uppercase tracking-wider text-text-muted">
             <tr>
               <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Nome</th>
@@ -63,19 +63,19 @@ export default async function AdminUsersPage({ searchParams }: Props) {
               <th className="px-4 py-3 text-left">ID</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border-subtle">
             {users.map((u) => (
-              <tr key={u.id} className="hover:bg-slate-50">
+              <tr key={u.id} className="hover:bg-bg-subtle">
                 <td className="px-4 py-2">{u.email ?? "—"}</td>
                 <td className="px-4 py-2">{u.fullName ?? "—"}</td>
                 <td className="px-4 py-2 text-center text-xs">{u.status}</td>
                 <td className="px-4 py-2 text-right tabular-nums">
                   {u._count.memberships}
                 </td>
-                <td className="px-4 py-2 text-xs text-slate-500">
+                <td className="px-4 py-2 text-xs text-text-muted">
                   {new Date(u.createdAt).toLocaleDateString("pt-BR")}
                 </td>
-                <td className="px-4 py-2 font-mono text-[10px] text-slate-500">
+                <td className="px-4 py-2 font-mono text-[10px] text-text-muted">
                   {u.id.slice(0, 8)}...
                 </td>
               </tr>

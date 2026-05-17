@@ -59,12 +59,12 @@ export default async function AdminAppLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-56 shrink-0 border-r border-slate-200 bg-slate-900 text-slate-200">
-        <div className="border-b border-slate-800 px-5 py-4">
+      <aside className="w-56 shrink-0 border-r border-border-subtle bg-text-primary text-bg-page">
+        <div className="border-b border-border-default px-5 py-4">
           <Link href="/app" className="text-lg font-bold text-white">
             NutriCore Admin
           </Link>
-          <p className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-400">
+          <p className="mt-0.5 text-[10px] uppercase tracking-wider text-text-subtle">
             Backoffice
           </p>
         </div>
@@ -82,12 +82,12 @@ export default async function AdminAppLayout({
             Audit log
           </NavLink>
         </nav>
-        <div className="absolute bottom-0 w-56 border-t border-slate-800 p-3">
-          <p className="text-[10px] text-slate-500">{user.email}</p>
+        <div className="absolute bottom-0 w-56 border-t border-border-default p-3">
+          <p className="text-[10px] text-text-muted">{user.email}</p>
           <SignOutButton />
         </div>
       </aside>
-      <main className="flex-1 overflow-auto bg-slate-50 p-6">{children}</main>
+      <main className="flex-1 overflow-auto bg-bg-subtle p-6">{children}</main>
     </div>
   );
 }
@@ -104,7 +104,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="flex items-center gap-2 rounded-md px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white"
+      className="flex items-center gap-2 rounded-md px-3 py-2 text-text-subtle hover:bg-text-primary hover:text-white"
     >
       <Icon className="h-4 w-4" strokeWidth={1.75} />
       <span>{children}</span>

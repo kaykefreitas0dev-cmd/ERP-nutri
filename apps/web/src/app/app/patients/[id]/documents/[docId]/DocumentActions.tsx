@@ -54,7 +54,7 @@ export function DocumentActions({ documentId, status }: Props) {
           href={`/api/v1/documents/${documentId}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50"
+          className="rounded-md border border-border-default bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg-subtle"
         >
           📥 {status === "DRAFT" ? "Visualizar PDF" : "Baixar PDF"}
         </a>
@@ -119,7 +119,7 @@ export function DocumentActions({ documentId, status }: Props) {
                 setReason("");
                 setError(null);
               }}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs"
+              className="rounded-md border border-border-default bg-white px-3 py-1 text-xs"
             >
               Cancelar
             </button>

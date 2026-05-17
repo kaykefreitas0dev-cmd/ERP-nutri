@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ImportWizard } from "./ImportWizard";
 
@@ -42,19 +43,20 @@ export default async function ImportsPage() {
   }
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
         <header className="mb-6">
           <Link
             href="/app"
-            className="text-sm text-brand-primary hover:underline"
+            className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
           >
-            ← Dashboard
+            <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+            Dashboard
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
+          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
             Importar pacientes
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-caption text-text-secondary">
             Migre seus pacientes de outros sistemas (Dietbox, Webdiet) ou via
             CSV genérico.
           </p>
@@ -62,17 +64,17 @@ export default async function ImportsPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-lg border border-border-subtle bg-bg-surface p-6 [box-shadow:var(--shadow-xs)]">
               <ImportWizard />
             </div>
           </div>
 
           <aside>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-h3 font-semibold text-text-primary">
               Importações recentes
             </h2>
             {imports.length === 0 ? (
-              <p className="mt-3 rounded-md border border-dashed border-slate-300 p-3 text-xs text-slate-500">
+              <p className="mt-3 rounded-md border border-dashed border-border-default p-3 text-caption text-text-muted">
                 Nenhuma importação ainda.
               </p>
             ) : (
@@ -80,29 +82,30 @@ export default async function ImportsPage() {
                 {imports.map((imp) => (
                   <li
                     key={imp.id}
-                    className="rounded-md border border-slate-200 bg-white p-3 text-xs"
+                    className="rounded-md border border-border-subtle bg-bg-surface p-3 text-tiny [box-shadow:var(--shadow-xs)]"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-slate-900">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate font-medium text-text-primary">
                         {imp.originalFileName}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          imp.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
+                        className={
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset " +
+                          (imp.status === "COMPLETED"
+                            ? "bg-success-bg text-success ring-success-border"
                             : imp.status === "FAILED"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
-                        }`}
+                              ? "bg-danger-bg text-danger ring-danger-border"
+                              : "bg-warning-bg text-warning ring-warning-border")
+                        }
                       >
                         {imp.status}
                       </span>
                     </div>
-                    <div className="mt-1 text-slate-500">
+                    <div className="mt-1 text-text-muted">
                       {imp.source} • {imp.processedRows}/{imp.totalRows} ok •{" "}
                       {imp.errorRows} erros
                     </div>
-                    <div className="text-slate-400">
+                    <div className="text-text-subtle tabular-nums">
                       {new Date(imp.createdAt).toLocaleString("pt-BR")}
                     </div>
                   </li>

@@ -133,8 +133,8 @@ export function InvitePatientButton({
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-slate-300 bg-white p-3 shadow-sm">
-      <p className="text-xs text-slate-700">
+    <div className="space-y-3 rounded-md border border-border-default bg-white p-3 shadow-sm">
+      <p className="text-xs text-text-secondary">
         Gere um link de acesso passwordless. O paciente entrará pelo email
         recebido no app.
       </p>
@@ -149,7 +149,7 @@ export function InvitePatientButton({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="paciente@email.com"
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
         />
       </div>
 
@@ -230,7 +230,7 @@ export function InvitePatientButton({
             setError(null);
             setInviteUrl(null);
           }}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs"
+          className="rounded-md border border-border-default bg-white px-3 py-1.5 text-xs"
         >
           {inviteUrl ? "Fechar" : "Cancelar"}
         </button>

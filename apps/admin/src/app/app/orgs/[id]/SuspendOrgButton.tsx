@@ -107,7 +107,7 @@ export function SuspendOrgButton({ orgId, currentStatus }: Props) {
             setReason("");
             setError(null);
           }}
-          className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px]"
+          className="rounded border border-border-default bg-white px-2 py-1 text-[10px]"
         >
           Cancelar
         </button>

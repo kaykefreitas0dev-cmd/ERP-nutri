@@ -25,8 +25,8 @@ export default async function HomePage() {
 
       <section className="flex-1 px-5 py-12">
         <div className="mx-auto max-w-md text-center">
-          <h2 className="text-3xl font-bold text-slate-900">Bem-vindo(a)</h2>
-          <p className="mt-3 text-base text-slate-600">
+          <h2 className="text-3xl font-bold text-text-primary">Bem-vindo(a)</h2>
+          <p className="mt-3 text-base text-text-secondary">
             Esta área é exclusiva para pacientes. Acesse com o link que sua(seu)
             nutricionista enviou ou faça login com seu email cadastrado.
           </p>
@@ -38,14 +38,14 @@ export default async function HomePage() {
             >
               📧 Entrar com email
             </Link>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-text-muted">
               Sem cadastro? Peça à sua(seu) nutricionista para enviar o convite.
             </p>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white px-5 py-3 text-center text-xs text-slate-500">
+      <footer className="border-t border-border-subtle bg-white px-5 py-3 text-center text-xs text-text-muted">
         NutriCore · seu nutricionista define seu plano, você acompanha aqui.
       </footer>
     </main>

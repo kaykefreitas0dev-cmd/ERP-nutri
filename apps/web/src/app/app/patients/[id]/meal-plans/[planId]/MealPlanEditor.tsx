@@ -94,19 +94,19 @@ export function MealPlanEditor({ days }: Props) {
       {days.map((day) => (
         <section
           key={day.id}
-          className="rounded-lg border border-slate-200 bg-white shadow-sm"
+          className="rounded-lg border border-border-subtle bg-white shadow-sm"
         >
-          <header className="border-b border-slate-200 bg-slate-50 px-5 py-3">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+          <header className="border-b border-border-subtle bg-bg-subtle px-5 py-3">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
               <CalendarDays
-                className="h-4 w-4 text-slate-500"
+                className="h-4 w-4 text-text-muted"
                 strokeWidth={1.75}
               />
               {day.dayLabel}
             </h2>
           </header>
 
-          <div className="divide-y divide-slate-200">
+          <div className="divide-y divide-border-subtle">
             {day.meals.map((meal) => {
               // Totais da refeição
               let mealKcal = 0;
@@ -124,20 +124,20 @@ export function MealPlanEditor({ days }: Props) {
                 <div key={meal.id} className="p-4">
                   <header className="mb-2 flex items-center justify-between">
                     <div>
-                      <h3 className="flex items-center gap-2 font-medium text-slate-900">
+                      <h3 className="flex items-center gap-2 font-medium text-text-primary">
                         <UtensilsCrossed
-                          className="h-4 w-4 text-slate-500"
+                          className="h-4 w-4 text-text-muted"
                           strokeWidth={1.75}
                         />
                         {meal.name}
                         {meal.scheduledTime && (
-                          <span className="ml-1 text-xs text-slate-500 tabular-nums">
+                          <span className="ml-1 text-xs text-text-muted tabular-nums">
                             {meal.scheduledTime}
                           </span>
                         )}
                       </h3>
                       {meal.items.length > 0 && (
-                        <p className="text-xs tabular-nums text-slate-600">
+                        <p className="text-xs tabular-nums text-text-secondary">
                           {mealKcal.toFixed(0)} kcal · PTN {mealP.toFixed(0)}g ·
                           CHO {mealC.toFixed(0)}g · LIP {mealF.toFixed(0)}g
                         </p>
@@ -156,28 +156,28 @@ export function MealPlanEditor({ days }: Props) {
 
                   {/* Lista de items */}
                   {meal.items.length === 0 ? (
-                    <p className="text-xs text-slate-400">Sem alimentos.</p>
+                    <p className="text-xs text-text-subtle">Sem alimentos.</p>
                   ) : (
                     <ul className="space-y-1">
                       {meal.items.map((item) => (
                         <li
                           key={item.id}
-                          className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm"
+                          className="flex items-center justify-between rounded-md bg-bg-subtle px-3 py-2 text-sm"
                         >
                           <div className="flex-1">
                             <span className="font-medium">
                               {item.food.name}
                             </span>
-                            <span className="ml-2 text-xs text-slate-500">
+                            <span className="ml-2 text-xs text-text-muted">
                               {item.quantityG.toString()}g
                             </span>
                             {item.preparationNotes && (
-                              <span className="ml-1 text-xs text-slate-400">
+                              <span className="ml-1 text-xs text-text-subtle">
                                 ({item.preparationNotes})
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-slate-600 tabular-nums">
+                          <div className="flex items-center gap-3 text-xs text-text-secondary tabular-nums">
                             {item.kcal && (
                               <span>{item.kcal.toString()} kcal</span>
                             )}
@@ -204,7 +204,7 @@ export function MealPlanEditor({ days }: Props) {
                           placeholder="Buscar alimento..."
                           value={foodQuery}
                           onChange={(e) => handleSearchFoods(e.target.value)}
-                          className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                          className="flex-1 rounded-md border border-border-default px-3 py-2 text-sm"
                           autoFocus
                         />
                         <input
@@ -213,13 +213,15 @@ export function MealPlanEditor({ days }: Props) {
                           max="5000"
                           value={quantityG}
                           onChange={(e) => setQuantityG(e.target.value)}
-                          className="w-20 rounded-md border border-slate-300 px-2 py-2 text-sm tabular-nums"
+                          className="w-20 rounded-md border border-border-default px-2 py-2 text-sm tabular-nums"
                           placeholder="g"
                         />
                       </div>
 
                       {searching && (
-                        <p className="mt-2 text-xs text-slate-500">Buscando…</p>
+                        <p className="mt-2 text-xs text-text-muted">
+                          Buscando…
+                        </p>
                       )}
 
                       {foodResults.length > 0 && (
@@ -230,10 +232,10 @@ export function MealPlanEditor({ days }: Props) {
                                 type="button"
                                 onClick={() => handleAdd(meal.id, f.id)}
                                 disabled={pending}
-                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm hover:border-brand-primary hover:bg-brand-100 disabled:opacity-50"
+                                className="block w-full rounded-md border border-border-default bg-white px-3 py-2 text-left text-sm hover:border-brand-primary hover:bg-brand-100 disabled:opacity-50"
                               >
                                 <span className="font-medium">{f.name}</span>
-                                <span className="ml-2 text-xs text-slate-500">
+                                <span className="ml-2 text-xs text-text-muted">
                                   ({f.source})
                                 </span>
                               </button>
@@ -245,7 +247,7 @@ export function MealPlanEditor({ days }: Props) {
                       {foodQuery.length >= 2 &&
                         foodResults.length === 0 &&
                         !searching && (
-                          <p className="mt-2 text-xs text-slate-500">
+                          <p className="mt-2 text-xs text-text-muted">
                             Nenhum alimento encontrado.
                           </p>
                         )}
@@ -259,7 +261,7 @@ export function MealPlanEditor({ days }: Props) {
       ))}
 
       {days.length === 0 && (
-        <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center text-slate-500">
+        <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
           Sem dias configurados.
         </div>
       )}

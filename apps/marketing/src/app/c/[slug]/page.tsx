@@ -147,7 +147,7 @@ export default async function BookingPagePublic({ params }: Props) {
   return (
     <>
       <SiteHeader />
-      <main className="bg-slate-50 py-10">
+      <main className="bg-bg-subtle py-10">
         <Container size="md">
           <script
             type="application/ld+json"
@@ -158,7 +158,7 @@ export default async function BookingPagePublic({ params }: Props) {
             <CardContent className="p-6 sm:p-8">
               <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                 {data.bookingPage.photoUrl ? (
-                  <div className="h-24 w-24 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-24 w-24 overflow-hidden rounded-full bg-bg-subtle">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={data.bookingPage.photoUrl}
@@ -175,11 +175,11 @@ export default async function BookingPagePublic({ params }: Props) {
                   </div>
                 )}
                 <div className="flex-1 text-center sm:text-left">
-                  <h1 className="text-2xl font-bold text-slate-900">
+                  <h1 className="text-2xl font-bold text-text-primary">
                     {data.bookingPage.displayName}
                   </h1>
                   {data.bookingPage.crn && (
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-text-secondary">
                       {data.bookingPage.crn}/{data.bookingPage.crnUf}
                     </p>
                   )}
@@ -196,7 +196,7 @@ export default async function BookingPagePublic({ params }: Props) {
               </div>
 
               {data.bookingPage.bio && (
-                <p className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                <p className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
                   {data.bookingPage.bio}
                 </p>
               )}
@@ -216,7 +216,7 @@ export default async function BookingPagePublic({ params }: Props) {
             </div>
           ) : (
             <Card className="mt-6">
-              <CardContent className="p-6 text-center text-sm text-slate-600">
+              <CardContent className="p-6 text-center text-sm text-text-secondary">
                 Esta profissional não está aceitando novos pacientes no momento.
                 <br />
                 <Link href="/" className="text-brand-primary underline">

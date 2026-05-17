@@ -9,7 +9,7 @@ const STATUS_STYLE: Record<string, string> = {
   ACTIVE: "bg-green-100 text-green-800",
   PAST_DUE: "bg-amber-100 text-amber-800",
   SUSPENDED: "bg-red-100 text-red-800",
-  CANCELLED: "bg-slate-200 text-slate-600",
+  CANCELLED: "bg-bg-muted text-text-secondary",
 };
 
 export default async function AdminOrgsPage() {
@@ -30,15 +30,15 @@ export default async function AdminOrgsPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Organizações</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">Organizações</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           {orgs.length} org(s) cadastrada(s) na plataforma
         </p>
       </header>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-border-subtle bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+          <thead className="border-b border-border-subtle bg-bg-subtle text-xs uppercase tracking-wider text-text-muted">
             <tr>
               <th className="px-4 py-3 text-left">Nome</th>
               <th className="px-4 py-3 text-left">Slug</th>
@@ -50,13 +50,13 @@ export default async function AdminOrgsPage() {
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border-subtle">
             {orgs.map((o) => (
-              <tr key={o.id} className="hover:bg-slate-50">
-                <td className="px-4 py-2 font-medium text-slate-900">
+              <tr key={o.id} className="hover:bg-bg-subtle">
+                <td className="px-4 py-2 font-medium text-text-primary">
                   {o.name}
                 </td>
-                <td className="px-4 py-2 font-mono text-xs text-slate-600">
+                <td className="px-4 py-2 font-mono text-xs text-text-secondary">
                   {o.slug}
                 </td>
                 <td className="px-4 py-2 text-xs">{o.plan}</td>
@@ -64,7 +64,7 @@ export default async function AdminOrgsPage() {
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                       STATUS_STYLE[o.subscriptionStatus] ??
-                      "bg-slate-100 text-slate-600"
+                      "bg-bg-subtle text-text-secondary"
                     }`}
                   >
                     {o.subscriptionStatus}
@@ -76,7 +76,7 @@ export default async function AdminOrgsPage() {
                 <td className="px-4 py-2 text-right tabular-nums">
                   {o._count.memberships}
                 </td>
-                <td className="px-4 py-2 text-xs text-slate-500">
+                <td className="px-4 py-2 text-xs text-text-muted">
                   {new Date(o.createdAt).toLocaleDateString("pt-BR")}
                 </td>
                 <td className="px-4 py-2 text-right">

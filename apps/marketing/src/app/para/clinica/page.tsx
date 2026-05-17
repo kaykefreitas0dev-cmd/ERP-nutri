@@ -40,17 +40,17 @@ export default function ClinicaPage() {
     <>
       <SiteHeader />
       <main className="min-h-screen">
-        <section className="bg-gradient-to-b from-slate-100 to-white px-4 py-16">
+        <section className="bg-gradient-to-b from-bg-subtle to-white px-4 py-16">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="mb-3 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-800">
+            <p className="mb-3 inline-block rounded-full bg-bg-muted px-3 py-1 text-xs font-medium uppercase tracking-wider text-text-primary">
               Para clínicas (3-30 nutris)
             </p>
-            <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold text-text-primary sm:text-5xl">
               Operação clínica{" "}
               <span className="text-brand-primary">profissional</span>, não
               improvisada
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-text-secondary">
               Sua clínica cresceu. Agora cada nutri usa um sistema diferente,
               ninguém tem visão consolidada, e LGPD virou pesadelo. NutriCore
               centraliza sem perder a autonomia de cada profissional.
@@ -64,7 +64,7 @@ export default function ClinicaPage() {
               </Link>
               <Link
                 href="/#pricing"
-                className="rounded-md border border-slate-300 bg-white px-6 py-3 text-base font-medium hover:bg-slate-50"
+                className="rounded-md border border-border-default bg-white px-6 py-3 text-base font-medium hover:bg-bg-subtle"
               >
                 Ver planos Clínica
               </Link>
@@ -74,29 +74,29 @@ export default function ClinicaPage() {
 
         <section className="px-4 py-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">
+            <h2 className="text-center text-2xl font-bold text-text-primary">
               Por que clínicas escolhem NutriCore
             </h2>
             <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
               {FEATURES.map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                  className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
                 >
-                  <h3 className="font-semibold text-slate-900">{f.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{f.body}</p>
+                  <h3 className="font-semibold text-text-primary">{f.title}</h3>
+                  <p className="mt-2 text-sm text-text-secondary">{f.body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="bg-slate-50 px-4 py-16">
+        <section className="bg-bg-subtle px-4 py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-text-primary">
               Onboarding assistido
             </h2>
-            <p className="mt-3 text-slate-600">
+            <p className="mt-3 text-text-secondary">
               Migração de até 500 pacientes feita pela nossa equipe sem custo
               adicional. Setup do branding + treinamento de 1h com cada
               nutricionista da equipe. Você está rodando em ≤ 7 dias.

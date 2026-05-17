@@ -118,7 +118,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
         >
           ← {patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold text-text-primary">
           Check-ins do paciente
         </h1>
 
@@ -208,20 +208,20 @@ export default async function PatientCheckinsPage({ params }: Props) {
             </div>
 
             {/* Tabela detalhada */}
-            <section className="mt-8 rounded-lg border border-slate-200 bg-white shadow-sm">
-              <header className="border-b border-slate-200 px-5 py-3">
+            <section className="mt-8 rounded-lg border border-border-subtle bg-white shadow-sm">
+              <header className="border-b border-border-subtle px-5 py-3">
                 <h2 className="text-base font-semibold">
                   Histórico ({checkins.length})
                 </h2>
               </header>
               {checkins.length === 0 ? (
-                <p className="p-5 text-sm text-slate-500">
+                <p className="p-5 text-sm text-text-muted">
                   Nenhum check-in registrado ainda.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                    <thead className="border-b border-border-subtle bg-bg-subtle text-xs uppercase tracking-wider text-text-muted">
                       <tr>
                         <th className="px-4 py-2 text-left">Data</th>
                         <th className="px-4 py-2 text-center">Humor</th>
@@ -247,9 +247,9 @@ export default async function PatientCheckinsPage({ params }: Props) {
                         <th className="px-4 py-2 text-left">Notas</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-border-subtle">
                       {checkins.map((c) => (
-                        <tr key={c.id} className="hover:bg-slate-50">
+                        <tr key={c.id} className="hover:bg-bg-subtle">
                           <td className="px-4 py-2 text-xs">
                             {new Date(c.checkinDate).toLocaleDateString(
                               "pt-BR",
@@ -297,7 +297,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
                             )}
                             {c.followedPlan === null && "—"}
                           </td>
-                          <td className="max-w-xs truncate px-4 py-2 text-xs text-slate-600">
+                          <td className="max-w-xs truncate px-4 py-2 text-xs text-text-secondary">
                             {c.notes ?? "—"}
                           </td>
                         </tr>
@@ -324,10 +324,10 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-xs text-slate-500">{sub}</p>}
+    <div className="rounded-lg border border-border-subtle bg-white p-3 shadow-sm">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="mt-1 text-xl font-bold text-text-primary">{value}</p>
+      {sub && <p className="text-xs text-text-muted">{sub}</p>}
     </div>
   );
 }

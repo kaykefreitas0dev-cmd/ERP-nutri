@@ -98,11 +98,11 @@ export default async function InviteLandingPage({ params }: Props) {
             </p>
           </div>
 
-          <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-900">
+          <div className="mt-6 rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-text-primary">
               Como funciona
             </h3>
-            <ol className="mt-3 space-y-2 text-sm text-slate-700">
+            <ol className="mt-3 space-y-2 text-sm text-text-secondary">
               <li>
                 <strong>1.</strong> Confirme o email para criar seu acesso
               </li>
@@ -119,14 +119,14 @@ export default async function InviteLandingPage({ params }: Props) {
             </div>
           </div>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
+          <p className="mt-4 text-center text-xs text-text-muted">
             Convite válido até{" "}
             {new Date(invite.expiresAt).toLocaleDateString("pt-BR")}
           </p>
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white px-5 py-3 text-center text-xs text-slate-500">
+      <footer className="border-t border-border-subtle bg-white px-5 py-3 text-center text-xs text-text-muted">
         NutriCore · acompanhamento nutricional digital
       </footer>
     </main>
@@ -148,11 +148,14 @@ function ErrorScreen({
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center p-5">
-      <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <Icon className="mx-auto h-12 w-12 text-slate-400" strokeWidth={1.5} />
+      <div className="mx-auto max-w-md rounded-lg border border-border-subtle bg-white p-8 text-center shadow-sm">
+        <Icon
+          className="mx-auto h-12 w-12 text-text-subtle"
+          strokeWidth={1.5}
+        />
         <div className="h-3" />
-        <h1 className="mt-3 text-xl font-bold text-slate-900">{title}</h1>
-        <p className="mt-2 text-sm text-slate-600">{message}</p>
+        <h1 className="mt-3 text-xl font-bold text-text-primary">{title}</h1>
+        <p className="mt-2 text-sm text-text-secondary">{message}</p>
         {ctaHref && ctaLabel && (
           <Link
             href={ctaHref}

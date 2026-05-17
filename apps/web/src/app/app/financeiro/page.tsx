@@ -8,6 +8,7 @@ import {
   HelpCircle,
   BarChart3,
   FileText,
+  ChevronLeft,
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
@@ -26,12 +27,12 @@ const METHOD_LABEL: Record<string, { label: string; Icon: LucideIcon }> = {
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   EXTERNAL_RECORDED: {
     label: "Registrado (externo)",
-    color: "bg-slate-100 text-slate-700",
+    color: "bg-bg-subtle text-text-secondary",
   },
   PENDING: { label: "Pendente", color: "bg-amber-100 text-amber-800" },
   PAID: { label: "Pago", color: "bg-green-100 text-green-800" },
   REFUNDED: { label: "Estornado", color: "bg-red-100 text-red-800" },
-  CANCELLED: { label: "Cancelado", color: "bg-slate-200 text-slate-600" },
+  CANCELLED: { label: "Cancelado", color: "bg-bg-muted text-text-secondary" },
 };
 
 function brMoney(cents: number): string {
@@ -189,17 +190,20 @@ export default async function FinanceiroPage({ searchParams }: Props) {
   );
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
           <Link
             href="/app"
-            className="text-sm text-brand-primary hover:underline"
+            className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
           >
-            ← Dashboard
+            <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+            Dashboard
           </Link>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">Financeiro</h1>
-          <p className="text-sm text-slate-600">
+          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
+            Financeiro
+          </h1>
+          <p className="mt-1 text-caption text-text-secondary">
             Pagamentos registrados (EXTERNAL_RECORDED no MVP — Asaas chega no
             S22).
           </p>
@@ -242,8 +246,8 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         </section>
 
         {/* 6-month chart */}
-        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <section className="mt-6 rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-text-primary">
             <BarChart3 className="inline h-4 w-4" strokeWidth={1.75} /> Últimos
             6 meses
           </h2>
@@ -255,15 +259,15 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                   key={m.month}
                   className="flex-1 flex flex-col items-center"
                 >
-                  <div className="text-[10px] tabular-nums text-slate-600 mb-1">
+                  <div className="text-[10px] tabular-nums text-text-secondary mb-1">
                     {m.totalCents > 0 ? brMoney(m.totalCents) : ""}
                   </div>
                   <div
-                    className="w-full rounded-t bg-brand-primary-bg0"
+                    className="w-full rounded-t bg-brand-primary transition-all duration-base"
                     style={{ height: `${Math.max(h, 2)}%`, minHeight: "2px" }}
                     title={`${m.month}: ${brMoney(m.totalCents)} · ${m.count} pag.`}
                   />
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-1 text-xs text-text-muted">
                     {(() => {
                       const [, mm] = m.month.split("-");
                       const months = [
@@ -290,37 +294,37 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         </section>
 
         {/* Filters */}
-        <form className="mt-6 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <form className="mt-6 flex flex-wrap items-end gap-2 rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-xs font-medium text-text-secondary">
               De
             </label>
             <input
               type="date"
               name="from"
               defaultValue={from ?? ymd(defaultFrom)}
-              className="mt-1 block rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              className="mt-1 block rounded-md border border-border-default px-2 py-1.5 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-xs font-medium text-text-secondary">
               Até
             </label>
             <input
               type="date"
               name="to"
               defaultValue={to ?? ymd(defaultTo)}
-              className="mt-1 block rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              className="mt-1 block rounded-md border border-border-default px-2 py-1.5 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-xs font-medium text-text-secondary">
               Método
             </label>
             <select
               name="method"
               defaultValue={method ?? ""}
-              className="mt-1 block rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              className="mt-1 block rounded-md border border-border-default px-2 py-1.5 text-sm"
             >
               <option value="">Todos</option>
               {Object.entries(METHOD_LABEL).map(([k, v]) => (
@@ -331,7 +335,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
             </select>
           </div>
           <div className="flex-1 min-w-40">
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-xs font-medium text-text-secondary">
               Paciente
             </label>
             <input
@@ -339,7 +343,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
               name="q"
               defaultValue={q ?? ""}
               placeholder="Nome..."
-              className="mt-1 block w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-2 py-1.5 text-sm"
             />
           </div>
           <button
@@ -351,22 +355,22 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         </form>
 
         {/* Table */}
-        <section className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <header className="border-b border-slate-200 px-5 py-3">
+        <section className="mt-4 overflow-hidden rounded-lg border border-border-subtle bg-white shadow-sm">
+          <header className="border-b border-border-subtle px-5 py-3">
             <h2 className="text-base font-semibold">
               Pagamentos ({data.payments.length}
               {data.payments.length === 200 && "+"})
             </h2>
           </header>
           {data.payments.length === 0 ? (
-            <p className="p-5 text-sm text-slate-500">
+            <p className="p-5 text-sm text-text-muted">
               Nenhum pagamento no período. Quando você concluir uma consulta com
               recibo, ela aparecerá aqui.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                <thead className="border-b border-border-subtle bg-bg-subtle text-xs uppercase tracking-wider text-text-muted">
                   <tr>
                     <th className="px-4 py-2 text-left">Data</th>
                     <th className="px-4 py-2 text-left">Paciente</th>
@@ -377,17 +381,17 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                     <th className="px-4 py-2 text-center">Recibo</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border-subtle">
                   {data.payments.map((p) => {
                     const m =
                       p.externalPaymentMethod &&
                       METHOD_LABEL[p.externalPaymentMethod];
                     const s = STATUS_LABEL[p.status] ?? {
                       label: p.status,
-                      color: "bg-slate-100",
+                      color: "bg-bg-subtle",
                     };
                     return (
-                      <tr key={p.id} className="hover:bg-slate-50">
+                      <tr key={p.id} className="hover:bg-bg-subtle">
                         <td className="px-4 py-2 text-xs">
                           {new Date(p.paymentDate).toLocaleDateString("pt-BR")}
                         </td>
@@ -425,7 +429,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                             {s.label}
                           </span>
                         </td>
-                        <td className="max-w-xs truncate px-4 py-2 text-xs text-slate-600">
+                        <td className="max-w-xs truncate px-4 py-2 text-xs text-text-secondary">
                           {p.description ?? "—"}
                         </td>
                         <td className="px-4 py-2 text-center">
@@ -434,7 +438,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                               href={`/api/v1/documents/${p.receiptDocumentId}/pdf`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs hover:bg-slate-50"
+                              className="rounded border border-border-default bg-white px-2 py-1 text-xs hover:bg-bg-subtle"
                             >
                               <FileText
                                 className="inline h-3.5 w-3.5"
@@ -469,10 +473,10 @@ function KpiCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-[10px] text-slate-500">{sub}</p>}
+    <div className="rounded-lg border border-border-subtle bg-white p-3 shadow-sm">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="mt-1 text-xl font-bold text-text-primary">{value}</p>
+      {sub && <p className="text-[10px] text-text-muted">{sub}</p>}
     </div>
   );
 }

@@ -14,16 +14,16 @@ export default function NewPatientPage() {
           >
             ← Voltar para Pacientes
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
+          <h1 className="mt-2 text-2xl font-bold text-text-primary">
             Novo paciente
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-text-secondary">
             Apenas dados básicos. Anamnese completa, antropometria e exames
             podem ser adicionados depois.
           </p>
         </header>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-sm sm:p-8">
           <PatientForm mode="create" />
         </div>
       </div>

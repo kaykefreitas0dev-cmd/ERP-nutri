@@ -63,10 +63,10 @@ export default function PortabilidadePage() {
               <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
               LGPD · CFN · Lei 13.787
             </p>
-            <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold text-text-primary sm:text-5xl">
               Seus dados são <span className="text-brand-primary">seus</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-text-secondary">
               No NutriCore portabilidade não é checkbox de marketing — é função
               do produto. Exportar tudo, migrar para outro sistema ou apagar a
               conta leva minutos, não meses.
@@ -81,7 +81,7 @@ export default function PortabilidadePage() {
               </Link>
               <Link
                 href="/"
-                className="rounded-md border border-slate-300 bg-white px-6 py-3 text-base font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-md border border-border-default bg-white px-6 py-3 text-base font-medium text-text-secondary transition hover:bg-bg-subtle"
               >
                 Voltar à home
               </Link>
@@ -92,10 +92,10 @@ export default function PortabilidadePage() {
         {/* Direitos LGPD */}
         <section className="px-4 py-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">
+            <h2 className="text-center text-2xl font-bold text-text-primary">
               Os 4 direitos que você efetivamente usa
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-slate-600">
+            <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-text-secondary">
               A LGPD lista 10 direitos do titular (Art. 18). Aqui estão os que
               os nutricionistas mais pedem — e que entregamos via interface, sem
               precisar abrir chamado.
@@ -104,13 +104,15 @@ export default function PortabilidadePage() {
               {RIGHTS.map(({ Icon, title, body }) => (
                 <div
                   key={title}
-                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                  className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </div>
-                  <h3 className="mt-3 font-semibold text-slate-900">{title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{body}</p>
+                  <h3 className="mt-3 font-semibold text-text-primary">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm text-text-secondary">{body}</p>
                 </div>
               ))}
             </div>
@@ -118,31 +120,31 @@ export default function PortabilidadePage() {
         </section>
 
         {/* O que vai no ZIP */}
-        <section className="bg-slate-50 px-4 py-16">
+        <section className="bg-bg-subtle px-4 py-16">
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-8 md:grid-cols-[1fr_1.2fr] md:items-start">
               <div>
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-primary">
                   <FileLock className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h2 className="mt-3 text-2xl font-bold text-slate-900">
+                <h2 className="mt-3 text-2xl font-bold text-text-primary">
                   O que vai no seu ZIP de portabilidade
                 </h2>
-                <p className="mt-3 text-sm text-slate-600">
+                <p className="mt-3 text-sm text-text-secondary">
                   Estrutura organizada por domínio, com manifest JSON listando
                   contagens e checksums. ZIP criptografado; senha enviada por
                   SMS (canal separado do link de download).
                 </p>
-                <p className="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
+                <p className="mt-3 inline-flex items-center gap-2 text-xs text-text-muted">
                   <Clock className="h-3.5 w-3.5" strokeWidth={2} />
                   Disponibilidade: signed URL válida por 7 dias.
                 </p>
               </div>
-              <ul className="space-y-2.5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <ul className="space-y-2.5 rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
                 {EXPORT_CONTENT.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-2.5 text-sm text-slate-700"
+                    className="flex items-start gap-2.5 text-sm text-text-secondary"
                   >
                     <span
                       aria-hidden
@@ -159,15 +161,15 @@ export default function PortabilidadePage() {
         {/* FAQ */}
         <section className="px-4 py-16">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">
+            <h2 className="text-center text-2xl font-bold text-text-primary">
               Perguntas frequentes
             </h2>
             <dl className="mt-8 space-y-6">
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Por que algumas informações ficam mesmo após exclusão?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Lei 13.787/2018 + Resolução CFN 599 exigem retenção mínima de
                   prontuários por 20 anos. Anonimizamos: dados pessoais (nome,
                   CPF, contato) são apagados; apenas o histórico clínico anônimo
@@ -175,37 +177,39 @@ export default function PortabilidadePage() {
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Quanto custa exportar?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Zero. Portabilidade é um direito do titular pela LGPD (Art.
                   18, V) e da organização (cliente B2B). Não cobramos por
                   export, anonimização ou ação relacionada a direitos LGPD.
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Posso importar pra outro sistema?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Sim. O ZIP contém CSVs estruturados (compatíveis com Dietbox,
                   Webdiet e formato CSV genérico) + PDFs originais. A maioria
                   dos sistemas concorrentes aceita esses formatos diretamente.
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">Quem é o DPO?</dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dt className="font-semibold text-text-primary">
+                  Quem é o DPO?
+                </dt>
+                <dd className="mt-1 text-sm text-text-secondary">
                   Contato direto pelo formulário em /contato, assunto &ldquo;DPO
                   / LGPD&rdquo;. Resposta em até 15 dias úteis (Art. 19, § 2º).
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Como vocês protegem o ZIP durante o download?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   ZIP encriptado AES-256. Senha por SMS no celular cadastrado
                   (canal separado). Link expira em 7 dias. Logs de download
                   ficam no audit trail imutável.

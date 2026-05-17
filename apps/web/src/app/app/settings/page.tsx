@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings, Building2, Palette, TriangleAlert } from "lucide-react";
+import {
+  Settings,
+  Building2,
+  Palette,
+  TriangleAlert,
+  ChevronLeft,
+} from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { OrgSettingsForm } from "./OrgSettingsForm";
 
@@ -53,80 +59,107 @@ export default async function SettingsPage() {
   const canEdit = data.role === "org_owner" || data.role === "clinic_admin";
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-3xl">
         <Link
           href="/app"
-          className="text-sm text-brand-primary hover:underline"
+          className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
         >
-          ← Dashboard
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Dashboard
         </Link>
-        <header className="mt-2">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
-            <Settings className="h-6 w-6" strokeWidth={1.75} />
+        <header className="mt-3">
+          <h1 className="flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
+            <Settings
+              className="h-6 w-6 text-text-secondary"
+              strokeWidth={1.75}
+            />
             Configurações
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-caption text-text-secondary">
             Dados básicos da sua organização e branding.
           </p>
         </header>
 
         {!canEdit && (
-          <div className="mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-sm text-warning">
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-caption text-warning">
             <TriangleAlert
               className="mt-0.5 h-4 w-4 shrink-0"
               strokeWidth={1.75}
             />
             <span>
-              Sua role ({data.role}) é read-only. Apenas <code>org_owner</code>{" "}
-              ou <code>clinic_admin</code> podem editar.
+              Sua role ({data.role}) é read-only. Apenas{" "}
+              <code className="rounded bg-warning-bg/50 px-1 font-mono text-tiny">
+                org_owner
+              </code>{" "}
+              ou{" "}
+              <code className="rounded bg-warning-bg/50 px-1 font-mono text-tiny">
+                clinic_admin
+              </code>{" "}
+              podem editar.
             </span>
           </div>
         )}
 
-        {/* Org básico (read-only por enquanto) */}
-        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-            <Building2 className="h-4 w-4" strokeWidth={1.75} />
+        {/* Org básico */}
+        <section className="mt-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
+          <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+            <Building2
+              className="h-4 w-4 text-text-secondary"
+              strokeWidth={1.75}
+            />
             Identificação
           </h2>
-          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <dl className="mt-4 grid grid-cols-2 gap-4 text-body">
             <div>
-              <dt className="text-xs text-slate-500">Nome</dt>
-              <dd className="font-medium">{data.org.name}</dd>
+              <dt className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                Nome
+              </dt>
+              <dd className="mt-1 font-medium text-text-primary">
+                {data.org.name}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs text-slate-500">Slug (URL)</dt>
-              <dd>
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+              <dt className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                Slug (URL)
+              </dt>
+              <dd className="mt-1">
+                <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-tiny text-text-primary">
                   {data.org.slug}
                 </code>
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-slate-500">Plano</dt>
-              <dd>{data.org.plan}</dd>
+              <dt className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                Plano
+              </dt>
+              <dd className="mt-1 text-text-primary">{data.org.plan}</dd>
             </div>
             <div>
-              <dt className="text-xs text-slate-500">ID</dt>
-              <dd className="font-mono text-[10px] text-slate-600">
+              <dt className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                ID
+              </dt>
+              <dd className="mt-1 font-mono text-tiny text-text-muted">
                 {data.org.id}
               </dd>
             </div>
           </dl>
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-tiny text-text-muted">
             Mudança de nome/slug requer suporte (impacta URLs públicas e
             referências externas).
           </p>
         </section>
 
         {/* Branding */}
-        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-            <Palette className="h-4 w-4" strokeWidth={1.75} />
+        <section className="mt-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
+          <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+            <Palette
+              className="h-4 w-4 text-text-secondary"
+              strokeWidth={1.75}
+            />
             Branding
           </h2>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-caption text-text-secondary">
             Logo + cores aparecem nos PDFs (atestados, recibos) e emails de
             convite.
           </p>
@@ -135,7 +168,7 @@ export default async function SettingsPage() {
               orgId={data.org.id}
               initial={{
                 logoUrl: data.branding?.logoUrl ?? "",
-                primaryColor: data.branding?.primaryColor ?? "#0F766E",
+                primaryColor: data.branding?.primaryColor ?? "#16A34A",
                 emailFromName: data.branding?.emailFromName ?? data.org.name,
               }}
               disabled={!canEdit}

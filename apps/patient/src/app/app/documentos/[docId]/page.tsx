@@ -50,14 +50,14 @@ export default async function MyDocumentPage({ params }: Props) {
       </Link>
 
       <header className="mt-2">
-        <h1 className="text-2xl font-bold text-slate-900">{doc.title}</h1>
-        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">{doc.title}</h1>
+        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-text-secondary">
           <FileText className="h-4 w-4" strokeWidth={1.75} />
           {TYPE_LABELS[doc.documentType] ?? doc.documentType} • {doc.issuerName}
           {doc.issuerCrn &&
             ` (CRN-${doc.issuerCrnUf ?? "—"}: ${doc.issuerCrn})`}
         </p>
-        <p className="flex items-center gap-1 text-xs text-slate-500">
+        <p className="flex items-center gap-1 text-xs text-text-muted">
           <Hospital className="h-3 w-3" strokeWidth={1.75} />
           {doc.patient.organization.name}
         </p>
@@ -70,14 +70,14 @@ export default async function MyDocumentPage({ params }: Props) {
         </div>
       )}
 
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+      <div className="mt-6 rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
+        <div className="whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
           {renderMarkdown(doc.bodyMarkdown)}
         </div>
 
         {doc.cidCodes.length > 0 && (
-          <div className="mt-6 border-t border-slate-100 pt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div className="mt-6 border-t border-border-subtle pt-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
               CID-10
             </h3>
             <ul className="mt-2 space-y-1 text-xs">
@@ -97,13 +97,13 @@ export default async function MyDocumentPage({ params }: Props) {
           href={`${process.env.NEXT_PUBLIC_NUTRI_APP_URL ?? ""}/api/v1/documents/${doc.id}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
+          className="rounded-md border border-border-default bg-white px-4 py-2 text-sm font-medium hover:bg-bg-subtle"
         >
           <Download className="inline h-4 w-4" strokeWidth={1.75} /> Baixar PDF
         </a>
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-text-muted">
         Emitido em{" "}
         {doc.issuedAt && new Date(doc.issuedAt).toLocaleString("pt-BR")}
       </p>

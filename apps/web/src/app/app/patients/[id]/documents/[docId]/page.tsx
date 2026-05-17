@@ -99,18 +99,18 @@ export default async function ViewDocumentPage({ params }: Props) {
         <header className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 truncate">
+              <h1 className="text-2xl font-bold text-text-primary truncate">
                 {doc.title}
               </h1>
               <span
                 className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  STATUS_STYLE[doc.status] ?? "bg-slate-200 text-slate-600"
+                  STATUS_STYLE[doc.status] ?? "bg-bg-muted text-text-secondary"
                 }`}
               >
                 {doc.status}
               </span>
             </div>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-text-secondary">
               📄 {TYPE_LABELS[doc.documentType] ?? doc.documentType} • Emissor:{" "}
               {doc.issuerName}
               {doc.issuerCrn &&
@@ -145,23 +145,23 @@ export default async function ViewDocumentPage({ params }: Props) {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Coluna 1: metadados + assinatura */}
           <aside className="space-y-4">
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Paciente (snapshot)
               </h2>
               <p className="mt-2 text-sm font-medium">
                 {doc.patientNameSnapshot}
               </p>
               {doc.patientCpfSnapshot && (
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-text-secondary">
                   CPF: {doc.patientCpfSnapshot}
                 </p>
               )}
             </section>
 
             {doc.cidCodes.length > 0 && (
-              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                   CID-10
                 </h2>
                 <ul className="mt-2 space-y-1 text-xs">
@@ -178,8 +178,8 @@ export default async function ViewDocumentPage({ params }: Props) {
             )}
 
             {doc.validUntil && (
-              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                   Validade
                 </h2>
                 <p className="mt-2 text-sm">
@@ -216,11 +216,11 @@ export default async function ViewDocumentPage({ params }: Props) {
               </section>
             )}
 
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Histórico
               </h2>
-              <ul className="mt-2 space-y-1 text-xs text-slate-600">
+              <ul className="mt-2 space-y-1 text-xs text-text-secondary">
                 <li>
                   Criado em {new Date(doc.createdAt).toLocaleString("pt-BR")}
                 </li>
@@ -240,11 +240,11 @@ export default async function ViewDocumentPage({ params }: Props) {
           </aside>
 
           {/* Coluna 2-3: corpo do documento */}
-          <article className="lg:col-span-2 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <article className="lg:col-span-2 rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
               Corpo do documento
             </h2>
-            <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+            <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
               {renderMarkdown(doc.bodyMarkdown)}
             </div>
           </article>

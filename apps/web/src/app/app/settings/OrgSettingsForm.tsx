@@ -49,7 +49,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="logoUrl"
-          className="block text-xs font-medium text-slate-700"
+          className="block text-xs font-medium text-text-secondary"
         >
           URL do logo (opcional)
         </label>
@@ -60,14 +60,14 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
           onChange={(e) => setLogoUrl(e.target.value)}
           placeholder="https://exemplo.com/logo.png"
           disabled={disabled}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm disabled:bg-bg-subtle"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-text-muted">
           Aceita HTTPS público (Imgur, Cloudinary, etc.). Upload direto na
           plataforma chega em sprint pós-MVP.
         </p>
         {logoUrl && (
-          <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+          <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-border-subtle bg-bg-subtle px-3 py-2">
             <img
               src={logoUrl}
               alt="Preview"
@@ -76,7 +76,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
                 ((e.target as HTMLImageElement).style.display = "none")
               }
             />
-            <span className="text-xs text-slate-600">Preview</span>
+            <span className="text-xs text-text-secondary">Preview</span>
           </div>
         )}
       </div>
@@ -84,7 +84,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="primaryColor"
-          className="block text-xs font-medium text-slate-700"
+          className="block text-xs font-medium text-text-secondary"
         >
           Cor primária (hex)
         </label>
@@ -95,7 +95,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
             value={primaryColor}
             onChange={(e) => setPrimaryColor(e.target.value)}
             disabled={disabled}
-            className="h-10 w-16 rounded border border-slate-300"
+            className="h-10 w-16 rounded border border-border-default"
           />
           <input
             type="text"
@@ -103,10 +103,10 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
             onChange={(e) => setPrimaryColor(e.target.value)}
             disabled={disabled}
             pattern="^#[0-9A-Fa-f]{6}$"
-            className="block w-32 rounded-md border border-slate-300 px-3 py-2 font-mono text-sm uppercase disabled:bg-slate-50"
+            className="block w-32 rounded-md border border-border-default px-3 py-2 font-mono text-sm uppercase disabled:bg-bg-subtle"
           />
         </div>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-text-muted">
           Aparece em PDFs (atestados, recibos) e botões CTA do email de convite.
         </p>
       </div>
@@ -114,7 +114,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="emailFromName"
-          className="block text-xs font-medium text-slate-700"
+          className="block text-xs font-medium text-text-secondary"
         >
           Nome no remetente do email
         </label>
@@ -127,9 +127,9 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
           minLength={2}
           maxLength={80}
           disabled={disabled}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-50"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm disabled:bg-bg-subtle"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-text-muted">
           Como aparece em &ldquo;De:&rdquo; nos emails de convite. Ex:
           &ldquo;Clínica X&rdquo; vira &ldquo;Clínica X
           &lt;onboarding@resend.dev&gt;&rdquo;.

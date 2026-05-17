@@ -51,8 +51,10 @@ export default async function AdminDashboard() {
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard global</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">
+          Dashboard global
+        </h1>
+        <p className="mt-1 text-sm text-text-secondary">
           Visão consolidada de toda a plataforma NutriCore.
         </p>
       </header>
@@ -99,12 +101,12 @@ export default async function AdminDashboard() {
         />
       </section>
 
-      <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+      <section className="mt-8 rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary">
           <Activity className="h-4 w-4" strokeWidth={1.75} />
           Health check
         </h2>
-        <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+        <ul className="mt-3 space-y-1.5 text-sm text-text-secondary">
           <li className="flex items-start gap-2">
             <CircleCheck
               className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
@@ -120,7 +122,7 @@ export default async function AdminDashboard() {
             Audit log ativo (use o menu &ldquo;Audit log&rdquo; para inspecionar
             eventos)
           </li>
-          <li className="text-slate-500">
+          <li className="text-text-muted">
             Funcionalidades adicionais (suspender org, MFA admin, métricas
             detalhadas) ainda virão em sprints futuras.
           </li>
@@ -142,13 +144,13 @@ function KpiCard({
   Icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="flex items-center gap-1.5 text-xs text-slate-500">
+    <div className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
+      <p className="flex items-center gap-1.5 text-xs text-text-muted">
         <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
-      <p className="text-[10px] text-slate-500">{sub}</p>
+      <p className="mt-1 text-2xl font-bold text-text-primary">{value}</p>
+      <p className="text-[10px] text-text-muted">{sub}</p>
     </div>
   );
 }

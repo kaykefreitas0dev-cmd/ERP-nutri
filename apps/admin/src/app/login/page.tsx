@@ -17,17 +17,17 @@ export default async function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-slate-900">
+          <Link href="/" className="text-2xl font-bold text-text-primary">
             NutriCore · Admin
           </Link>
-          <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">
+          <p className="mt-1 text-xs uppercase tracking-wider text-text-muted">
             Acesso restrito
           </p>
         </div>
-        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
           <LoginForm />
         </div>
-        <p className="mt-4 text-center text-xs text-slate-500">
+        <p className="mt-4 text-center text-xs text-text-muted">
           Apenas super-admins. Para promover novos admins, use o SQL Editor
           (raw_app_meta_data.is_super_admin = true).
         </p>

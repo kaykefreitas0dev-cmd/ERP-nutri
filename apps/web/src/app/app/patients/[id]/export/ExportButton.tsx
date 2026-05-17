@@ -40,7 +40,7 @@ export function ExportDataButton({ patientId }: Props) {
         type="button"
         onClick={handleExport}
         disabled={pending}
-        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs hover:bg-slate-50 disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs hover:bg-bg-subtle disabled:opacity-50"
       >
         {pending ? (
           <>

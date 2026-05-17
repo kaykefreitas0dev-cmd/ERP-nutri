@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { AppointmentList } from "./AppointmentList";
 import { NewAppointmentForm } from "./NewAppointmentForm";
@@ -112,43 +113,56 @@ export default async function AgendaPage({ searchParams }: Props) {
   const nextDate = new Date(targetDate);
   nextDate.setDate(nextDate.getDate() + 1);
   const todayStr = new Date().toISOString().slice(0, 10);
+  const isToday = targetDate.toISOString().slice(0, 10) === todayStr;
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        {/* Header */}
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <Link
-              href="/app"
-              className="text-sm text-brand-primary hover:underline"
-            >
-              ← Dashboard
-            </Link>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900 capitalize">
+            <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+              {isToday ? "Hoje" : "Agenda"}
+            </p>
+            <h1 className="mt-0.5 text-h1 font-semibold capitalize tracking-tight text-text-primary">
               {dateStr}
             </h1>
-            <p className="text-sm text-slate-600">
-              {data.appointments.length} consulta(s) agendada(s)
+            <p className="mt-1 text-caption text-text-secondary tabular-nums">
+              {data.appointments.length}{" "}
+              {data.appointments.length === 1 ? "consulta" : "consultas"}{" "}
+              agendada{data.appointments.length === 1 ? "" : "s"}
             </p>
           </div>
-          <nav className="flex items-center gap-2">
+
+          {/* Date navigation segmented */}
+          <nav
+            aria-label="Navegação de datas"
+            className="inline-flex items-center rounded-md border border-border-default bg-bg-surface p-0.5 [box-shadow:var(--shadow-xs)]"
+          >
             <Link
               href={`/app/agenda?date=${prevDate.toISOString().slice(0, 10)}`}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
+              aria-label="Dia anterior"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-sm text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text-primary"
             >
-              ← Anterior
+              <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
             </Link>
             <Link
               href={`/app/agenda?date=${todayStr}`}
-              className="rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover"
+              className={
+                "inline-flex h-8 items-center justify-center rounded-sm px-3 text-tiny font-medium transition-colors " +
+                (isToday
+                  ? "bg-brand-primary text-white"
+                  : "text-text-secondary hover:bg-bg-subtle hover:text-text-primary")
+              }
             >
               Hoje
             </Link>
             <Link
               href={`/app/agenda?date=${nextDate.toISOString().slice(0, 10)}`}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
+              aria-label="Próximo dia"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-sm text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text-primary"
             >
-              Próximo →
+              <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
             </Link>
           </nav>
         </header>

@@ -80,10 +80,10 @@ export function ClinicalNotesSection({ patientId }: Props) {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-text-primary">
             Prontuário (Anotações clínicas)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-text-muted">
             🔒 Conteúdo criptografado em repouso. Cada leitura é auditada.
           </p>
         </div>
@@ -101,7 +101,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
       {showForm && (
         <form
           action={handleCreate}
-          className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+          className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
         >
           <input type="hidden" name="patientId" value={patientId} />
 
@@ -123,7 +123,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
                 id="category"
                 name="category"
                 defaultValue="evolution"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               >
                 <option value="evolution">Evolução</option>
                 <option value="anamnesis">Anamnese</option>
@@ -143,7 +143,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
                 name="consultationDate"
                 type="datetime-local"
                 defaultValue={new Date().toISOString().slice(0, 16)}
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
           </div>
@@ -158,7 +158,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
               required
               rows={8}
               placeholder="Anamnese, evolução, observações clínicas..."
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 font-mono text-sm"
             />
           </div>
 
@@ -166,7 +166,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-white px-4 text-sm font-medium hover:bg-bg-subtle"
             >
               Cancelar
             </button>
@@ -182,9 +182,9 @@ export function ClinicalNotesSection({ patientId }: Props) {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Carregando…</p>
+        <p className="text-sm text-text-muted">Carregando…</p>
       ) : notes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
+        <div className="rounded-lg border border-dashed border-border-default p-8 text-center text-sm text-text-muted">
           Nenhuma anotação clínica registrada.
         </div>
       ) : (
@@ -192,14 +192,14 @@ export function ClinicalNotesSection({ patientId }: Props) {
           {notes.map((note) => (
             <li
               key={note.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
                     {CATEGORY_LABEL[note.category] ?? note.category}
                   </span>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-muted">
                     {new Date(note.consultationDate).toLocaleString("pt-BR")}
                   </p>
                 </div>
@@ -218,13 +218,13 @@ export function ClinicalNotesSection({ patientId }: Props) {
               </div>
 
               {decryptedNotes[note.id] ? (
-                <p className="mt-3 whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm text-slate-700">
+                <p className="mt-3 whitespace-pre-wrap rounded-md bg-bg-subtle p-3 text-sm text-text-secondary">
                   {decryptedNotes[note.id]}
                 </p>
               ) : note.contentPreview ? (
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-text-muted">
                   {note.contentPreview}…{" "}
-                  <span className="text-xs text-slate-400">(preview)</span>
+                  <span className="text-xs text-text-subtle">(preview)</span>
                 </p>
               ) : null}
             </li>
