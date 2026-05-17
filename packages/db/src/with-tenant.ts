@@ -5,9 +5,21 @@
 //
 // Semgrep custom rule `no-route-without-with-tenant` enforça uso em CI.
 
-import type { NextRequest } from "next/server";
 import { prisma } from "./client";
 import type { PrismaClient } from "./client";
+
+// Tipo minimal — não importa NextRequest direto pra evitar conflito de
+// versões de next no monorepo (pnpm pode instalar 2 paths .pnpm distintos
+// quando há peer deps transitivas — ex: @playwright/test).
+// Cobre o subset que withTenant precisa.
+interface MinimalRequest {
+  headers: {
+    get(name: string): string | null;
+  };
+  cookies: {
+    get(name: string): { value: string } | undefined;
+  };
+}
 // Prisma 7 tem tipos complexos para tx client; usamos PrismaClient (subset funcional)
 // Em runtime, o tx tem todos os métodos query + $executeRaw + $queryRaw
 type TxClient = Omit<
@@ -42,7 +54,7 @@ export class TenantContextError extends Error {
  * /api/auth/select-org (após login). Sem essa claim → 401.
  */
 export async function extractTenantFromRequest(
-  request: NextRequest,
+  request: MinimalRequest,
 ): Promise<{ organizationId: string; userId: string }> {
   const authHeader = request.headers.get("authorization");
   const cookieToken = request.cookies.get("sb-access-token")?.value;
@@ -108,7 +120,7 @@ export async function extractTenantFromRequest(
  * 6. RLS policies se ativam automaticamente baseadas nos GUCs.
  */
 export async function withTenant<T>(
-  request: NextRequest,
+  request: MinimalRequest,
   handler: (ctx: TenantContext) => Promise<T>,
 ): Promise<T> {
   const { organizationId, userId } = await extractTenantFromRequest(request);

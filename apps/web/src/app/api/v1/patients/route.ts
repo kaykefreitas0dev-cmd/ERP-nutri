@@ -12,7 +12,9 @@ const CreatePatientSchema = z.object({
   phone: z.string().max(40).optional(),
   cpf: z.string().max(14).optional(),
   birthDate: z.string().optional(),
-  biologicalSex: z.enum(["female", "male", "intersex", "undisclosed"]).optional(),
+  biologicalSex: z
+    .enum(["female", "male", "intersex", "undisclosed"])
+    .optional(),
   city: z.string().max(120).optional(),
   state: z.string().length(2).optional(),
   occupation: z.string().max(120).optional(),
@@ -22,13 +24,15 @@ const CreatePatientSchema = z.object({
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("q");
     const status =
-      (url.searchParams.get("status") as "ACTIVE" | "ARCHIVED" | "ANONYMIZED") ??
-      "ACTIVE";
+      (url.searchParams.get("status") as
+        | "ACTIVE"
+        | "ARCHIVED"
+        | "ANONYMIZED") ?? "ACTIVE";
     const take = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
 
     return await withTenant(req, async ({ prisma }) => {
@@ -72,7 +76,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<Response> {
   try {
     const body = await req.json();
     const parsed = CreatePatientSchema.safeParse(body);
