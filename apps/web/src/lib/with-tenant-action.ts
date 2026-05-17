@@ -13,7 +13,10 @@ export interface ActionTenantContext {
 }
 
 export class ActionTenantError extends Error {
-  constructor(message: string, public code: "UNAUTHORIZED" | "NO_ORG" | "FORBIDDEN") {
+  constructor(
+    message: string,
+    public code: "UNAUTHORIZED" | "NO_ORG" | "FORBIDDEN",
+  ) {
     super(message);
   }
 }
@@ -49,10 +52,15 @@ export async function withTenantAction<T>(
   }
 
   return prisma.$transaction(async (tx) => {
+    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
+    // `current_user` é palavra reservada do Postgres e o parser confunde
+    // mesmo quando prefixado com `app.`.
     await tx.$executeRawUnsafe(
-      `SET LOCAL app.current_org = '${membership.organizationId}'`,
+      `SELECT set_config('app.current_org', '${membership.organizationId}', true)`,
     );
-    await tx.$executeRawUnsafe(`SET LOCAL app.current_user = '${user.id}'`);
+    await tx.$executeRawUnsafe(
+      `SELECT set_config('app.current_user', '${user.id}', true)`,
+    );
     return handler({
       organizationId: membership.organizationId,
       userId: user.id,
