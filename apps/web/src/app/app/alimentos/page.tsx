@@ -80,7 +80,10 @@ export default async function FoodsPage({ searchParams }: Props) {
     <main className="bg-transparent p-6">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
-          <Link href="/app" className="text-sm text-teal-700 hover:underline">
+          <Link
+            href="/app"
+            className="text-sm text-brand-primary hover:underline"
+          >
             ← Dashboard
           </Link>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">
@@ -98,7 +101,7 @@ export default async function FoodsPage({ searchParams }: Props) {
             name="q"
             defaultValue={q ?? ""}
             placeholder="Buscar alimento..."
-            className="flex-1 min-w-[200px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="flex-1 min-w-[200px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
           <select
             name="category"
@@ -125,7 +128,7 @@ export default async function FoodsPage({ searchParams }: Props) {
           </select>
           <button
             type="submit"
-            className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             Filtrar
           </button>
@@ -188,7 +191,7 @@ export default async function FoodsPage({ searchParams }: Props) {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           f.source === "TACO"
-                            ? "bg-teal-100 text-teal-800"
+                            ? "bg-brand-100 text-brand-primary-hover"
                             : f.source === "POF"
                               ? "bg-blue-100 text-blue-800"
                               : "bg-slate-200 text-slate-700"

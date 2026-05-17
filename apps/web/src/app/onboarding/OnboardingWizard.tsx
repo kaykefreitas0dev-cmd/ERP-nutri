@@ -70,7 +70,7 @@ export function OnboardingWizard({
   return (
     <div className="mx-auto max-w-2xl px-4">
       <header className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-teal-700">
+        <h1 className="text-2xl font-bold text-brand-primary">
           Bem-vindo ao NutriCore
         </h1>
         <p className="mt-2 text-sm text-slate-600">
@@ -92,7 +92,7 @@ export function OnboardingWizard({
             className="h-2 overflow-hidden rounded-full bg-slate-200"
           >
             <div
-              className="h-full bg-teal-700 transition-all duration-300"
+              className="h-full bg-brand-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -196,7 +196,7 @@ function Step1Welcome({
           autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           placeholder="Ana Silva"
         />
         <p className="mt-1 text-xs text-slate-500">
@@ -209,7 +209,7 @@ function Step1Welcome({
           type="button"
           disabled={pending || name.length < 2}
           onClick={() => onNext(name)}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? "Salvando…" : "Continuar →"}
         </button>
@@ -262,7 +262,7 @@ function Step2ProfessionalType({
             key={opt.value}
             className={`flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${
               type === opt.value
-                ? "border-teal-500 bg-teal-50"
+                ? "border-brand-primary bg-brand-primary-bg"
                 : "border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -272,7 +272,7 @@ function Step2ProfessionalType({
               value={opt.value}
               checked={type === opt.value}
               onChange={(e) => setType(e.target.value)}
-              className="mt-1 h-4 w-4 text-teal-700 focus:ring-teal-500"
+              className="mt-1 h-4 w-4 text-brand-primary focus:ring-brand-primary"
             />
             <div>
               <div className="text-sm font-medium text-slate-900">
@@ -296,7 +296,7 @@ function Step2ProfessionalType({
           type="button"
           disabled={pending}
           onClick={() => onNext(type)}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Salvando…" : "Continuar →"}
         </button>
@@ -335,7 +335,7 @@ function Step3CRN({
           type="text"
           value={crn}
           onChange={(e) => setCrn(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           placeholder="CRN-3/12345"
         />
       </div>
@@ -352,7 +352,7 @@ function Step3CRN({
           type="button"
           disabled={pending}
           onClick={() => onNext(crn)}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Salvando…" : "Continuar →"}
         </button>
@@ -406,7 +406,7 @@ function Step4Organization({
             required
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
             placeholder="Nutrição Ana Silva"
           />
         </div>
@@ -424,7 +424,7 @@ function Step4Organization({
               setSlug(slugify(e.target.value));
               setSlugTouched(true);
             }}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary font-mono"
             placeholder="nutricao-ana-silva"
             pattern="[a-z0-9-]+"
           />
@@ -447,7 +447,7 @@ function Step4Organization({
           type="button"
           disabled={pending || name.length < 2 || slug.length < 3}
           onClick={() => onNext(name, slug)}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Salvando…" : "Continuar →"}
         </button>
@@ -540,13 +540,13 @@ function Step5Confirm({
             type="checkbox"
             name="acceptedTerms"
             required
-            className="mt-1 h-4 w-4 text-teal-700 focus:ring-teal-500"
+            className="mt-1 h-4 w-4 text-brand-primary focus:ring-brand-primary"
           />
           <span>
             Li e concordo com os{" "}
             <a
               href="/termos"
-              className="text-teal-700 underline"
+              className="text-brand-primary underline"
               target="_blank"
             >
               Termos de uso
@@ -554,7 +554,7 @@ function Step5Confirm({
             e{" "}
             <a
               href="/privacidade"
-              className="text-teal-700 underline"
+              className="text-brand-primary underline"
               target="_blank"
             >
               Política de privacidade (LGPD)
@@ -574,7 +574,7 @@ function Step5Confirm({
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {pending ? "Criando organização…" : "Finalizar configuração"}
           </button>

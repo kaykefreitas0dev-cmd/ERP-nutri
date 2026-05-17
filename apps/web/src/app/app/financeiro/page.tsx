@@ -192,7 +192,10 @@ export default async function FinanceiroPage({ searchParams }: Props) {
     <main className="bg-transparent p-6">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
-          <Link href="/app" className="text-sm text-teal-700 hover:underline">
+          <Link
+            href="/app"
+            className="text-sm text-brand-primary hover:underline"
+          >
             ← Dashboard
           </Link>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Financeiro</h1>
@@ -256,7 +259,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                     {m.totalCents > 0 ? brMoney(m.totalCents) : ""}
                   </div>
                   <div
-                    className="w-full rounded-t bg-teal-500"
+                    className="w-full rounded-t bg-brand-primary-bg0"
                     style={{ height: `${Math.max(h, 2)}%`, minHeight: "2px" }}
                     title={`${m.month}: ${brMoney(m.totalCents)} · ${m.count} pag.`}
                   />
@@ -341,7 +344,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
           </div>
           <button
             type="submit"
-            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
+            className="rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             Filtrar
           </button>
@@ -391,7 +394,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
                         <td className="px-4 py-2">
                           <Link
                             href={`/app/patients/${p.patient.id}`}
-                            className="font-medium text-teal-700 hover:underline"
+                            className="font-medium text-brand-primary hover:underline"
                           >
                             {p.patient.fullName}
                           </Link>

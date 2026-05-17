@@ -118,7 +118,10 @@ export default async function AgendaPage({ searchParams }: Props) {
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Link href="/app" className="text-sm text-teal-700 hover:underline">
+            <Link
+              href="/app"
+              className="text-sm text-brand-primary hover:underline"
+            >
               ← Dashboard
             </Link>
             <h1 className="mt-1 text-2xl font-bold text-slate-900 capitalize">
@@ -137,7 +140,7 @@ export default async function AgendaPage({ searchParams }: Props) {
             </Link>
             <Link
               href={`/app/agenda?date=${todayStr}`}
-              className="rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
+              className="rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover"
             >
               Hoje
             </Link>

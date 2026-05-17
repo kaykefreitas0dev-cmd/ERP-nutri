@@ -44,7 +44,7 @@ export default async function MyDocumentPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-5 py-6">
       <Link
         href="/app/documentos"
-        className="text-sm text-teal-700 hover:underline"
+        className="text-sm text-brand-primary hover:underline"
       >
         ← Documentos
       </Link>
@@ -83,7 +83,7 @@ export default async function MyDocumentPage({ params }: Props) {
             <ul className="mt-2 space-y-1 text-xs">
               {doc.cidCodes.map((c) => (
                 <li key={c.id}>
-                  <strong className="text-teal-700">{c.cid.code}</strong>{" "}
+                  <strong className="text-brand-primary">{c.cid.code}</strong>{" "}
                   {c.cid.description}
                 </li>
               ))}

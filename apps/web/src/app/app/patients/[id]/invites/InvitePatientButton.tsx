@@ -87,7 +87,7 @@ export function InvitePatientButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
+        className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover"
       >
         <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
         Convidar para acessar app
@@ -211,7 +211,7 @@ export function InvitePatientButton({
             type="button"
             onClick={handleCreate}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {pending ? (
               "Enviando..."

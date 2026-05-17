@@ -45,7 +45,10 @@ export default async function ImportsPage() {
     <main className="bg-transparent p-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-6">
-          <Link href="/app" className="text-sm text-teal-700 hover:underline">
+          <Link
+            href="/app"
+            className="text-sm text-brand-primary hover:underline"
+          >
             ← Dashboard
           </Link>
           <h1 className="mt-2 text-2xl font-bold text-slate-900">

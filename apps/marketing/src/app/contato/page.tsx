@@ -20,14 +20,14 @@ export default function ContatoPage() {
               Fale com a gente
             </h1>
             <p className="mt-3 text-lg text-slate-600">
-              Suporte técnico, dúvidas comerciais ou parcerias. Respondemos em até 1
-              dia útil.
+              Suporte técnico, dúvidas comerciais ou parcerias. Respondemos em
+              até 1 dia útil.
             </p>
             <p className="mt-2 text-sm text-slate-500">
               Email direto:{" "}
               <a
                 href="mailto:suporte@nutricore.app"
-                className="text-teal-700 underline"
+                className="text-brand-primary underline"
               >
                 suporte@nutricore.app
               </a>

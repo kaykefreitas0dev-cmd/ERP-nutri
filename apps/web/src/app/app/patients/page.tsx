@@ -72,7 +72,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
           </div>
           <Link
             href="/app/patients/new"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             + Novo paciente
           </Link>
@@ -84,12 +84,12 @@ export default async function PatientsListPage({ searchParams }: Props) {
             name="q"
             defaultValue={q ?? ""}
             placeholder="Buscar por nome ou email..."
-            className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
           <select
             name="status"
             defaultValue={status ?? "ACTIVE"}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           >
             <option value="ACTIVE">Ativos</option>
             <option value="ARCHIVED">Arquivados</option>
@@ -113,7 +113,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
             {!q && (
               <Link
                 href="/app/patients/new"
-                className="mt-4 inline-block text-sm text-teal-700 underline"
+                className="mt-4 inline-block text-sm text-brand-primary underline"
               >
                 Cadastrar o primeiro
               </Link>
@@ -142,7 +142,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/app/patients/${p.id}`}
-                        className="inline-flex items-center gap-1.5 font-medium text-slate-900 hover:text-teal-700"
+                        className="inline-flex items-center gap-1.5 font-medium text-slate-900 hover:text-brand-primary"
                       >
                         {p.status === "ANONYMIZED" && (
                           <Lock
@@ -172,7 +172,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/app/patients/${p.id}`}
-                        className="text-xs text-teal-700 hover:underline"
+                        className="text-xs text-brand-primary hover:underline"
                       >
                         Abrir →
                       </Link>

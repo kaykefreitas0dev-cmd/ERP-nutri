@@ -10,7 +10,7 @@ export default function NewPatientPage() {
         <header className="mb-6">
           <Link
             href="/app/patients"
-            className="text-sm text-teal-700 hover:underline"
+            className="text-sm text-brand-primary hover:underline"
           >
             ← Voltar para Pacientes
           </Link>

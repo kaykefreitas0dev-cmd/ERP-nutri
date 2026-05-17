@@ -32,7 +32,9 @@ export function ClinicalNotesSection({ patientId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [decryptedNotes, setDecryptedNotes] = useState<Record<string, string>>({});
+  const [decryptedNotes, setDecryptedNotes] = useState<Record<string, string>>(
+    {},
+  );
   const [decrypting, setDecrypting] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-3 text-sm font-medium text-white hover:bg-teal-800"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-3 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             + Nova anotação
           </button>
@@ -104,7 +106,10 @@ export function ClinicalNotesSection({ patientId }: Props) {
           <input type="hidden" name="patientId" value={patientId} />
 
           {error && (
-            <div role="alert" className="mb-3 rounded-md bg-red-50 p-3 text-sm text-red-800">
+            <div
+              role="alert"
+              className="mb-3 rounded-md bg-red-50 p-3 text-sm text-red-800"
+            >
               {error}
             </div>
           )}
@@ -127,7 +132,10 @@ export function ClinicalNotesSection({ patientId }: Props) {
               </select>
             </div>
             <div>
-              <label htmlFor="consultationDate" className="block text-xs font-medium">
+              <label
+                htmlFor="consultationDate"
+                className="block text-xs font-medium"
+              >
                 Data da consulta
               </label>
               <input
@@ -165,7 +173,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
             >
               {pending ? "Salvando…" : "Salvar (criptografar)"}
             </button>
@@ -188,7 +196,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
                     {CATEGORY_LABEL[note.category] ?? note.category}
                   </span>
                   <p className="text-xs text-slate-500">
@@ -199,7 +207,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
                   type="button"
                   onClick={() => handleDecrypt(note.id)}
                   disabled={decrypting === note.id}
-                  className="text-xs font-medium text-teal-700 hover:underline disabled:opacity-50"
+                  className="text-xs font-medium text-brand-primary hover:underline disabled:opacity-50"
                 >
                   {decrypting === note.id
                     ? "Descriptografando…"

@@ -53,7 +53,7 @@ export default async function MyPlansPage() {
               <li key={p.id}>
                 <Link
                   href={`/app/meu-plano/${p.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-teal-400 hover:shadow-md transition"
+                  className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-400 hover:shadow-md transition"
                 >
                   <div className="flex items-start justify-between">
                     <div>

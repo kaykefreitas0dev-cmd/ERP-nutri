@@ -82,7 +82,7 @@ export default async function AdminOrgsPage() {
                 <td className="px-4 py-2 text-right">
                   <Link
                     href={`/app/orgs/${o.id}`}
-                    className="text-xs text-teal-700 hover:underline"
+                    className="text-xs text-brand-primary hover:underline"
                   >
                     Abrir →
                   </Link>

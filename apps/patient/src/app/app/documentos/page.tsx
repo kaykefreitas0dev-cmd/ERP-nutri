@@ -87,7 +87,7 @@ export default async function MyDocumentsPage() {
                   </div>
                   <Link
                     href={`/app/documentos/${d.id}`}
-                    className="shrink-0 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
+                    className="shrink-0 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover"
                   >
                     Abrir
                   </Link>

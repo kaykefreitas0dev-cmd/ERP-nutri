@@ -30,7 +30,7 @@ export default async function EditPatientPage({ params }: Props) {
       <div className="mx-auto max-w-3xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Voltar para {patient.fullName}
         </Link>

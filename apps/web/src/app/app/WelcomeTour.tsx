@@ -118,10 +118,10 @@ export function WelcomeTour() {
   return (
     <section
       aria-labelledby="welcome-tour-title"
-      className="mb-6 overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white shadow-sm"
+      className="mb-6 overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-primary-bg to-white shadow-sm"
     >
       <div className="flex items-start justify-between gap-3 px-5 pt-4">
-        <div className="flex items-center gap-2 text-teal-700">
+        <div className="flex items-center gap-2 text-brand-primary">
           <Sparkles className="h-4 w-4" strokeWidth={2} />
           <p className="text-xs font-semibold uppercase tracking-wide">
             Bem-vinda ao NutriCore
@@ -139,7 +139,7 @@ export function WelcomeTour() {
 
       <div className="grid gap-4 px-5 pb-5 pt-3 md:grid-cols-[1fr_auto] md:items-center">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-primary">
             <Icon className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
@@ -156,14 +156,14 @@ export function WelcomeTour() {
         <div className="flex items-center gap-2 md:justify-end">
           <Link
             href={current.href}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white transition hover:bg-teal-800"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
           >
             {current.cta}
           </Link>
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-teal-100 bg-white/60 px-5 py-2.5">
+      <div className="flex items-center justify-between border-t border-brand-100 bg-white/60 px-5 py-2.5">
         <div
           className="flex items-center gap-1.5"
           role="tablist"
@@ -180,7 +180,7 @@ export function WelcomeTour() {
               className={
                 "h-1.5 rounded-full transition-all " +
                 (i === step
-                  ? "w-6 bg-teal-700"
+                  ? "w-6 bg-brand-primary"
                   : "w-1.5 bg-slate-300 hover:bg-slate-400")
               }
             />

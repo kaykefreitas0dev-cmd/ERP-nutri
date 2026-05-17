@@ -93,7 +93,7 @@ export function AcceptInviteForm({ token, defaultEmail }: Props) {
       <button
         type="submit"
         disabled={sending}
-        className="block w-full rounded-md bg-teal-700 px-4 py-3 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+        className="block w-full rounded-md bg-brand-primary px-4 py-3 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
       >
         {sending ? (
           "Enviando..."

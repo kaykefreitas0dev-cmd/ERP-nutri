@@ -41,14 +41,14 @@ export default function NutriSoloPage() {
       <SiteHeader />
       <main className="min-h-screen">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-teal-50 to-white px-4 py-16">
+        <section className="bg-gradient-to-b from-brand-primary-bg to-white px-4 py-16">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="mb-3 inline-block rounded-full bg-teal-100 px-3 py-1 text-xs font-medium uppercase tracking-wider text-teal-800">
+            <p className="mb-3 inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary-hover">
               Para nutricionistas autônomos
             </p>
             <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
               Toda a operação da sua consultoria em{" "}
-              <span className="text-teal-700">um lugar</span>
+              <span className="text-brand-primary">um lugar</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
               Pare de juntar Dietbox + WhatsApp + Google Agenda + boleto na mão.
@@ -58,7 +58,7 @@ export default function NutriSoloPage() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/contato"
-                className="rounded-md bg-teal-700 px-6 py-3 text-base font-medium text-white hover:bg-teal-800"
+                className="rounded-md bg-brand-primary px-6 py-3 text-base font-medium text-white hover:bg-brand-primary-hover"
               >
                 Quero começar
               </Link>
@@ -105,7 +105,7 @@ export default function NutriSoloPage() {
             </p>
             <Link
               href="/#pricing"
-              className="mt-6 inline-block text-teal-700 hover:underline"
+              className="mt-6 inline-block text-brand-primary hover:underline"
             >
               Ver tabela de preços →
             </Link>

@@ -55,7 +55,10 @@ export default async function SettingsPage() {
   return (
     <main className="bg-transparent p-6">
       <div className="mx-auto max-w-3xl">
-        <Link href="/app" className="text-sm text-teal-700 hover:underline">
+        <Link
+          href="/app"
+          className="text-sm text-brand-primary hover:underline"
+        >
           ← Dashboard
         </Link>
         <header className="mt-2">

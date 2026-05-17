@@ -84,12 +84,14 @@ export default async function PatientPaymentsPage() {
       </p>
 
       {payments.length > 0 && (
-        <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50 p-4">
-          <p className="text-xs text-teal-800">Total acumulado pago</p>
-          <p className="mt-1 text-2xl font-bold text-teal-700">
+        <div className="mt-4 rounded-lg border border-brand-200 bg-brand-primary-bg p-4">
+          <p className="text-xs text-brand-primary-hover">
+            Total acumulado pago
+          </p>
+          <p className="mt-1 text-2xl font-bold text-brand-primary">
             {brMoney(totalAll)}
           </p>
-          <p className="text-xs text-teal-700">
+          <p className="text-xs text-brand-primary">
             {payments.length} pagamento(s) registrado(s)
           </p>
         </div>
@@ -152,7 +154,7 @@ export default async function PatientPaymentsPage() {
                         href={`${process.env.NEXT_PUBLIC_NUTRI_APP_URL ?? ""}/api/v1/documents/${p.receiptDocumentId}/pdf`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover"
                       >
                         <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
                         Recibo

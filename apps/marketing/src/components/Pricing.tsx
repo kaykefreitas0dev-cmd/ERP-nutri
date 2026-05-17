@@ -37,11 +37,21 @@ export function Pricing({ plans }: PricingProps) {
 
   if (plans.length === 0) {
     return (
-      <section id="precos" className="border-b border-slate-100 bg-slate-50 py-20">
+      <section
+        id="precos"
+        className="border-b border-slate-100 bg-slate-50 py-20"
+      >
         <Container>
           <p className="text-center text-sm text-slate-500">
-            Preços temporariamente indisponíveis. Tente novamente em alguns minutos
-            ou veja em <Link href="/contato" className="text-teal-700 hover:underline">/contato</Link>.
+            Preços temporariamente indisponíveis. Tente novamente em alguns
+            minutos ou veja em{" "}
+            <Link
+              href="/contato"
+              className="text-brand-primary hover:underline"
+            >
+              /contato
+            </Link>
+            .
           </p>
         </Container>
       </section>
@@ -59,7 +69,8 @@ export function Pricing({ plans }: PricingProps) {
             Planos transparentes, sem surpresas
           </h2>
           <p className="mt-4 text-lg text-slate-600">
-            Comece grátis por {plans[0]?.trial_days ?? 14} dias. Sem cartão de crédito.
+            Comece grátis por {plans[0]?.trial_days ?? 14} dias. Sem cartão de
+            crédito.
           </p>
 
           <div
@@ -73,7 +84,7 @@ export function Pricing({ plans }: PricingProps) {
               aria-pressed={!isYearly}
               className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                 !isYearly
-                  ? "bg-teal-700 text-white"
+                  ? "bg-brand-primary text-white"
                   : "text-slate-700 hover:text-slate-900"
               }`}
             >
@@ -85,7 +96,7 @@ export function Pricing({ plans }: PricingProps) {
               aria-pressed={isYearly}
               className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                 isYearly
-                  ? "bg-teal-700 text-white"
+                  ? "bg-brand-primary text-white"
                   : "text-slate-700 hover:text-slate-900"
               }`}
             >
@@ -106,7 +117,7 @@ export function Pricing({ plans }: PricingProps) {
                 key={plan.slug}
                 className={`relative ${
                   isFeatured
-                    ? "border-teal-500 shadow-lg ring-2 ring-teal-500"
+                    ? "border-brand-primary shadow-lg ring-2 ring-brand-primary"
                     : ""
                 }`}
               >
@@ -119,9 +130,13 @@ export function Pricing({ plans }: PricingProps) {
                   </Badge>
                 )}
                 <CardContent className="pt-6">
-                  <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {plan.name}
+                  </h3>
                   {plan.description && (
-                    <p className="mt-2 text-sm text-slate-600">{plan.description}</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {plan.description}
+                    </p>
                   )}
 
                   <div className="mt-6">
@@ -131,45 +146,47 @@ export function Pricing({ plans }: PricingProps) {
                     <span className="text-sm text-slate-500">/mês</span>
                     {isYearly && (
                       <p className="mt-1 text-xs text-slate-500">
-                        Cobrado anualmente: {formatCurrency(plan.price_yearly_cents)}
+                        Cobrado anualmente:{" "}
+                        {formatCurrency(plan.price_yearly_cents)}
                       </p>
                     )}
                   </div>
 
                   <Link
                     href={`https://erp-nutri-web.vercel.app/registro?plan=${plan.slug}&billing=${isYearly ? "yearly" : "monthly"}`}
-                    className={`mt-6 inline-flex h-11 w-full items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 ${
+                    className={`mt-6 inline-flex h-11 w-full items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
                       isFeatured
-                        ? "bg-teal-700 text-white hover:bg-teal-800"
+                        ? "bg-brand-primary text-white hover:bg-brand-primary-hover"
                         : "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
                     }`}
                   >
                     Começar grátis
                   </Link>
 
-                  {plan.features.included && plan.features.included.length > 0 && (
-                    <ul className="mt-6 space-y-2 text-sm text-slate-700">
-                      {plan.features.included.map((item: string) => (
-                        <li key={item} className="flex items-start gap-2">
-                          <svg
-                            aria-hidden
-                            className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-600"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {plan.features.included &&
+                    plan.features.included.length > 0 && (
+                      <ul className="mt-6 space-y-2 text-sm text-slate-700">
+                        {plan.features.included.map((item: string) => (
+                          <li key={item} className="flex items-start gap-2">
+                            <svg
+                              aria-hidden
+                              className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-primary"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                 </CardContent>
               </Card>
             );

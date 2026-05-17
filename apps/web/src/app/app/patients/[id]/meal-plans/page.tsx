@@ -66,7 +66,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← {data.patient.fullName}
         </Link>
@@ -94,7 +94,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
                       <div>
                         <Link
                           href={`/app/patients/${id}/meal-plans/${p.id}`}
-                          className="text-base font-semibold text-teal-700 hover:underline"
+                          className="text-base font-semibold text-brand-primary hover:underline"
                         >
                           {p.name}
                         </Link>

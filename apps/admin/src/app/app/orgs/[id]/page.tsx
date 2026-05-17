@@ -50,7 +50,10 @@ export default async function AdminOrgDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <Link href="/app/orgs" className="text-sm text-teal-700 hover:underline">
+      <Link
+        href="/app/orgs"
+        className="text-sm text-brand-primary hover:underline"
+      >
         ← Organizações
       </Link>
 

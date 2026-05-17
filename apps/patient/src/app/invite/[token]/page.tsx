@@ -79,7 +79,7 @@ export default async function InviteLandingPage({ params }: Props) {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="bg-teal-700 px-5 py-4 text-white shadow-sm">
+      <header className="bg-brand-primary px-5 py-4 text-white shadow-sm">
         <div className="mx-auto max-w-md">
           <h1 className="text-xl font-bold">NutriCore</h1>
         </div>
@@ -87,11 +87,11 @@ export default async function InviteLandingPage({ params }: Props) {
 
       <section className="flex-1 px-5 py-10">
         <div className="mx-auto max-w-md">
-          <div className="rounded-lg border border-teal-200 bg-teal-50 p-5">
-            <h2 className="text-xl font-bold text-teal-900">
+          <div className="rounded-lg border border-brand-200 bg-brand-primary-bg p-5">
+            <h2 className="text-xl font-bold text-brand-800">
               Olá, {invite.patient.fullName.split(" ")[0]}!
             </h2>
-            <p className="mt-2 text-sm text-teal-800">
+            <p className="mt-2 text-sm text-brand-primary-hover">
               Você foi convidado(a) por{" "}
               <strong>{invite.patient.organization.name}</strong> para
               acompanhar seu plano alimentar na NutriCore.
@@ -156,7 +156,7 @@ function ErrorScreen({
         {ctaHref && ctaLabel && (
           <Link
             href={ctaHref}
-            className="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800"
+            className="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             {ctaLabel}
           </Link>

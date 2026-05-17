@@ -10,13 +10,19 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-teal-700">NutriCore</h1>
+          <h1 className="text-3xl font-bold text-brand-primary">NutriCore</h1>
           <p className="mt-2 text-sm text-gray-600">
             Entre com seu email para receber o magic link
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-center text-sm text-gray-500">Carregando...</div>}>
+        <Suspense
+          fallback={
+            <div className="text-center text-sm text-gray-500">
+              Carregando...
+            </div>
+          }
+        >
           <LoginForm />
         </Suspense>
 

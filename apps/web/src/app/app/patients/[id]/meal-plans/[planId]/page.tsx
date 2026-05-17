@@ -108,7 +108,7 @@ export default async function MealPlanEditorPage({ params }: Props) {
       <div className="mx-auto max-w-6xl">
         <Link
           href={`/app/patients/${id}/meal-plans`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Planos de {data.patient.fullName}
         </Link>
@@ -125,7 +125,7 @@ export default async function MealPlanEditorPage({ params }: Props) {
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-white p-4 text-right shadow-sm">
-            <div className="text-2xl font-bold text-teal-700 tabular-nums">
+            <div className="text-2xl font-bold text-brand-primary tabular-nums">
               {totalKcal.toFixed(0)} kcal
             </div>
             {target && (

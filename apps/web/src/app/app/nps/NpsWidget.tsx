@@ -127,7 +127,7 @@ export function NpsWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-4 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-lg transition hover:border-teal-400 hover:text-teal-700"
+          className="fixed bottom-4 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-lg transition hover:border-brand-400 hover:text-brand-primary"
           aria-label="Enviar feedback"
         >
           <MessageSquare className="h-4 w-4" strokeWidth={1.75} />
@@ -144,7 +144,7 @@ export function NpsWidget() {
         >
           <div className="flex items-start justify-between px-4 pt-4">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-700">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-primary">
                 Beta — sua opinião conta
               </p>
               <h3
@@ -226,7 +226,7 @@ export function NpsWidget() {
                     maxLength={800}
                     rows={3}
                     placeholder="Opcional"
-                    className="mt-1 block w-full resize-none rounded-md border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-900 outline-none transition focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                    className="mt-1 block w-full resize-none rounded-md border border-slate-300 bg-white px-2.5 py-2 text-xs text-slate-900 outline-none transition focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
                   />
                 </label>
               )}
@@ -257,7 +257,7 @@ export function NpsWidget() {
                 <button
                   type="submit"
                   disabled={score == null || pending}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-teal-700 px-3 text-xs font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-primary px-3 text-xs font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                   {pending && (
                     <Loader2

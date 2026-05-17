@@ -57,14 +57,14 @@ export default function PortabilidadePage() {
       <SiteHeader />
       <main className="min-h-screen">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-teal-50 to-white px-4 py-16">
+        <section className="bg-gradient-to-b from-brand-primary-bg to-white px-4 py-16">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-xs font-medium uppercase tracking-wider text-teal-800">
+            <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-100 px-3 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary-hover">
               <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
               LGPD · CFN · Lei 13.787
             </p>
             <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
-              Seus dados são <span className="text-teal-700">seus</span>
+              Seus dados são <span className="text-brand-primary">seus</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
               No NutriCore portabilidade não é checkbox de marketing — é função
@@ -74,7 +74,7 @@ export default function PortabilidadePage() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/contato"
-                className="inline-flex items-center gap-2 rounded-md bg-teal-700 px-6 py-3 text-base font-medium text-white transition hover:bg-teal-800"
+                className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-6 py-3 text-base font-medium text-white transition hover:bg-brand-primary-hover"
               >
                 Falar com DPO
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
@@ -106,7 +106,7 @@ export default function PortabilidadePage() {
                   key={title}
                   className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary">
                     <Icon className="h-5 w-5" strokeWidth={1.75} />
                   </div>
                   <h3 className="mt-3 font-semibold text-slate-900">{title}</h3>
@@ -122,7 +122,7 @@ export default function PortabilidadePage() {
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-8 md:grid-cols-[1fr_1.2fr] md:items-start">
               <div>
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-primary">
                   <FileLock className="h-5 w-5" strokeWidth={1.75} />
                 </div>
                 <h2 className="mt-3 text-2xl font-bold text-slate-900">
@@ -146,7 +146,7 @@ export default function PortabilidadePage() {
                   >
                     <span
                       aria-hidden
-                      className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600"
+                      className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-primary"
                     />
                     {item}
                   </li>
@@ -216,18 +216,18 @@ export default function PortabilidadePage() {
         </section>
 
         {/* CTA final */}
-        <section className="bg-teal-700 px-4 py-12 text-center text-white">
+        <section className="bg-brand-primary px-4 py-12 text-center text-white">
           <div className="mx-auto max-w-2xl">
             <h2 className="text-2xl font-bold">
               Quer testar a portabilidade antes de assinar?
             </h2>
-            <p className="mt-2 text-teal-100">
+            <p className="mt-2 text-brand-100">
               Crie uma conta beta, importe 10 pacientes, exporte tudo e veja o
               ZIP. Se não gostar, anonimiza em 1 clique.
             </p>
             <Link
               href="/contato"
-              className="mt-6 inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-base font-medium text-teal-800 transition hover:bg-teal-50"
+              className="mt-6 inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-base font-medium text-brand-primary-hover transition hover:bg-brand-primary-bg"
             >
               Solicitar acesso ao beta
               <ArrowRight className="h-4 w-4" strokeWidth={2} />

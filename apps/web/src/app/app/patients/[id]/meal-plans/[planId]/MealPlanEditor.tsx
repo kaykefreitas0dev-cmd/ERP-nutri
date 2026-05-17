@@ -148,7 +148,7 @@ export function MealPlanEditor({ days }: Props) {
                       onClick={() =>
                         setOpenMealId(openMealId === meal.id ? null : meal.id)
                       }
-                      className="rounded-md bg-teal-700 px-3 py-1 text-xs font-medium text-white hover:bg-teal-800"
+                      className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover"
                     >
                       {openMealId === meal.id ? "Fechar" : "+ Adicionar"}
                     </button>
@@ -197,7 +197,7 @@ export function MealPlanEditor({ days }: Props) {
 
                   {/* Picker de alimento */}
                   {openMealId === meal.id && (
-                    <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 p-3">
+                    <div className="mt-3 rounded-md border border-brand-200 bg-brand-primary-bg p-3">
                       <div className="flex gap-2">
                         <input
                           type="search"
@@ -230,7 +230,7 @@ export function MealPlanEditor({ days }: Props) {
                                 type="button"
                                 onClick={() => handleAdd(meal.id, f.id)}
                                 disabled={pending}
-                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm hover:border-teal-500 hover:bg-teal-100 disabled:opacity-50"
+                                className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm hover:border-brand-primary hover:bg-brand-100 disabled:opacity-50"
                               >
                                 <span className="font-medium">{f.name}</span>
                                 <span className="ml-2 text-xs text-slate-500">

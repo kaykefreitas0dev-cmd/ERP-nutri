@@ -47,7 +47,7 @@ export default function ClinicaPage() {
             </p>
             <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
               Operação clínica{" "}
-              <span className="text-teal-700">profissional</span>, não
+              <span className="text-brand-primary">profissional</span>, não
               improvisada
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
@@ -58,7 +58,7 @@ export default function ClinicaPage() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/contato"
-                className="rounded-md bg-teal-700 px-6 py-3 text-base font-medium text-white hover:bg-teal-800"
+                className="rounded-md bg-brand-primary px-6 py-3 text-base font-medium text-white hover:bg-brand-primary-hover"
               >
                 Falar com vendas
               </Link>
@@ -103,7 +103,7 @@ export default function ClinicaPage() {
             </p>
             <Link
               href="/contato"
-              className="mt-6 inline-block text-teal-700 hover:underline"
+              className="mt-6 inline-block text-brand-primary hover:underline"
             >
               Agendar demo →
             </Link>
