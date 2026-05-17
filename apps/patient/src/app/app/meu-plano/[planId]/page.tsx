@@ -1,0 +1,182 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@nutricore/db";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Plano alimentar" };
+
+interface Props {
+  params: Promise<{ planId: string }>;
+}
+
+export default async function PlanDetailPage({ params }: Props) {
+  const { planId } = await params;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const plan = await prisma.mealPlan.findFirst({
+    where: {
+      id: planId,
+      patient: { userId: user!.id }, // Lock 6 — só vê se for SEU plano
+    },
+    include: {
+      patient: {
+        select: {
+          fullName: true,
+          organization: { select: { name: true } },
+        },
+      },
+      days: {
+        orderBy: { sortOrder: "asc" },
+        include: {
+          meals: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              items: {
+                orderBy: { sortOrder: "asc" },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!plan) notFound();
+
+  // Buscar nomes dos foods (via snapshot foodId, mas usando version do snapshot)
+  const allFoodIds = Array.from(
+    new Set(
+      plan.days.flatMap((d) =>
+        d.meals.flatMap((m) => m.items.map((i) => i.foodId)),
+      ),
+    ),
+  );
+  const foods = await prisma.food.findMany({
+    where: { id: { in: allFoodIds } },
+    select: { id: true, name: true },
+  });
+  const foodMap = new Map(foods.map((f) => [f.id, f.name]));
+
+  let totalKcal = 0;
+  let totalP = 0;
+  let totalC = 0;
+  let totalF = 0;
+  for (const d of plan.days) {
+    for (const m of d.meals) {
+      for (const i of m.items) {
+        if (i.kcal) totalKcal += Number(i.kcal);
+        if (i.proteinG) totalP += Number(i.proteinG);
+        if (i.carbG) totalC += Number(i.carbG);
+        if (i.fatG) totalF += Number(i.fatG);
+      }
+    }
+  }
+  const target = plan.targetKcal ? Number(plan.targetKcal) : null;
+  const pct = target ? Math.round((totalKcal / target) * 100) : null;
+
+  return (
+    <div className="mx-auto max-w-3xl px-5 py-6">
+      <Link
+        href="/app/meu-plano"
+        className="text-sm text-teal-700 hover:underline"
+      >
+        ← Meus planos
+      </Link>
+
+      <header className="mt-2">
+        <h1 className="text-2xl font-bold text-slate-900">{plan.name}</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          🏥 {plan.patient.organization.name}
+        </p>
+      </header>
+
+      <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50 p-4">
+        <p className="text-2xl font-bold text-teal-700">
+          {totalKcal.toFixed(0)} kcal/dia
+        </p>
+        {target && (
+          <p className="text-xs text-teal-700">
+            Meta: {target.toFixed(0)} kcal ({pct}%)
+          </p>
+        )}
+        <p className="mt-2 text-xs text-teal-800">
+          PTN <strong>{totalP.toFixed(0)}g</strong> · CHO{" "}
+          <strong>{totalC.toFixed(0)}g</strong> · LIP{" "}
+          <strong>{totalF.toFixed(0)}g</strong>
+        </p>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        {plan.days.map((day) => (
+          <section
+            key={day.id}
+            className="rounded-lg border border-slate-200 bg-white shadow-sm"
+          >
+            <header className="border-b border-slate-200 bg-slate-50 px-4 py-2">
+              <h2 className="text-base font-semibold text-slate-900">
+                📅 {day.dayLabel}
+              </h2>
+            </header>
+
+            <div className="divide-y divide-slate-100">
+              {day.meals.map((meal) => {
+                let mKcal = 0;
+                for (const it of meal.items)
+                  if (it.kcal) mKcal += Number(it.kcal);
+                return (
+                  <div key={meal.id} className="px-4 py-3">
+                    <header className="flex items-center justify-between">
+                      <h3 className="font-medium text-slate-900">
+                        🍽️ {meal.name}
+                        {meal.scheduledTime && (
+                          <span className="ml-2 text-xs font-normal text-slate-500">
+                            {meal.scheduledTime}
+                          </span>
+                        )}
+                      </h3>
+                      {meal.items.length > 0 && (
+                        <span className="text-xs tabular-nums text-slate-600">
+                          {mKcal.toFixed(0)} kcal
+                        </span>
+                      )}
+                    </header>
+                    {meal.items.length === 0 ? (
+                      <p className="mt-1 text-xs text-slate-400">
+                        Sem alimentos.
+                      </p>
+                    ) : (
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {meal.items.map((it) => (
+                          <li
+                            key={it.id}
+                            className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-1.5"
+                          >
+                            <span>
+                              {foodMap.get(it.foodId) ?? "—"}
+                              <span className="ml-2 text-xs text-slate-500">
+                                {it.quantityG.toString()}g
+                              </span>
+                              {it.preparationNotes && (
+                                <span className="ml-1 text-xs text-slate-400">
+                                  ({it.preparationNotes})
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -404,6 +404,7 @@ model Patient {
   anthropometryRecords Anthropometry[]
   mealPlans           MealPlan[]
   clinicalDocuments   ClinicalDocument[]
+  invites             PatientInvite[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -1202,6 +1203,39 @@ model DigitalSignature {
   document ClinicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@map("digital_signatures")
+}
+
+// =====================================================================
+// PATIENT INVITES (S12 — Fase 4)
+// =====================================================================
+// Convite paciente → criar conta auth.users + linkar Patient.user_id (Lock 6)
+// Magic-link via Supabase Auth (configurado em auth.config)
+// Token criptograficamente seguro (32 bytes hex = 64 chars) com TTL 7 dias
+// Lock 7 — passwordless: token bearer único, anti-double-accept
+
+model PatientInvite {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  sentByUserId    String   @map("sent_by_user_id") @db.Uuid
+  // Token único — hashado em DB (SHA-256) para evitar leak via SQL injection
+  tokenHash       String   @unique @map("token_hash") // sha256 hex
+  email           String // snapshot do email no momento do convite
+  expiresAt       DateTime @map("expires_at")
+  acceptedAt      DateTime? @map("accepted_at")
+  acceptedByUserId String? @map("accepted_by_user_id") @db.Uuid // auth.users.id criado/encontrado
+  // Para auditoria de tentativas
+  attemptCount    Int      @default(0) @map("attempt_count")
+  revokedAt       DateTime? @map("revoked_at")
+  revokedReason   String?  @map("revoked_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, patientId, createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("patient_invites")
 }
 
 // =====================================================================
