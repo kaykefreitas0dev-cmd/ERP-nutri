@@ -4,12 +4,17 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createHash, randomBytes } from "node:crypto";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { sendPatientInviteEmail } from "@/lib/email/send-invite";
 
 export interface InviteActionResult {
   ok: boolean;
   message?: string;
   inviteId?: string;
   inviteUrl?: string;
+  /** true se email foi enviado automaticamente via provider configurado */
+  emailSent?: boolean;
+  /** email do destinatário (echo back para UX) */
+  emailTo?: string;
 }
 
 const INVITE_TTL_DAYS = 7;
@@ -59,6 +64,11 @@ export async function createInviteAction(input: {
           );
         }
 
+        const org = await tx.organization.findUnique({
+          where: { id: organizationId },
+          select: { name: true },
+        });
+
         // Revogar convites pendentes deste paciente (apenas 1 ativo por vez)
         await tx.patientInvite.updateMany({
           where: {
@@ -100,16 +110,36 @@ export async function createInviteAction(input: {
           )
         `;
 
-        return { invite, plain };
+        return { invite, plain, patient, org };
       },
     );
 
     const inviteUrl = `${getPatientAppBaseUrl()}/invite/${result.plain}`;
+
+    // Best-effort: enviar email via Resend se configurado. Falha não bloqueia
+    // — nutri sempre tem fallback para copiar URL manualmente.
+    let emailSent = false;
+    try {
+      const sendResult = await sendPatientInviteEmail({
+        to: parsed.data.email,
+        patientFullName: result.patient.fullName,
+        organizationName: result.org?.name ?? "Sua nutricionista",
+        inviteUrl,
+        expiresAt: result.invite.expiresAt,
+      });
+      emailSent = sendResult.ok;
+    } catch (emailErr) {
+      // log apenas — não bloqueia
+      console.error("[invite-email] falhou:", emailErr);
+    }
+
     revalidatePath(`/app/patients/${parsed.data.patientId}`);
     return {
       ok: true,
       inviteId: result.invite.id,
       inviteUrl,
+      emailSent,
+      emailTo: parsed.data.email,
     };
   } catch (err) {
     if (err instanceof ActionTenantError) {
