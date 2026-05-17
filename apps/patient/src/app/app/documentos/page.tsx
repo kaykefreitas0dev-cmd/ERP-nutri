@@ -43,51 +43,72 @@ export default async function MyDocumentsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
-      <h1 className="text-2xl font-bold text-text-primary">Documentos</h1>
-      <p className="mt-1 text-sm text-text-secondary">
-        Atestados, receitas e encaminhamentos emitidos pelo(a) seu(sua)
-        nutricionista
+      <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+        Seus documentos
+      </p>
+      <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
+        Documentos
+      </h1>
+      <p className="mt-1 text-caption text-text-secondary">
+        Atestados, receitas e encaminhamentos emitidos pela(o) sua(seu)
+        nutricionista.
       </p>
 
       <div className="mt-6">
         {docs.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border-default bg-white p-8 text-center text-text-secondary">
-            Nenhum documento emitido ainda.
+          <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-bg-subtle text-text-muted">
+              <FileText className="h-5 w-5" strokeWidth={1.75} />
+            </div>
+            <p className="mt-3 text-h3 font-semibold text-text-primary">
+              Nenhum documento ainda
+            </p>
+            <p className="mt-1 text-caption text-text-secondary">
+              Quando sua(seu) nutri emitir um atestado, receita ou
+              encaminhamento, aparecerá aqui.
+            </p>
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {docs.map((d) => (
               <li
                 key={d.id}
-                className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
+                className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:[box-shadow:var(--shadow-sm)]"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-text-primary truncate">
-                      {d.title}
-                    </p>
-                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-text-secondary">
-                      <FileText className="h-3 w-3" strokeWidth={1.75} />
-                      {TYPE_LABELS[d.documentType] ?? d.documentType} •{" "}
-                      {d.issuerName}
-                      {d.issuerCrn && ` (CRN ${d.issuerCrn})`}
-                    </p>
-                    <p className="flex items-center gap-1 text-xs text-text-muted">
-                      <Hospital className="h-3 w-3" strokeWidth={1.75} />
-                      {d.patient.organization.name}
-                    </p>
-                    {d.issuedAt && (
-                      <p className="text-xs text-text-muted">
-                        Emitido em{" "}
-                        {new Date(d.issuedAt).toLocaleDateString("pt-BR")}
-                        {d.validUntil &&
-                          ` · Válido até ${new Date(d.validUntil).toLocaleDateString("pt-BR")}`}
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary">
+                      <FileText className="h-5 w-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body font-semibold text-text-primary">
+                        {d.title}
                       </p>
-                    )}
+                      <p className="mt-1 text-caption text-text-secondary">
+                        {TYPE_LABELS[d.documentType] ?? d.documentType}
+                        {" · "}
+                        {d.issuerName}
+                        {d.issuerCrn && ` (CRN ${d.issuerCrn})`}
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-tiny text-text-muted">
+                        <span className="inline-flex items-center gap-1">
+                          <Hospital className="h-3 w-3" strokeWidth={1.75} />
+                          {d.patient.organization.name}
+                        </span>
+                        {d.issuedAt && (
+                          <span className="tabular-nums">
+                            · Emitido{" "}
+                            {new Date(d.issuedAt).toLocaleDateString("pt-BR")}
+                            {d.validUntil &&
+                              ` · Válido até ${new Date(d.validUntil).toLocaleDateString("pt-BR")}`}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                   <Link
                     href={`/app/documentos/${d.id}`}
-                    className="shrink-0 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover"
+                    className="shrink-0 rounded-md bg-brand-primary px-3 py-1.5 text-tiny font-medium text-white [box-shadow:var(--shadow-sm)] transition-all duration-fast hover:bg-brand-primary-hover active:scale-[0.98]"
                   >
                     Abrir
                   </Link>
