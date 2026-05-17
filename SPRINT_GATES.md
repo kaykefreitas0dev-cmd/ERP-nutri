@@ -62,6 +62,32 @@
 
 ---
 
+## Sprint S6 — Agenda + Calendar Sync + Booking Page
+
+### Decisões de produto requeridas (defaults agênticos aplicados — PM revoga)
+- [X] Calendar provider: **Google Calendar API direto** (free, sem custo após escala)
+  - Justificativa: Nylas custaria $0.10/conta após scale. Google direto é mais código mas zero custo recorrente. Mantém ADR 0034 (free-tier-first).
+- [X] Calendar UI: **Schedule-X** (free, MIT) — não usar FullCalendar premium
+- [X] Buffer time default: **15min antes + 15min depois** (padrão de mercado)
+- [X] Min notice antecedência: **4h** (recomendado para nutri responder)
+- [X] Max advance booking: **60 dias** (próximas 2 meses)
+- [X] Timezone storage: **UTC sempre, exibir em tz do nutri/paciente** (Lock implícito CFN)
+- [X] Conflict resolution online: **first-write-wins** (atomic Postgres EXCLUDE constraint GiST)
+- [X] Booking page pública: `/c/:slug` em `apps/marketing` (SEO + sem auth)
+- [X] Confirmação agendamento: **email automatic** (via Resend ou DB log até SES OK)
+
+### Validação PM
+- [ ] Google Calendar OAuth flow funcional (PM autoriza próprio Google Workspace/Gmail)
+- [ ] Booking page `/c/:slug` indexável (SEO meta + JSON-LD LocalBusiness)
+- [ ] Buffer time impede overlap (validado por testes E2E)
+- [ ] Timezone display correto: nutri BR + paciente fictício PT
+
+### Cadastros externos pendentes (não bloqueia início, bloqueia produção)
+- [ ] Google Cloud Console project + OAuth Consent Screen + scopes calendar.events
+- [ ] Credenciais OAuth (Client ID + Secret) em GitHub Secrets + Vercel envs
+
+---
+
 ## Sprint S12a — PWA Offline-First + Conflict UI + Lock 16
 
 ### Decisões de produto requeridas
