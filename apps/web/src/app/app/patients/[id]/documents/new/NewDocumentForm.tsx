@@ -98,7 +98,10 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [docType, setDocType] = useState<DocType>("ATESTADO");
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(() => {
+    const todayBr = new Date().toLocaleDateString("pt-BR");
+    return `Atestado — ${todayBr}`;
+  });
   const [body, setBody] = useState(
     TEMPLATES.ATESTADO.replace("{paciente}", patientName),
   );
