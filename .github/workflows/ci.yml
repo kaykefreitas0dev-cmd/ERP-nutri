@@ -75,6 +75,12 @@ jobs:
   sherlock-required:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    # Concurrency group por PR: cancela runs anteriores pra evitar
+    # multiplos workflows tentando aplicar label em paralelo (race) e
+    # postando comments duplicados (observado em PRs #2-#6 com 6-8 duplicatas).
+    concurrency:
+      group: sherlock-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4

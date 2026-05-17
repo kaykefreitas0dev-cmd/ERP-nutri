@@ -1,9 +1,9 @@
 # SPRINT_STATE
 
-current_sprint: S6 (deferred)
-status: pm_action_required
+current_sprint: S6
+status: gates_pending
 last_updated: 2026-05-17
-mode: autonomous (paused — 5 sprints done, awaiting PM merge + decisions)
+mode: autonomous (paused — S2a-S5 mergeados, S6 aguarda decisões PM)
 
 ---
 
@@ -15,39 +15,41 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 
 ---
 
-## Estado: 5 sprints autônomos entregues
+## Estado: 6 sprints completas na `main`
 
-Branches encadeadas (merge em ordem):
+Histórico squash-merged consolidado:
 
-1. `feat/s2a-auth-rbac-tenant-guard` → [PR #2](https://github.com/kaykefreitas0dev-cmd/ERP-nutri/pull/2)
-2. `feat/s2b-design-system-marketing-onboarding` → [PR #3](https://github.com/kaykefreitas0dev-cmd/ERP-nutri/pull/3)
-3. `feat/s3-patient-crud-encrypted` → [PR #4](https://github.com/kaykefreitas0dev-cmd/ERP-nutri/pull/4)
-4. `feat/s4-antropometria-engine` → [PR #5](https://github.com/kaykefreitas0dev-cmd/ERP-nutri/pull/5)
-5. `feat/s5-etl-csv-import` → [PR #6](https://github.com/kaykefreitas0dev-cmd/ERP-nutri/pull/6)
+| Commit | Sprint | PR |
+|---|---|---|
+| `6e6af06` | S5 (ETL CSV import wizard) | #6 |
+| `8947860` | S4 (Antropometria + Engine nutricional) | #5 |
+| `ccd3f11` | S3 (Patient CRUD + Clinical Notes encrypted) | #4 |
+| `48e7bd6` | S2b (Design System + Marketing + Onboarding) | #3 |
+| `3a9d896` | S2a (Auth + RBAC + Tenant Guard + Audit + Healthcheck) | #2 |
+| `9f4852e` | S1 (Bootstrap monorepo) | #1 |
 
-## Por que parei em S5?
+### Branch protection ativa
 
-S6 (Agenda + Calendar Sync) exige:
-- Decisão Nylas v3 vs Google Calendar API direto (custo ~$0.10/conta Nylas após escala)
-- Conta Nylas comercial OU Google Cloud Console + OAuth consent screen
-- Decisão Schedule-X (free) vs FullCalendar premium
+- `required_approving_review_count: 1`
+- `enforce_admins: true`
+- `required_status_checks: validate + sherlock-required` (strict)
+- `required_linear_history: true`
+- `required_conversation_resolution: true`
+- `allow_force_pushes: false`
 
-S7 (Booking público) exige domínio comprado para CORS + slug routing.
+---
 
-Estes bloqueios não são técnicos — são **decisões de produto + cadastros externos** que precisam PM.
+## S6 (Agenda + Calendar Sync) — decisões pendentes
 
-## Próximo loop (quando PM voltar)
+Ver [SPRINT_GATES.md](SPRINT_GATES.md) seção S6 (a ser criada) + [docs/pm-required.md](docs/pm-required.md) decisões S6.
 
-1. Mergear PRs #2 → #3 → #4 → #5 → #6 (em ordem)
-2. Marcar SPRINT_GATES S2b validações `[x]`
-3. Decisões S6 em SPRINT_GATES (ainda não criadas — ver `docs/pm-required.md`)
-4. Atualizar `current_sprint: S6` + `status: ready`
-5. Modo autônomo retoma
+**Quando autorizar:** marca `[X]` nas decisões S6 + atualiza `status: ready` aqui → modo agêntico retoma.
 
 ---
 
 ## Histórico
 
-- 2026-05-16 — S1 entregue (T1 completa); PR #1 mergeado; bootstrap monorepo + 3 apps + CI/CD + branch protection.
-- 2026-05-17 (manhã) — S2a entregue; PR #2 aberto; Auth + RBAC + Tenant Guard + Audit hash chain + Healthcheck + Status page + CF Worker; Supabase provisionado + 8 SQL migrations aplicadas + seed (3 plans + 20 perms) + super_admin criado.
-- 2026-05-17 (modo autônomo) — S2b, S3, S4, S5 entregues; 5 PRs abertos encadeados; 12 migrations SQL aplicadas no Supabase; 30 testes engine nutricional passing; build local 3/3 successful em todos os commits.
+- 2026-05-16 — S1 entregue (T1); bootstrap monorepo + 3 apps + CI/CD + branch protection.
+- 2026-05-17 (manhã) — S2a entregue; Auth + RBAC + Tenant Guard + Audit hash chain + Healthcheck + Status page + CF Worker; Supabase provisionado.
+- 2026-05-17 (autônomo) — S2b/S3/S4/S5 entregues; 5 PRs encadeados; 12 migrations SQL + 30 testes engine.
+- 2026-05-17 (tarde) — **Merge cascade completo** (PRs #2-#6); rotação service_role (sb_secret_*); branch protection restaurada.
