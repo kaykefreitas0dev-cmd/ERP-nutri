@@ -1,0 +1,25 @@
+# gitleaks config — NutriCore
+# https://github.com/gitleaks/gitleaks#configuration
+
+# Extend default rules (JWT detection, AWS keys, etc.)
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Scripts de setup unicos — keys ja rotacionadas (Supabase Dashboard)"
+# Os scripts setup-vercel-env.* foram criados durante config inicial S2a
+# para popular Vercel env vars em batch. Continham anon_key (publica) e
+# service_role_key (privada). PM rotacionou service_role key em S2a final.
+# Scripts agora ignorados via .gitignore; allowlist cobre commits historicos.
+paths = [
+  '''scripts/setup-vercel-env\.(ps1|sh)$''',
+]
+
+# Allowlist de stops words que aparecem em docs/ADRs
+stopwords = [
+  "REDACTED",
+  "YOUR-",
+  "EXAMPLE",
+  "TODO",
+  "stub-",
+]

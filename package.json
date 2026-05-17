@@ -9,22 +9,29 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "pnpm --filter @nutricore/db exec prisma generate || true"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["prettier --write"],
-    "*.{json,md,yml,yaml}": ["prettier --write"]
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/vitest-runner": "^9.6.1",
+    "@vitest/coverage-v8": "^4.1.6",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
     "prettier": "^3.7.4",
     "turbo": "^2.9.14",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.6"
   },
   "packageManager": "pnpm@9.15.9",
   "engines": {

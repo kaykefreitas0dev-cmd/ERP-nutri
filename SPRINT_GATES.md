@@ -7,7 +7,7 @@
 ## Sprint S1 — Bootstrap Monorepo + CI/CD + Vercel
 
 ### Decisões de produto requeridas (PM marca `[x]`)
-- [ ] Nome dos projetos Vercel (default: `nutricore-web`, `nutricore-marketing`, `nutricore-patient`)
+- [X] Nome dos projetos Vercel (default: `nutricore-web`, `nutricore-marketing`, `nutricore-patient`)
 - [ ] Domínio comprado (ex: `nutricore.app` ou alternativa): _________
 - [ ] Estrutura de subdomínios aprovada (v11.2 Diff 9):
   - apex `${dominio}` → marketing
@@ -29,10 +29,10 @@
 ## Sprint S2a — Auth + RBAC + Tenant Guard + Audit + Backup R2 + Healthcheck CF
 
 ### Decisões de produto requeridas
-- [ ] Frequência backup pg_dump confirmada (recomendação: diário 03:00 BRT)
-- [ ] Region R2 para backups (recomendação: WEUR ou Auto)
-- [ ] Cloudflare Workers Cron Trigger configurado (recomendação: 5 dias bate `/api/health/db`)
-- [ ] Email do super-admin para provisionamento manual via SQL: _________
+- [X] Frequência backup pg_dump confirmada: **diário 03:00 BRT (06:00 UTC)** — default plano
+- [X] Region R2 para backups: **Auto** (Cloudflare escolhe próximo do usuário)
+- [X] Cloudflare Workers Cron Trigger configurado: **5 dias** bate `/api/health/db`
+- [X] Email do super-admin para provisionamento manual via SQL: **kaykefreitas0dev@gmail.com**
 
 ### Validação PM
 - [ ] Isolation suite verde no CI

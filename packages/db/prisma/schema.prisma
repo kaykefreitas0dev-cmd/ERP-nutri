@@ -1,7 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// NutriCore — Prisma schema
+// Plan: v11 + Anexos v11.1/v11.2
+// Sprint 2a — Identidade global + tenancy + audit + infra
+// Demais domínios serão adicionados nas sprints correspondentes (esqueleto reservado abaixo)
 
 generator client {
   provider = "prisma-client"
@@ -11,3 +11,361 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// =====================================================================
+// IDENTIDADE GLOBAL (Lock 6 — User vive fora de qualquer tenant)
+// =====================================================================
+
+// User espelha auth.users do Supabase via trigger handle_new_user()
+// PII essencial vive aqui; Patient (tenant-scoped) referencia este User.
+model User {
+  id                String       @id @db.Uuid
+  email             String?      @unique
+  phone             String?      @unique // E.164
+  fullName          String?      @map("full_name")
+  avatarUrl         String?      @map("avatar_url")
+  preferredLanguage String       @default("pt-BR") @map("preferred_language")
+  timezone          String       @default("America/Sao_Paulo")
+  status            UserStatus   @default(ACTIVE)
+  anonymizedAt      DateTime?    @map("anonymized_at") // Lock 13
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  memberships Membership[]
+  consents    Consent[]
+  auditLogs   AuditLog[]   @relation("AuditActor")
+
+  @@index([phone])
+  @@index([email])
+  @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  ANONYMIZED // Lock 4 + Lock 13
+}
+
+// =====================================================================
+// TENANCY (multi-tenant raiz)
+// =====================================================================
+
+model Organization {
+  id                  String                   @id @default(uuid()) @db.Uuid
+  slug                String                   @unique
+  name                String
+  plan                String                   @default("starter") // PricingPlan.slug
+  subscriptionStatus  SubscriptionStatus       @default(TRIALING) @map("subscription_status")
+  trialEndsAt         DateTime?                @map("trial_ends_at")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+
+  branding           OrganizationBranding?
+  clinics            Clinic[]
+  teams              Team[]
+  memberships        Membership[]
+  auditLogs          AuditLog[]
+  consents           Consent[]
+  subscriptionEvents SubscriptionStateEvent[]
+
+  @@index([slug])
+  @@index([subscriptionStatus])
+  @@map("organizations")
+}
+
+// Lock 14 — Dunning state machine
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELED
+}
+
+model OrganizationBranding {
+  organizationId String   @id @map("organization_id") @db.Uuid
+  logoUrl        String?  @map("logo_url")
+  faviconUrl     String?  @map("favicon_url")
+  primaryColor   String?  @default("#0F766E") @map("primary_color")
+  secondaryColor String?  @map("secondary_color")
+  emailFromName  String?  @map("email_from_name")
+  customDomain   String?  @unique @map("custom_domain")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("organization_brandings")
+}
+
+model Clinic {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  cityState      String?  @map("city_state")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teams        Team[]
+
+  @@index([organizationId])
+  @@map("clinics")
+}
+
+model Team {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  clinicId       String?  @map("clinic_id") @db.Uuid
+  name           String
+  specialty      String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@map("teams")
+}
+
+model Membership {
+  id             String           @id @default(uuid()) @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  role           MembershipRole
+  status         MembershipStatus @default(ACTIVE)
+  invitedAt      DateTime         @default(now()) @map("invited_at")
+  acceptedAt     DateTime?        @map("accepted_at")
+  revokedAt      DateTime?        @map("revoked_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+  @@map("memberships")
+}
+
+enum MembershipRole {
+  org_owner
+  clinic_admin
+  senior_nutritionist
+  nutritionist
+  assistant
+  receptionist
+  financial
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  REVOKED
+}
+
+// Permissões granulares (RBAC Casbin standalone — ADR 0049)
+// Esta tabela espelha policies Casbin para auditoria + UI
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String         @id @default(uuid()) @db.Uuid
+  role         MembershipRole
+  permissionId String         @map("permission_id") @db.Uuid
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+  @@map("role_permissions")
+}
+
+// =====================================================================
+// CONSENT (LGPD art. 7+8+9)
+// =====================================================================
+
+model Consent {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @map("user_id") @db.Uuid
+  organizationId      String?  @map("organization_id") @db.Uuid
+  purpose             String // 'treatment' | 'marketing' | 'research' | 'data_sharing'
+  termsVersion        String   @map("terms_version") // ex: 'v1.0' — referência ao texto aceito
+  grantedAt           DateTime @default(now()) @map("granted_at")
+  revokedAt           DateTime? @map("revoked_at")
+  proofHash           String   @map("proof_hash") // sha256(termsText + ip + userAgent + timestamp)
+  proofIp             String?  @map("proof_ip")
+  proofUserAgent      String?  @map("proof_user_agent")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([userId, purpose])
+  @@index([organizationId, purpose])
+  @@map("consents")
+}
+
+// =====================================================================
+// AUDIT LOG (hash chain — atende CFN 599/2018 + Lei 13.787/2018)
+// =====================================================================
+
+// Append-only via REVOKE UPDATE/DELETE + SECURITY DEFINER function
+// Hash chain estilo Merkle: log_hash = SHA256(prev_log_hash + content)
+model AuditLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String?  @map("organization_id") @db.Uuid // null para ações sistema (super_admin)
+  actorUserId     String?  @map("actor_user_id") @db.Uuid
+  actorRole       String?  @map("actor_role")
+  actorIp         String?  @map("actor_ip") @db.Inet
+  actorUserAgent  String?  @map("actor_user_agent")
+  action          String // 'read' | 'create' | 'update' | 'delete' | 'export' | 'lgpd.user_anonymized' | etc.
+  entityType      String   @map("entity_type") // 'Patient' | 'MealPlan' | etc.
+  entityId        String?  @map("entity_id")
+  patientId       String?  @map("patient_id") @db.Uuid // busca rápida em audit de paciente
+  fieldsAccessed  String[] @map("fields_accessed")
+  payloadHash     String   @map("payload_hash") // SHA-256 do payload (sem expor dados)
+  prevLogHash     String?  @map("prev_log_hash")
+  logHash         String   @map("log_hash")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor        User?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([actorUserId, createdAt(sort: Desc)])
+  @@index([patientId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// =====================================================================
+// BILLING SaaS (assinatura da plataforma)
+// =====================================================================
+
+model PricingPlan {
+  id                 String   @id @default(uuid()) @db.Uuid
+  slug               String   @unique
+  name               String
+  description        String?
+  priceMonthlyCents  Int      @map("price_monthly_cents")
+  priceYearlyCents   Int      @map("price_yearly_cents")
+  features           Json     @default("{}")
+  isPublic           Boolean  @default(true) @map("is_public")
+  isFeatured         Boolean  @default(false) @map("is_featured")
+  sortOrder          Int      @default(0) @map("sort_order")
+  trialDays          Int      @default(14) @map("trial_days")
+  asaasPlanId        String?  @map("asaas_plan_id")
+  stripePriceMonthly String?  @map("stripe_price_monthly")
+  stripePriceYearly  String?  @map("stripe_price_yearly")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublic, sortOrder])
+  @@map("pricing_plans")
+}
+
+// Lock 14 — Dunning: state machine append-only
+model SubscriptionStateEvent {
+  id              String              @id @default(uuid()) @db.Uuid
+  organizationId  String              @map("organization_id") @db.Uuid
+  fromStatus      SubscriptionStatus? @map("from_status")
+  toStatus        SubscriptionStatus  @map("to_status")
+  reason          String
+  triggeredBy     String              @map("triggered_by") // 'webhook:asaas' | 'cron:dunning-escalate' | userId
+  externalEventId String?             @map("external_event_id")
+  payload         Json                @default("{}")
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@map("subscription_state_events")
+}
+
+// =====================================================================
+// INFRA — Healthcheck + Monitoring
+// =====================================================================
+
+// v11.2 Diff B.6 — endpoint /api/health/db faz UPDATE + SELECT garantindo
+// activity real anti-pausa Supabase Free
+model Keepalive {
+  id          Int      @id @default(1)
+  lastTouched DateTime @default(now()) @map("last_touched")
+
+  @@map("_keepalive")
+}
+
+// v11.2 Diff B.7 — worker monitoring.health-aggregator (Cloudflare Worker Cron 5min)
+// grava status agregado dos serviços externos para status page
+model ServiceHealth {
+  id             String   @id @default(uuid()) @db.Uuid
+  serviceKey     String   @map("service_key") // 'database' | 'email' | 'payments' | 'storage'
+  publicLabel    String   @map("public_label") // versão pública (oculta provider) — Lock 0051
+  internalLabel  String   @map("internal_label") // versão interna (mostra Supabase, AWS SES, etc.)
+  status         String // 'operational' | 'degraded' | 'partial_outage' | 'major_outage'
+  latencyMs      Int?     @map("latency_ms")
+  message        String?
+  observedAt     DateTime @default(now()) @map("observed_at")
+
+  @@index([serviceKey, observedAt(sort: Desc)])
+  @@map("service_health")
+}
+
+// =====================================================================
+// ESQUELETO RESERVADO (implementação em sprints futuras)
+// =====================================================================
+//
+// FASE 1 (S3-S5):
+//   - Patient (Lock 6 vínculo User×Org), PatientContact, PatientAllergy,
+//     PatientDietaryRestriction, PatientClinicalCondition, Anthropometry,
+//     ClinicalNote (encrypted via pgcrypto), ExamAttachment (encrypted),
+//     Allergen (seed 14 majores), DataImport, ImportColumnMapping
+//
+// FASE 2 (S6-S9):
+//   - Food (com version + isActive + supersededById + FC + IC — Lock 15 trigger),
+//     FoodAllergen, FoodPrice, Recipe (com version), RecipeIngredient,
+//     MealPlan, MealPlanDay, Meal, MealItem (foodId congelado snapshot — Lock 15),
+//     MealPlanTemplate,
+//     BookingPage (tenant-scoped simples — sem PostGIS no MVP),
+//     ServiceOffering, Appointment, AppointmentStatusEvent,
+//     ExternalCalendarConnection, CalendarBusyBlock, AvailabilityRule
+//
+// FASE 3 (S10-S11):
+//   - MealPlanDay, Meal, MealItem (idem), MealPlanTemplate
+//   - ClinicalDocument, Cid10Code (seed DATASUS ~14k), TussCode,
+//     DigitalSignature (Mock no MVP), DocumentTemplate
+//
+// FASE 4 (S12-S13):
+//   - UserHealthCheckin (cross-tenant — Lock 6), UserHealthStreak,
+//     Achievement, UserAchievement,
+//     RewardTemplate, UserReward (cross-tenant), VoucherRedemption,
+//     CheckinRateLimit, CheckinFlag,
+//     NotificationPreference, NotificationDelivery, EventOutbox,
+//     HealthDataPoint (User-scoped, schema-only — Lock 3),
+//     EditConflict, SyncToken,
+//     EmailDeliveryStatus (Lock 9 — bounce tracking),
+//     OnboardingProgress (v11.2 Diff C.2 — estado wizard)
+//
+// FASE 5 (S14-S15):
+//   - Subscription, Invoice (SaaS), PlatformFeeConfig,
+//     ProfessionalPaymentAccount (kycStatus),
+//     PatientPayment (incl. EXTERNAL_RECORDED — v11.2 Diff 5),
+//     PaymentStateEvent (append-only), PaymentRefund, PaymentSplit,
+//     PaymentWebhookEvent, PayoutSchedule (escrow 24h), PaymentDispute,
+//     FiscalProfile (skeleton — NF-e adiada Fase 7), FiscalDocument
+//
+// FASE 6 (S16-S17):
+//   - OffboardingExport,
+//     IntegrationConnection, WebhookSubscription, WebhookDelivery
+//
+// FASE 7 (Pós-GA):
+//   - Marketplace Foundation (Lock 8): PostGIS, ProfessionalProfile,
+//     Specialty, ProfessionalSpecialty, OrganizationProfile
+//   - Wearables ativos (HealthDataPoint workers + OAuth)
+//   - NF-e nutri orchestration completa

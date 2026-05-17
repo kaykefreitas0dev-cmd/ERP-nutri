@@ -21,6 +21,11 @@ coverage
 # Vercel
 .vercel
 
+# Setup scripts com credenciais inline (não-commit)
+scripts/setup-vercel-env.*
+scripts/test-conn.*
+packages/db/test-conn.*
+
 # Build Outputs
 .next/
 out/

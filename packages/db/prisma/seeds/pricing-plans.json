@@ -1,0 +1,85 @@
+[
+  {
+    "slug": "starter",
+    "name": "Starter",
+    "description": "Para nutricionistas autônomos começando.",
+    "priceMonthlyCents": 4900,
+    "priceYearlyCents": 49000,
+    "features": {
+      "included": [
+        "Até 30 pacientes ativos",
+        "Agenda + lembretes email",
+        "Editor de planos alimentares",
+        "Biblioteca TACO + POF",
+        "Recibo simples PDF",
+        "PWA paciente",
+        "Backup diário"
+      ],
+      "limits": {
+        "patients": 30,
+        "professionals": 1,
+        "storage_mb": 1024
+      }
+    },
+    "isPublic": true,
+    "isFeatured": false,
+    "sortOrder": 1,
+    "trialDays": 14
+  },
+  {
+    "slug": "pro",
+    "name": "Pro",
+    "description": "Para nutricionistas estabelecidos com agenda cheia.",
+    "priceMonthlyCents": 9900,
+    "priceYearlyCents": 99000,
+    "features": {
+      "included": [
+        "Pacientes ilimitados",
+        "Agenda + lembretes WhatsApp + email",
+        "Editor de planos + custeio FC/IC",
+        "Biblioteca + 50 receitas global + receitas próprias",
+        "Recibo simples + emissão NF-e (Fase 7)",
+        "PWA paciente com gamificação",
+        "Backup diário + PITR",
+        "Suporte prioritário"
+      ],
+      "limits": {
+        "patients": null,
+        "professionals": 1,
+        "storage_mb": 10240
+      }
+    },
+    "isPublic": true,
+    "isFeatured": true,
+    "sortOrder": 2,
+    "trialDays": 14
+  },
+  {
+    "slug": "clinic",
+    "name": "Clínica",
+    "description": "Para clínicas multi-profissionais.",
+    "priceMonthlyCents": 19900,
+    "priceYearlyCents": 199000,
+    "features": {
+      "included": [
+        "Tudo do Pro",
+        "Até 10 profissionais",
+        "Assistentes + Recepcionistas (RBAC completo)",
+        "Multi-clínica + Teams",
+        "Dashboard financeiro consolidado",
+        "Split de pagamentos por profissional",
+        "White-label básico (logo + cores)",
+        "Sherlock review trimestral incluído"
+      ],
+      "limits": {
+        "patients": null,
+        "professionals": 10,
+        "storage_mb": 51200
+      }
+    },
+    "isPublic": true,
+    "isFeatured": false,
+    "sortOrder": 3,
+    "trialDays": 30
+  }
+]

@@ -1,0 +1,73 @@
+## NutriCore baseline policies (S2a — Roles built-in)
+## Sintaxe Casbin v5: p, sub, dom, obj, act, eft
+## g, user, role, dom
+##
+## Domínios (dom) = organization_id (uuid string)
+## Para policies que se aplicam a todas as orgs, use dom = "*"
+##
+## Resources (obj):
+##   /v1/patients/* — pacientes
+##   /v1/appointments/* — agenda
+##   /v1/meal-plans/* — planos alimentares
+##   /v1/payments/* — pagamentos
+##   /v1/audit/* — audit logs
+##   /v1/admin/* — funcionalidades admin
+##   /v1/billing/* — assinatura SaaS
+##
+## Actions (act): read, write, delete, *
+##
+## ============================================================
+## ORG_OWNER — controle total da organização
+## ============================================================
+p, org_owner, *, /v1/*, *, allow
+
+## ============================================================
+## CLINIC_ADMIN — gerencia clínica (subset de org_owner)
+## ============================================================
+p, clinic_admin, *, /v1/patients/*, *, allow
+p, clinic_admin, *, /v1/appointments/*, *, allow
+p, clinic_admin, *, /v1/meal-plans/*, *, allow
+p, clinic_admin, *, /v1/payments/*, *, allow
+p, clinic_admin, *, /v1/clinics/*, *, allow
+p, clinic_admin, *, /v1/memberships/*, *, allow
+p, clinic_admin, *, /v1/audit/*, read, allow
+p, clinic_admin, *, /v1/billing/*, read, allow
+
+## ============================================================
+## SENIOR_NUTRITIONIST — gerencia equipe + atende
+## ============================================================
+p, senior_nutritionist, *, /v1/patients/*, *, allow
+p, senior_nutritionist, *, /v1/appointments/*, *, allow
+p, senior_nutritionist, *, /v1/meal-plans/*, *, allow
+p, senior_nutritionist, *, /v1/payments/*, read, allow
+p, senior_nutritionist, *, /v1/audit/own/*, read, allow
+
+## ============================================================
+## NUTRITIONIST — atende próprios pacientes
+## ============================================================
+p, nutritionist, *, /v1/patients/own/*, *, allow
+p, nutritionist, *, /v1/appointments/own/*, *, allow
+p, nutritionist, *, /v1/meal-plans/own/*, *, allow
+p, nutritionist, *, /v1/payments/own/*, read, allow
+
+## ============================================================
+## ASSISTANT — agenda + visualiza dados clínicos não-sensíveis
+## ============================================================
+p, assistant, *, /v1/patients/*, read, allow
+p, assistant, *, /v1/patients/*/contact, write, allow
+p, assistant, *, /v1/appointments/*, *, allow
+p, assistant, *, /v1/meal-plans/*, read, allow
+p, assistant, *, /v1/patients/*/clinical-notes, deny
+
+## ============================================================
+## RECEPTIONIST — apenas agenda + pacientes (read only)
+## ============================================================
+p, receptionist, *, /v1/patients/*, read, allow
+p, receptionist, *, /v1/appointments/*, *, allow
+
+## ============================================================
+## FINANCIAL — financeiro + relatórios
+## ============================================================
+p, financial, *, /v1/payments/*, *, allow
+p, financial, *, /v1/billing/*, *, allow
+p, financial, *, /v1/audit/financial/*, read, allow
