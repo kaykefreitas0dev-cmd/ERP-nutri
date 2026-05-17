@@ -61,7 +61,12 @@ export default async function PatientsListPage({ searchParams }: Props) {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Pacientes</h1>
             <p className="mt-1 text-sm text-slate-600">
-              {patients.length} {status === "ARCHIVED" ? "arquivados" : "ativos"}
+              {patients.length}{" "}
+              {status === "ARCHIVED"
+                ? "arquivados"
+                : status === "ANONYMIZED"
+                  ? "anonimizados (LGPD)"
+                  : "ativos"}
             </p>
           </div>
           <Link
@@ -87,6 +92,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
           >
             <option value="ACTIVE">Ativos</option>
             <option value="ARCHIVED">Arquivados</option>
+            <option value="ANONYMIZED">Anonimizados (LGPD)</option>
           </select>
           <button
             type="submit"
@@ -99,7 +105,9 @@ export default async function PatientsListPage({ searchParams }: Props) {
         {patients.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
             <p className="text-slate-600">
-              {q ? "Nenhum paciente encontrado para essa busca." : "Você ainda não tem pacientes."}
+              {q
+                ? "Nenhum paciente encontrado para essa busca."
+                : "Você ainda não tem pacientes."}
             </p>
             {!q && (
               <Link
@@ -135,13 +143,17 @@ export default async function PatientsListPage({ searchParams }: Props) {
                         href={`/app/patients/${p.id}`}
                         className="font-medium text-slate-900 hover:text-teal-700"
                       >
+                        {p.status === "ANONYMIZED" && "🔒 "}
+                        {p.status === "ARCHIVED" && "📦 "}
                         {p.fullName}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">
                       {p.email && <div>{p.email}</div>}
                       {p.phone && <div className="text-xs">{p.phone}</div>}
-                      {!p.email && !p.phone && <span className="text-slate-400">—</span>}
+                      {!p.email && !p.phone && (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-500">
                       {new Date(p.updatedAt).toLocaleDateString("pt-BR")}
