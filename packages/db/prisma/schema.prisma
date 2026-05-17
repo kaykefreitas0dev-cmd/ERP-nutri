@@ -402,6 +402,7 @@ model Patient {
   clinicalNotes       ClinicalNote[]
   examAttachments     ExamAttachment[]
   anthropometryRecords Anthropometry[]
+  mealPlans           MealPlan[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -928,6 +929,134 @@ model RecipeIngredient {
 
   @@index([recipeId])
   @@map("recipe_ingredients")
+}
+
+// =====================================================================
+// MEAL PLANS (S10 — Fase 3)
+// =====================================================================
+// Plano alimentar prescrito pelo nutri para paciente
+// Lock 15 — MealItem congela foodId + foodVersion (plano antigo não muda
+// se a Food sofrer correção depois)
+
+model MealPlan {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  prescribedByUserId String @map("prescribed_by_user_id") @db.Uuid
+
+  name            String // ex: "Plano semanal março 2026"
+  startDate       DateTime? @map("start_date") @db.Date
+  endDate         DateTime? @map("end_date") @db.Date
+  status          MealPlanStatus @default(DRAFT)
+
+  // Metas (capturadas do paciente no momento da prescrição)
+  targetKcal      Decimal? @map("target_kcal") @db.Decimal(7, 1)
+  targetProteinG  Decimal? @map("target_protein_g") @db.Decimal(7, 2)
+  targetCarbG     Decimal? @map("target_carb_g") @db.Decimal(7, 2)
+  targetFatG      Decimal? @map("target_fat_g") @db.Decimal(7, 2)
+
+  // Custo total estimado (calculado dos MealItems via FoodPrice)
+  totalCostCents  Int?     @map("total_cost_cents")
+  costCalculatedAt DateTime? @map("cost_calculated_at")
+
+  // Versionamento (Lock 15)
+  version         Int      @default(1)
+  supersededById  String?  @map("superseded_by_id") @db.Uuid
+
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient      Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  supersededBy MealPlan?  @relation("MealPlanVersion", fields: [supersededById], references: [id])
+  versions     MealPlan[] @relation("MealPlanVersion")
+  days         MealPlanDay[]
+
+  @@index([organizationId, patientId, status])
+  @@index([prescribedByUserId, createdAt(sort: Desc)])
+  @@map("meal_plans")
+}
+
+enum MealPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  REPLACED
+  ARCHIVED
+}
+
+// Um plano pode ter múltiplos dias (ex: 7 dias da semana com cardápios distintos)
+model MealPlanDay {
+  id          String   @id @default(uuid()) @db.Uuid
+  mealPlanId  String   @map("meal_plan_id") @db.Uuid
+  dayLabel    String   @map("day_label") // ex: "Segunda", "Dia 1", "Padrão"
+  sortOrder   Int      @default(0) @map("sort_order")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  meals    Meal[]
+
+  @@index([mealPlanId])
+  @@map("meal_plan_days")
+}
+
+// Refeições do dia (Café, Almoço, Jantar, etc.)
+model Meal {
+  id              String   @id @default(uuid()) @db.Uuid
+  mealPlanDayId   String   @map("meal_plan_day_id") @db.Uuid
+  name            String // ex: "Café da manhã", "Lanche manhã"
+  scheduledTime   String?  @map("scheduled_time") // 'HH:mm' opcional
+  sortOrder       Int      @default(0) @map("sort_order")
+  notes           String?
+
+  mealPlanDay MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
+  items       MealItem[]
+
+  @@index([mealPlanDayId])
+  @@map("meals")
+}
+
+// Item individual de uma refeição (alimento + quantidade)
+// Lock 15 — foodId + foodVersion congelado snapshot
+model MealItem {
+  id              String   @id @default(uuid()) @db.Uuid
+  mealId          String   @map("meal_id") @db.Uuid
+  foodId          String   @map("food_id") @db.Uuid
+  foodVersion     Int      @map("food_version") // Lock 15 - snapshot da versão
+  quantityG       Decimal  @map("quantity_g") @db.Decimal(8, 2)
+  preparationNotes String? @map("preparation_notes") // ex: "cozido", "cru"
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  // Calculados ao salvar (denormalizado para listagens rápidas)
+  kcal            Decimal? @db.Decimal(7, 2)
+  proteinG        Decimal? @map("protein_g") @db.Decimal(6, 2)
+  carbG           Decimal? @map("carb_g") @db.Decimal(6, 2)
+  fatG            Decimal? @map("fat_g") @db.Decimal(6, 2)
+
+  meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@index([mealId])
+  @@map("meal_items")
+}
+
+// Templates salvos para reusar
+model MealPlanTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  name            String // ex: "Low-Carb Mulher 60kg"
+  description     String?
+  targetKcal      Decimal? @map("target_kcal") @db.Decimal(7, 1)
+  // JSONB com estrutura completa (days/meals/items) para clonar rápido
+  structure       Json     @default("{}")
+  isPublic        Boolean  @default(false) @map("is_public")
+  usageCount      Int      @default(0) @map("usage_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId, name])
+  @@map("meal_plan_templates")
 }
 
 // =====================================================================
