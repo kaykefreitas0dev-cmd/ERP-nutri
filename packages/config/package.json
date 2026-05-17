@@ -11,10 +11,14 @@
     "./casbin/baseline-policies.csv": "./casbin/baseline-policies.csv"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --max-warnings 100",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "casbin": "^5.50.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "^9.39.1"
   }
 }

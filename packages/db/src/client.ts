@@ -1,5 +1,5 @@
 // Prisma 7 client singleton com adapter PG (driver Postgres direto)
-// Generated client from packages/db/prisma → src/generated/prisma
+// Lazy initialization para suportar Next.js build sem DATABASE_URL
 
 import { PrismaClient } from "./generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -12,7 +12,7 @@ function createPrisma(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL não configurada. Defina antes de instanciar Prisma.",
+      "DATABASE_URL não configurada. Defina antes de usar Prisma.",
     );
   }
 
@@ -27,10 +27,24 @@ function createPrisma(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient =
-  globalForPrisma.prisma ?? createPrisma();
+/**
+ * Lazy Proxy: instancia o PrismaClient apenas no primeiro uso (runtime),
+ * permitindo Next.js build-time sem DATABASE_URL.
+ */
+function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrisma();
+  }
+  return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const real = getPrisma();
+    const value = Reflect.get(real, prop, receiver);
+    return typeof value === "function" ? value.bind(real) : value;
+  },
+});
 
 export type { PrismaClient } from "./generated/prisma/client";
 export * from "./generated/prisma/client";

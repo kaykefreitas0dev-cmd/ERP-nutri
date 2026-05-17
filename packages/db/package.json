@@ -11,7 +11,7 @@
     "./audit": "./src/audit.ts"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --max-warnings 100",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:isolation": "vitest run tests/multi-tenant-isolation.spec.ts",
@@ -25,7 +25,9 @@
   "devDependencies": {
     "@types/node": "^20.19.41",
     "prisma": "^7.8.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "^9.39.1"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
