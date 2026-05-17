@@ -1239,6 +1239,51 @@ model PatientInvite {
 }
 
 // =====================================================================
+// USER HEALTH CHECKINS + STREAKS (S13 — Fase 4)
+// =====================================================================
+// Check-in diário do paciente (User-scoped, cross-tenant — Lock 6).
+// Indicadores básicos: humor, água, peso, energia, observação.
+// UserHealthStreak: dias consecutivos com check-in (motivação).
+// Anti-cheat MVP: rate limit (1 check-in/dia/user); backdating limitado a 24h.
+
+model UserHealthCheckin {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  // checkinDate = data calendário do check-in (sem hora, no tz do usuário)
+  // Único por user — UNIQUE constraint na (userId, checkinDate)
+  checkinDate     DateTime @map("checkin_date") @db.Date
+
+  // Métricas (todas opcionais para flex)
+  mood            Int? // 1..5
+  energyLevel     Int?     @map("energy_level") // 1..5
+  hungerLevel     Int?     @map("hunger_level") // 1..5
+  waterMl         Int?     @map("water_ml")
+  weightKg        Decimal? @map("weight_kg") @db.Decimal(5, 2)
+  followedPlan    Boolean? @map("followed_plan") // seguiu o plano alimentar?
+  notes           String?  @db.VarChar(500)
+
+  // Metadados
+  source          String   @default("patient_app") // 'patient_app' | 'nutri_manual'
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, checkinDate])
+  @@index([userId, checkinDate(sort: Desc)])
+  @@map("user_health_checkins")
+}
+
+model UserHealthStreak {
+  userId            String   @id @map("user_id") @db.Uuid // 1:1 com User
+  currentStreak     Int      @default(0) @map("current_streak")
+  longestStreak     Int      @default(0) @map("longest_streak")
+  lastCheckinDate   DateTime? @map("last_checkin_date") @db.Date
+  totalCheckins     Int      @default(0) @map("total_checkins")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("user_health_streaks")
+}
+
+// =====================================================================
 // ETL — IMPORTAÇÃO DE DADOS (S5)
 // =====================================================================
 // Wizard de migração CSV (Dietbox, Webdiet, genérico)

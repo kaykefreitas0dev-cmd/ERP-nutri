@@ -5,6 +5,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Início — NutriCore" };
 
+function todayLocalISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default async function PatientHomePage({
   searchParams,
 }: {
@@ -16,6 +20,18 @@ export default async function PatientHomePage({
     data: { user },
   } = await supabase.auth.getUser();
   // Layout já garante auth; aqui apenas leitura
+
+  // Streak + check-in de hoje
+  const todayDate = new Date(todayLocalISO() + "T12:00:00Z");
+  const [streak, todayCheckin] = await Promise.all([
+    prisma.userHealthStreak.findUnique({ where: { userId: user!.id } }),
+    prisma.userHealthCheckin.findUnique({
+      where: {
+        userId_checkinDate: { userId: user!.id, checkinDate: todayDate },
+      },
+      select: { id: true },
+    }),
+  ]);
 
   // Lock 6 — Patient é User-scoped: encontre todos os Patient records vinculados a este user
   const patients = await prisma.patient.findMany({
@@ -72,6 +88,36 @@ export default async function PatientHomePage({
       <p className="mt-1 text-sm text-slate-600">
         Aqui está o resumo do seu acompanhamento nutricional.
       </p>
+
+      {/* CTA check-in */}
+      <div
+        className={`mt-4 rounded-lg border p-4 ${
+          todayCheckin
+            ? "border-green-200 bg-green-50"
+            : "border-teal-300 bg-teal-50"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">
+              {todayCheckin ? "✅ Check-in de hoje feito" : "Como foi seu dia?"}
+            </p>
+            {streak && streak.currentStreak > 0 && (
+              <p className="mt-0.5 text-xs text-orange-700">
+                🔥 {streak.currentStreak} dia(s) seguidos
+                {streak.longestStreak > streak.currentStreak &&
+                  ` (recorde ${streak.longestStreak})`}
+              </p>
+            )}
+          </div>
+          <Link
+            href="/app/checkin"
+            className="shrink-0 rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+          >
+            {todayCheckin ? "Editar" : "Fazer check-in"}
+          </Link>
+        </div>
+      </div>
 
       {patients.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">

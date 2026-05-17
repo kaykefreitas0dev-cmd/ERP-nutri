@@ -150,6 +150,12 @@ export default async function PatientDetailPage({ params }: Props) {
               🍽️ Planos
             </Link>
             <Link
+              href={`/app/patients/${patient.id}/checkins`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+            >
+              ✅ Check-ins
+            </Link>
+            <Link
               href={`/app/patients/${patient.id}/documents`}
               className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
             >
