@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CircleCheck } from "lucide-react";
 import { uploadImportFileAction, confirmImportAction } from "./actions";
 
 type Step = "upload" | "mapping" | "processing" | "done";
@@ -69,7 +70,9 @@ export function ImportWizard() {
       setTemplates(result.templates ?? []);
 
       // Pre-popular mapping com template default
-      const matching = result.templates?.find((t) => t.columnMapping && Object.keys(t.columnMapping).length > 0);
+      const matching = result.templates?.find(
+        (t) => t.columnMapping && Object.keys(t.columnMapping).length > 0,
+      );
       if (matching) {
         setMapping(matching.columnMapping);
       }
@@ -133,10 +136,15 @@ export function ImportWizard() {
   if (step === "upload") {
     return (
       <form action={handleUpload} className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">1. Selecione o arquivo</h2>
+        <h2 className="text-lg font-semibold text-slate-900">
+          1. Selecione o arquivo
+        </h2>
 
         {error && (
-          <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+          <div
+            role="alert"
+            className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          >
             {error}
           </div>
         )}
@@ -169,7 +177,9 @@ export function ImportWizard() {
             required
             className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-teal-700 file:px-3 file:py-1 file:text-xs file:text-white"
           />
-          <p className="mt-1 text-xs text-slate-500">Até 10MB. UTF-8 ou Latin-1.</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Até 10MB. UTF-8 ou Latin-1.
+          </p>
         </div>
 
         <button
@@ -191,7 +201,10 @@ export function ImportWizard() {
         </h2>
 
         {error && (
-          <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+          <div
+            role="alert"
+            className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          >
             {error}
           </div>
         )}
@@ -280,7 +293,9 @@ export function ImportWizard() {
     return (
       <div className="py-12 text-center">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-teal-300 border-t-teal-700" />
-        <p className="mt-4 text-sm text-slate-600">Importando {totalRows} pacientes…</p>
+        <p className="mt-4 text-sm text-slate-600">
+          Importando {totalRows} pacientes…
+        </p>
         <p className="mt-1 text-xs text-slate-500">
           Aguarde — pode demorar alguns segundos para listas grandes.
         </p>
@@ -291,14 +306,19 @@ export function ImportWizard() {
   // step === "done"
   return (
     <div className="space-y-4 text-center">
-      <div className="text-5xl">✅</div>
-      <h2 className="text-xl font-semibold text-slate-900">Importação concluída!</h2>
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-bg text-success">
+        <CircleCheck className="h-10 w-10" strokeWidth={1.75} />
+      </div>
+      <h2 className="text-xl font-semibold text-slate-900">
+        Importação concluída!
+      </h2>
       <p className="text-slate-600">
         <strong>{processed}</strong> pacientes importados com sucesso
         {errorCount > 0 && (
           <span>
             {" "}
-            • <strong>{errorCount}</strong> com erros (revisar log da importação)
+            • <strong>{errorCount}</strong> com erros (revisar log da
+            importação)
           </span>
         )}
       </p>

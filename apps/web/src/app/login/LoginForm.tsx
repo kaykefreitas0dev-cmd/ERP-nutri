@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KeyRound, Mail } from "lucide-react";
+import { KeyRound, Mail, TriangleAlert } from "lucide-react";
 
 type Mode = "magic" | "password";
 
@@ -193,9 +193,15 @@ export function LoginForm() {
           >
             {loading ? "Enviando..." : "Enviar magic link"}
           </button>
-          <p className="text-xs text-slate-500">
-            ⚠️ O magic link via SMTP padrão tem rate limit baixo. Se não chegar,
-            use email + senha acima.
+          <p className="flex items-start gap-1.5 text-xs text-slate-500">
+            <TriangleAlert
+              className="mt-0.5 h-3 w-3 shrink-0"
+              strokeWidth={2}
+            />
+            <span>
+              O magic link via SMTP padrão tem rate limit baixo. Se não chegar,
+              use email + senha acima.
+            </span>
           </p>
         </form>
       )}

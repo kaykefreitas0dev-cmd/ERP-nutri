@@ -1,27 +1,59 @@
 @import "tailwindcss";
 @import "@repo/ui/theme.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Globals do apps/web — usa apenas tokens centralizados de @repo/ui/theme.css.
+ * Não defina cores/fontes aqui — todas vivem em packages/ui/src/theme.css
+ * (importado acima) e em @theme inline daquele arquivo.
+ *
+ * O <html> recebe as fonts via next/font no layout.tsx (variáveis
+ * --font-sans / --font-mono) e o data-theme="dark" via next-themes.
+ */
+
+html {
+  font-family: var(--font-sans);
+  color-scheme: light dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01"; /* Inter axis tweaks */
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--duration-base) var(--ease-out-expo),
+    color var(--duration-base) var(--ease-out-expo);
+}
+
+::selection {
+  background-color: var(--color-brand-primary-bg);
+  color: var(--color-brand-primary);
+}
+
+/* Scrollbar discreta (não chumbada) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-strong);
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings, Building2, Palette } from "lucide-react";
+import { Settings, Building2, Palette, TriangleAlert } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { OrgSettingsForm } from "./OrgSettingsForm";
 
@@ -69,9 +69,15 @@ export default async function SettingsPage() {
         </header>
 
         {!canEdit && (
-          <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            ⚠️ Sua role ({data.role}) é read-only. Apenas <code>org_owner</code>{" "}
-            ou <code>clinic_admin</code> podem editar.
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-sm text-warning">
+            <TriangleAlert
+              className="mt-0.5 h-4 w-4 shrink-0"
+              strokeWidth={1.75}
+            />
+            <span>
+              Sua role ({data.role}) é read-only. Apenas <code>org_owner</code>{" "}
+              ou <code>clinic_admin</code> podem editar.
+            </span>
           </div>
         )}
 

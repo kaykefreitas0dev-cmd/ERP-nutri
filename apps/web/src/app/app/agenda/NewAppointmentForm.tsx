@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CircleCheck, TriangleAlert } from "lucide-react";
 import { scheduleAppointmentAction } from "./actions";
 
 interface Props {
@@ -14,7 +15,9 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const [patientMode, setPatientMode] = useState<"existing" | "external">("existing");
+  const [patientMode, setPatientMode] = useState<"existing" | "external">(
+    "existing",
+  );
 
   // Default: próxima hora cheia
   const next = new Date(defaultDate);
@@ -41,13 +44,17 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
       <h2 className="text-lg font-semibold text-slate-900">Nova consulta</h2>
 
       {error && (
-        <div role="alert" className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-800">
+        <div
+          role="alert"
+          className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-800"
+        >
           {error}
         </div>
       )}
       {success && (
-        <div className="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-800">
-          ✅ Agendada com sucesso
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-success-bg p-3 text-sm text-success">
+          <CircleCheck className="h-4 w-4" strokeWidth={1.75} />
+          Agendada com sucesso
         </div>
       )}
 
@@ -67,7 +74,10 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
         </div>
 
         <div>
-          <label htmlFor="durationMinutes" className="block text-xs font-medium">
+          <label
+            htmlFor="durationMinutes"
+            className="block text-xs font-medium"
+          >
             Duração (min) *
           </label>
           <select
@@ -190,8 +200,10 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
           {pending ? "Agendando…" : "Agendar"}
         </button>
 
-        <p className="text-xs text-slate-500">
-          ⚠️ Anti-overlap via Postgres EXCLUDE constraint — se houver conflito, retorna erro.
+        <p className="flex items-start gap-1.5 text-xs text-slate-500">
+          <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
+          Anti-overlap via Postgres EXCLUDE constraint — se houver conflito,
+          retorna erro.
         </p>
       </form>
     </div>

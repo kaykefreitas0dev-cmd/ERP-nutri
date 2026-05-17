@@ -1,36 +1,24 @@
 @import "tailwindcss";
+@import "@repo/ui/theme.css";
 
 /* Scanear arquivos de @repo/ui workspace para classes Tailwind */
 @source "../../../../packages/ui/src/**/*.tsx";
 
-:root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-}
+/* apps/marketing — tokens centralizados em @repo/ui/theme.css. */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
+html {
+  font-family: var(--font-sans);
+  color-scheme: light dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Respeitar reduced motion (a11y) */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+::selection {
+  background-color: var(--color-brand-primary-bg);
+  color: var(--color-brand-primary);
 }

@@ -1,102 +1,413 @@
 /**
- * Design tokens como CSS variables.
+ * NutriCore — Design Tokens (Phase 1 Spec)
+ * =========================================
+ * Filosofia: warm whites (stone), green primário, true-near-black no dark.
+ * Inspiração: Linear · Vercel · Stripe · Raycast.
+ *
  * Importe este arquivo em cada apps/*\/src/app/globals.css.
  *
- * Use via classes Tailwind (bg-brand-primary) ou direto em CSS:
- *   color: var(--color-text-primary);
- *
- * Para dark mode futuro, adicionar bloco [data-theme="dark"] aqui mesmo.
+ * Modo dark via [data-theme="dark"] no <html> (next-themes).
  */
 
 :root {
-  /* Brand */
-  --color-brand-primary: #0f766e;
-  --color-brand-primary-hover: #115e59;
-  --color-brand-primary-light: #ccfbf1;
-  --color-brand-primary-dark: #134e4a;
-  --color-brand-secondary: #0f172a;
-  --color-brand-secondary-hover: #1e293b;
-  --color-brand-accent: #f59e0b;
+  /* ============================================================
+   * BRAND — Verde nutricional (green-50 → green-950)
+   * ============================================================
+   * Primary light: green-600 (#16A34A) · Primary dark: green-500 (#22C55E)
+   */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+  --color-brand-900: #14532d;
+  --color-brand-950: #052e16;
 
-  /* Status */
-  --color-status-success: #16a34a;
-  --color-status-success-bg: #dcfce7;
-  --color-status-danger: #dc2626;
-  --color-status-danger-bg: #fee2e2;
-  --color-status-warning: #d97706;
-  --color-status-warning-bg: #fef3c7;
-  --color-status-info: #2563eb;
-  --color-status-info-bg: #dbeafe;
+  /* Aliases semânticos */
+  --color-brand-primary: var(--color-brand-600);
+  --color-brand-primary-hover: var(--color-brand-700);
+  --color-brand-primary-bg: var(--color-brand-50);
+  --color-brand-primary-fg: #ffffff;
 
-  /* Surfaces */
-  --color-surface-page: #f8fafc;
-  --color-surface-card: #ffffff;
-  --color-surface-card-hover: #f1f5f9;
-  --color-surface-border: #e2e8f0;
-  --color-surface-border-strong: #cbd5e1;
-  --color-surface-overlay: rgba(15, 23, 42, 0.5);
+  /* ============================================================
+   * SEMÂNTICOS — significado fixo (sucesso/aviso/perigo/info)
+   * ============================================================
+   * `-bg` = fundo sutil ~5-8% saturação (badges, alerts)
+   */
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-success-border: #86efac;
+
+  --color-warning: #ea580c; /* orange-600 (laranja queimado, não amarelo) */
+  --color-warning-bg: #ffedd5;
+  --color-warning-border: #fdba74;
+
+  --color-danger: #dc2626; /* red-600 */
+  --color-danger-bg: #fee2e2;
+  --color-danger-border: #fca5a5;
+
+  --color-info: #0284c7; /* sky-600 */
+  --color-info-bg: #e0f2fe;
+  --color-info-border: #7dd3fc;
+
+  /* ============================================================
+   * MACROS — cores fixas em todo o sistema (donuts/badges/bars)
+   * ============================================================
+   * Nutri vê âmbar → sabe imediatamente "carboidrato". Não mudar.
+   */
+  --color-macro-protein: #ef4444; /* red-500 */
+  --color-macro-protein-bg: #fee2e2;
+  --color-macro-carb: #f59e0b; /* amber-500 */
+  --color-macro-carb-bg: #fef3c7;
+  --color-macro-fat: #a855f7; /* purple-500 */
+  --color-macro-fat-bg: #f3e8ff;
+  --color-macro-fiber: #10b981; /* emerald-500 */
+  --color-macro-fiber-bg: #d1fae5;
+  --color-macro-water: #06b6d4; /* cyan-500 */
+  --color-macro-water-bg: #cffafe;
+
+  /* ============================================================
+   * BACKGROUNDS — warm whites (stone), nunca cinza azulado
+   * ============================================================
+   */
+  --color-bg-page: #fafaf9; /* stone-50 */
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: #f5f5f4; /* stone-100 */
+  --color-bg-elevated: #ffffff;
+  --color-bg-subtle: #f5f5f4; /* stone-100 */
+  --color-bg-muted: #e7e5e4; /* stone-200 */
+  --color-bg-overlay: rgba(28, 25, 23, 0.5); /* stone-900 / 50 */
+
+  /* ============================================================
+   * BORDERS
+   * ============================================================
+   */
+  --color-border-subtle: #e7e5e4; /* stone-200 */
+  --color-border-default: #d6d3d1; /* stone-300 */
+  --color-border-strong: #a8a29e; /* stone-400 */
+
+  /* ============================================================
+   * TEXT — escala neutra warm
+   * ============================================================
+   */
+  --color-text-primary: #1c1917; /* stone-900 */
+  --color-text-secondary: #44403c; /* stone-700 */
+  --color-text-muted: #78716c; /* stone-500 */
+  --color-text-subtle: #a8a29e; /* stone-400 */
+  --color-text-inverse: #fafaf9;
+  --color-text-on-brand: #ffffff;
+  --color-text-link: var(--color-brand-700);
+
+  /* ============================================================
+   * SHADOWS — matiz stone-900 sutil (não preto puro)
+   * ============================================================
+   */
+  --shadow-xs: 0 1px 2px 0 rgb(28 25 23 / 0.04);
+  --shadow-sm:
+    0 1px 3px 0 rgb(28 25 23 / 0.06), 0 1px 2px -1px rgb(28 25 23 / 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgb(28 25 23 / 0.07), 0 2px 4px -2px rgb(28 25 23 / 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgb(28 25 23 / 0.08), 0 4px 6px -4px rgb(28 25 23 / 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgb(28 25 23 / 0.1), 0 8px 10px -6px rgb(28 25 23 / 0.06);
+
+  /* Focus glow */
+  --shadow-focus-ring: 0 0 0 3px rgb(22 163 74 / 0.15);
+  --shadow-focus-ring-danger: 0 0 0 3px rgb(220 38 38 / 0.15);
+
+  /* ============================================================
+   * RADII — escala discreta
+   * ============================================================
+   */
+  --radius-xs: 0.25rem; /* 4px — tags, kbd */
+  --radius-sm: 0.375rem; /* 6px — inputs, badges */
+  --radius-md: 0.5rem; /* 8px — buttons, cards small */
+  --radius-lg: 0.75rem; /* 12px — cards principais */
+  --radius-xl: 1rem; /* 16px — modais */
+  --radius-2xl: 1.5rem; /* 24px — drawers/sheets */
+  --radius-full: 9999px;
+
+  /* ============================================================
+   * TYPOGRAPHY — 6+1 níveis (display/h1/h2/h3/body/caption/tiny)
+   * ============================================================
+   */
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "SF Mono", Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  --font-scale: 1; /* multiplicador global (acessibilidade) */
+
+  --text-display: calc(2rem * var(--font-scale)); /* 32px */
+  --text-h1: calc(1.5rem * var(--font-scale)); /* 24px */
+  --text-h2: calc(1.125rem * var(--font-scale)); /* 18px */
+  --text-h3: calc(1rem * var(--font-scale)); /* 16px */
+  --text-body: calc(0.875rem * var(--font-scale)); /* 14px */
+  --text-caption: calc(0.8125rem * var(--font-scale)); /* 13px */
+  --text-tiny: calc(0.75rem * var(--font-scale)); /* 12px */
+
+  --leading-display: 1.25; /* 40/32 */
+  --leading-h1: 1.333; /* 32/24 */
+  --leading-h2: 1.556; /* 28/18 */
+  --leading-h3: 1.5; /* 24/16 */
+  --leading-body: 1.428; /* 20/14 */
+  --leading-caption: 1.385; /* 18/13 */
+  --leading-tiny: 1.333; /* 16/12 */
+
+  --tracking-display: -0.01em;
+  --tracking-h1: -0.01em;
+  --tracking-tight: -0.005em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+
+  /* ============================================================
+   * MOTION — durations + custom easings
+   * ============================================================
+   */
+  --duration-fast: 150ms; /* hovers, focus rings */
+  --duration-base: 200ms; /* buttons, inputs */
+  --duration-slow: 300ms; /* sidebar, drawers */
+  --duration-slower: 400ms; /* page transitions, hero */
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ============================================================
+   * Z-INDEX stack
+   * ============================================================
+   */
+  --z-base: 0;
+  --z-sticky: 30;
+  --z-fixed: 40;
+  --z-dropdown: 50;
+  --z-overlay: 60;
+  --z-modal-backdrop: 70;
+  --z-modal: 80;
+  --z-popover: 90;
+  --z-tooltip: 100;
+  --z-toast: 110;
+}
+
+/* ============================================================
+ * DARK MODE — true near-black baseado em stone-950
+ * ============================================================
+ * Inspiração: Linear · Vercel · Stripe (não GitHub — evitar azulado).
+ */
+[data-theme="dark"] {
+  --color-brand-primary: var(--color-brand-500);
+  --color-brand-primary-hover: var(--color-brand-400);
+  --color-brand-primary-bg: rgb(22 163 74 / 0.12);
+  --color-brand-primary-fg: #ffffff;
+
+  /* Macros — ligeiramente mais brilhantes no dark pra contraste */
+  --color-macro-protein: #f87171; /* red-400 */
+  --color-macro-protein-bg: rgb(239 68 68 / 0.15);
+  --color-macro-carb: #fbbf24; /* amber-400 */
+  --color-macro-carb-bg: rgb(245 158 11 / 0.15);
+  --color-macro-fat: #c084fc; /* purple-400 */
+  --color-macro-fat-bg: rgb(168 85 247 / 0.15);
+  --color-macro-fiber: #34d399; /* emerald-400 */
+  --color-macro-fiber-bg: rgb(16 185 129 / 0.15);
+  --color-macro-water: #22d3ee; /* cyan-400 */
+  --color-macro-water-bg: rgb(6 182 212 / 0.15);
+
+  /* Semânticos no dark */
+  --color-success: #4ade80; /* green-400 */
+  --color-success-bg: rgb(34 197 94 / 0.12);
+  --color-success-border: rgb(74 222 128 / 0.3);
+
+  --color-warning: #fb923c; /* orange-400 */
+  --color-warning-bg: rgb(234 88 12 / 0.12);
+  --color-warning-border: rgb(251 146 60 / 0.3);
+
+  --color-danger: #f87171; /* red-400 */
+  --color-danger-bg: rgb(220 38 38 / 0.12);
+  --color-danger-border: rgb(248 113 113 / 0.3);
+
+  --color-info: #38bdf8; /* sky-400 */
+  --color-info-bg: rgb(2 132 199 / 0.12);
+  --color-info-border: rgb(56 189 248 / 0.3);
+
+  /* Backgrounds — true near-black stone */
+  --color-bg-page: #0c0a09; /* stone-950 */
+  --color-bg-surface: #1c1917; /* stone-900 */
+  --color-bg-surface-hover: #292524; /* stone-800 */
+  --color-bg-elevated: #292524; /* stone-800 */
+  --color-bg-subtle: #1c1917; /* stone-900 */
+  --color-bg-muted: #292524; /* stone-800 */
+  --color-bg-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Borders */
+  --color-border-subtle: #292524; /* stone-800 */
+  --color-border-default: #44403c; /* stone-700 */
+  --color-border-strong: #57534e; /* stone-600 */
 
   /* Text */
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
+  --color-text-primary: #fafaf9; /* stone-50 */
+  --color-text-secondary: #d6d3d1; /* stone-300 */
+  --color-text-muted: #a8a29e; /* stone-400 */
+  --color-text-subtle: #78716c; /* stone-500 */
+  --color-text-inverse: #1c1917;
+  --color-text-on-brand: #ffffff;
+  --color-text-link: var(--color-brand-400);
 
-  /* Typography */
-  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
-  --font-mono: "Geist Mono", "SF Mono", Monaco, Consolas, monospace;
+  /* Shadows mais pronunciadas no dark */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
 
-  /* Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-
-  /* Shadow */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md:
-    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-overlay: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-focus-ring: 0 0 0 3px rgb(34 197 94 / 0.25);
+  --shadow-focus-ring-danger: 0 0 0 3px rgb(248 113 113 / 0.25);
 }
 
 /*
- * Tailwind v4 — registrar tokens como @theme inline pra ficarem disponíveis
- * em todas as classes utility (bg-*, text-*, border-*, rounded-*).
- *
- * Habilita: bg-brand-primary, text-brand-primary, border-surface-border, etc.
+ * Tailwind v4 — @theme inline registra tokens como utilities
+ * (bg-bg-surface, text-text-primary, border-border-subtle, rounded-xl, etc.)
  */
 @theme inline {
+  /* Brand */
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+  --color-brand-950: var(--color-brand-950);
   --color-brand-primary: var(--color-brand-primary);
   --color-brand-primary-hover: var(--color-brand-primary-hover);
-  --color-brand-primary-light: var(--color-brand-primary-light);
-  --color-brand-primary-dark: var(--color-brand-primary-dark);
-  --color-brand-secondary: var(--color-brand-secondary);
-  --color-brand-secondary-hover: var(--color-brand-secondary-hover);
-  --color-brand-accent: var(--color-brand-accent);
+  --color-brand-primary-bg: var(--color-brand-primary-bg);
+  --color-brand-primary-fg: var(--color-brand-primary-fg);
 
-  --color-status-success: var(--color-status-success);
-  --color-status-success-bg: var(--color-status-success-bg);
-  --color-status-danger: var(--color-status-danger);
-  --color-status-danger-bg: var(--color-status-danger-bg);
-  --color-status-warning: var(--color-status-warning);
-  --color-status-warning-bg: var(--color-status-warning-bg);
-  --color-status-info: var(--color-status-info);
-  --color-status-info-bg: var(--color-status-info-bg);
+  /* Semânticos */
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-success-border: var(--color-success-border);
+  --color-warning: var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-warning-border: var(--color-warning-border);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-danger-border: var(--color-danger-border);
+  --color-info: var(--color-info);
+  --color-info-bg: var(--color-info-bg);
+  --color-info-border: var(--color-info-border);
 
-  --color-surface-page: var(--color-surface-page);
-  --color-surface-card: var(--color-surface-card);
-  --color-surface-card-hover: var(--color-surface-card-hover);
-  --color-surface-border: var(--color-surface-border);
-  --color-surface-border-strong: var(--color-surface-border-strong);
+  /* Macros */
+  --color-macro-protein: var(--color-macro-protein);
+  --color-macro-protein-bg: var(--color-macro-protein-bg);
+  --color-macro-carb: var(--color-macro-carb);
+  --color-macro-carb-bg: var(--color-macro-carb-bg);
+  --color-macro-fat: var(--color-macro-fat);
+  --color-macro-fat-bg: var(--color-macro-fat-bg);
+  --color-macro-fiber: var(--color-macro-fiber);
+  --color-macro-fiber-bg: var(--color-macro-fiber-bg);
+  --color-macro-water: var(--color-macro-water);
+  --color-macro-water-bg: var(--color-macro-water-bg);
 
+  /* Backgrounds */
+  --color-bg-page: var(--color-bg-page);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-surface-hover: var(--color-bg-surface-hover);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-subtle: var(--color-bg-subtle);
+  --color-bg-muted: var(--color-bg-muted);
+
+  /* Borders */
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-default: var(--color-border-default);
+  --color-border-strong: var(--color-border-strong);
+
+  /* Text */
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
   --color-text-inverse: var(--color-text-inverse);
+  --color-text-on-brand: var(--color-text-on-brand);
+  --color-text-link: var(--color-text-link);
 
+  /* Fonts */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  /* Radii */
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-full: var(--radius-full);
+
+  /* Shadows */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+}
+
+/* ============================================================
+ * Utility classes — não-cobertas por Tailwind utilities
+ * ============================================================
+ */
+
+/* Tabular numerals — para todos os números em dashboards/tabelas */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Glassmorphism — usar em topbar, command palette, overlays */
+.glass {
+  background-color: color-mix(in oklab, var(--color-bg-surface) 80%, transparent);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-subtle) 0%,
+    var(--color-bg-muted) 50%,
+    var(--color-bg-subtle) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
+/* prefers-reduced-motion — desativa animações decorativas */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,5 +1,18 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import {
+  Flame,
+  Droplets,
+  Scale,
+  CircleCheck,
+  TriangleAlert,
+  Frown,
+  Annoyed,
+  Meh,
+  Smile,
+  SmilePlus,
+  type LucideIcon,
+} from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +22,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-const MOOD_EMOJI = ["😞", "😕", "😐", "🙂", "😄"];
+const MOOD_ICONS: LucideIcon[] = [Frown, Annoyed, Meh, Smile, SmilePlus];
 
 export default async function PatientCheckinsPage({ params }: Props) {
   const { id } = await params;
@@ -120,7 +133,16 @@ export default async function PatientCheckinsPage({ params }: Props) {
             <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatCard
                 label="Streak atual"
-                value={`🔥 ${streak?.currentStreak ?? 0}d`}
+                value={
+                  <span className="inline-flex items-center gap-1.5 tabular-nums">
+                    <Flame
+                      className="h-5 w-5"
+                      strokeWidth={1.75}
+                      style={{ color: "var(--color-warning)" }}
+                    />
+                    {streak?.currentStreak ?? 0}d
+                  </span>
+                }
                 sub={`recorde ${streak?.longestStreak ?? 0}d`}
               />
               <StatCard
@@ -139,7 +161,19 @@ export default async function PatientCheckinsPage({ params }: Props) {
               />
               <StatCard
                 label="Humor médio (30d)"
-                value={avgMood ? MOOD_EMOJI[Math.round(avgMood) - 1] : "—"}
+                value={
+                  avgMood
+                    ? (() => {
+                        const Icon = MOOD_ICONS[Math.round(avgMood) - 1] ?? Meh;
+                        return (
+                          <Icon
+                            className="inline-block h-6 w-6 text-text-secondary"
+                            strokeWidth={1.75}
+                          />
+                        );
+                      })()
+                    : "—"
+                }
                 sub={avgMood ? avgMood.toFixed(1) + "/5" : "sem dados"}
               />
             </div>
@@ -193,8 +227,22 @@ export default async function PatientCheckinsPage({ params }: Props) {
                         <th className="px-4 py-2 text-center">Humor</th>
                         <th className="px-4 py-2 text-center">Energia</th>
                         <th className="px-4 py-2 text-center">Fome</th>
-                        <th className="px-4 py-2 text-right">💧 Água</th>
-                        <th className="px-4 py-2 text-right">⚖️ Peso</th>
+                        <th className="px-4 py-2 text-right">
+                          <span className="inline-flex items-center justify-end gap-1">
+                            <Droplets
+                              className="h-3 w-3"
+                              strokeWidth={2}
+                              style={{ color: "var(--color-macro-water)" }}
+                            />
+                            Água
+                          </span>
+                        </th>
+                        <th className="px-4 py-2 text-right">
+                          <span className="inline-flex items-center justify-end gap-1">
+                            <Scale className="h-3 w-3" strokeWidth={2} />
+                            Peso
+                          </span>
+                        </th>
                         <th className="px-4 py-2 text-center">Plano</th>
                         <th className="px-4 py-2 text-left">Notas</th>
                       </tr>
@@ -208,7 +256,17 @@ export default async function PatientCheckinsPage({ params }: Props) {
                             )}
                           </td>
                           <td className="px-4 py-2 text-center">
-                            {c.mood ? MOOD_EMOJI[c.mood - 1] : "—"}
+                            {c.mood
+                              ? (() => {
+                                  const Icon = MOOD_ICONS[c.mood - 1] ?? Meh;
+                                  return (
+                                    <Icon
+                                      className="inline-block h-4 w-4 text-text-secondary"
+                                      strokeWidth={1.75}
+                                    />
+                                  );
+                                })()
+                              : "—"}
                           </td>
                           <td className="px-4 py-2 text-center text-xs">
                             {c.energyLevel ?? "—"}
@@ -226,10 +284,16 @@ export default async function PatientCheckinsPage({ params }: Props) {
                           </td>
                           <td className="px-4 py-2 text-center text-xs">
                             {c.followedPlan === true && (
-                              <span className="text-green-700">✅</span>
+                              <CircleCheck
+                                className="inline-block h-3.5 w-3.5 text-success"
+                                strokeWidth={1.75}
+                              />
                             )}
                             {c.followedPlan === false && (
-                              <span className="text-amber-700">⚠️</span>
+                              <TriangleAlert
+                                className="inline-block h-3.5 w-3.5 text-warning"
+                                strokeWidth={1.75}
+                              />
                             )}
                             {c.followedPlan === null && "—"}
                           </td>
@@ -256,7 +320,7 @@ function StatCard({
   sub,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   sub: string;
 }) {
   return (

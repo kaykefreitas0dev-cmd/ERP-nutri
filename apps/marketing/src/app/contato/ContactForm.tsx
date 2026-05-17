@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { CircleCheck } from "lucide-react";
 import { submitContactAction } from "./actions";
 
 interface FormState {
@@ -10,7 +11,10 @@ interface FormState {
 
 export function ContactForm() {
   const [pending, startTransition] = useTransition();
-  const [state, setState] = useState<FormState>({ status: "idle", message: null });
+  const [state, setState] = useState<FormState>({
+    status: "idle",
+    message: null,
+  });
 
   async function handleSubmit(formData: FormData) {
     setState({ status: "submitting", message: null });
@@ -25,8 +29,11 @@ export function ContactForm() {
 
   if (state.status === "success") {
     return (
-      <div className="rounded-md bg-green-50 p-6 text-center text-sm text-green-800">
-        <p className="font-medium">✅ Mensagem recebida!</p>
+      <div className="rounded-md bg-success-bg p-6 text-center text-sm text-success">
+        <p className="flex items-center justify-center gap-2 font-medium">
+          <CircleCheck className="h-4 w-4" strokeWidth={1.75} />
+          Mensagem recebida!
+        </p>
         <p className="mt-2">{state.message}</p>
       </div>
     );
@@ -45,7 +52,10 @@ export function ContactForm() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-slate-900">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-slate-900"
+          >
             Nome completo *
           </label>
           <input
@@ -58,7 +68,10 @@ export function ContactForm() {
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-900">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-slate-900"
+          >
             Email *
           </label>
           <input
@@ -73,7 +86,10 @@ export function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-slate-900">
+        <label
+          htmlFor="phone"
+          className="block text-sm font-medium text-slate-900"
+        >
           WhatsApp (opcional)
         </label>
         <input
@@ -87,7 +103,10 @@ export function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="subject" className="block text-sm font-medium text-slate-900">
+        <label
+          htmlFor="subject"
+          className="block text-sm font-medium text-slate-900"
+        >
           Assunto *
         </label>
         <select
@@ -109,7 +128,10 @@ export function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-slate-900">
+        <label
+          htmlFor="message"
+          className="block text-sm font-medium text-slate-900"
+        >
           Mensagem *
         </label>
         <textarea
@@ -134,7 +156,9 @@ export function ContactForm() {
         disabled={pending || state.status === "submitting"}
         className="inline-flex h-11 w-full items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
-        {pending || state.status === "submitting" ? "Enviando…" : "Enviar mensagem"}
+        {pending || state.status === "submitting"
+          ? "Enviando…"
+          : "Enviar mensagem"}
       </button>
     </form>
   );
