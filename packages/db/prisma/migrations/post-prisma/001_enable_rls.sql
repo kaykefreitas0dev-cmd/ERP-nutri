@@ -57,12 +57,34 @@ ALTER TABLE role_permissions FORCE ROW LEVEL SECURITY;
 -- transação tenant-aware.
 -- ============================================================
 
+-- ============================================================
+-- DROP POLICIES IF EXIST (idempotência em re-runs)
+-- ============================================================
+DO $$
+DECLARE
+  pol record;
+BEGIN
+  FOR pol IN
+    SELECT schemaname, tablename, policyname
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename IN (
+        'organizations', 'organization_brandings', 'clinics', 'teams',
+        'memberships', 'consents', 'audit_logs', 'subscription_state_events',
+        'users', 'permissions', 'role_permissions'
+      )
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I',
+      pol.policyname, pol.schemaname, pol.tablename);
+  END LOOP;
+END $$;
+
 -- organizations: user só vê orgs onde tem membership ativa
 CREATE POLICY org_member_can_select ON organizations
   FOR SELECT
   USING (
     id = current_setting('app.current_org', true)::uuid
-    OR auth.is_super_admin()
+    OR public.is_super_admin()
   );
 
 CREATE POLICY org_member_can_update ON organizations
@@ -94,7 +116,7 @@ CREATE POLICY org_owner_only_delete ON organizations
 -- Template aplicado às demais tabelas tenant-scoped
 CREATE POLICY tenant_isolation_select ON organization_brandings
   FOR SELECT
-  USING (organization_id = current_setting('app.current_org', true)::uuid OR auth.is_super_admin());
+  USING (organization_id = current_setting('app.current_org', true)::uuid OR public.is_super_admin());
 
 CREATE POLICY tenant_isolation_modify ON organization_brandings
   FOR ALL
@@ -103,7 +125,7 @@ CREATE POLICY tenant_isolation_modify ON organization_brandings
 
 CREATE POLICY tenant_isolation_select ON clinics
   FOR SELECT
-  USING (organization_id = current_setting('app.current_org', true)::uuid OR auth.is_super_admin());
+  USING (organization_id = current_setting('app.current_org', true)::uuid OR public.is_super_admin());
 
 CREATE POLICY tenant_isolation_modify ON clinics
   FOR ALL
@@ -112,7 +134,7 @@ CREATE POLICY tenant_isolation_modify ON clinics
 
 CREATE POLICY tenant_isolation_select ON teams
   FOR SELECT
-  USING (organization_id = current_setting('app.current_org', true)::uuid OR auth.is_super_admin());
+  USING (organization_id = current_setting('app.current_org', true)::uuid OR public.is_super_admin());
 
 CREATE POLICY tenant_isolation_modify ON teams
   FOR ALL
@@ -125,7 +147,7 @@ CREATE POLICY member_can_select_own_or_org ON memberships
   USING (
     user_id = auth.uid()
     OR organization_id = current_setting('app.current_org', true)::uuid
-    OR auth.is_super_admin()
+    OR public.is_super_admin()
   );
 
 CREATE POLICY owner_can_modify_org_members ON memberships
@@ -147,7 +169,7 @@ CREATE POLICY consent_owner_or_org_nutri ON consents
   USING (
     user_id = auth.uid()
     OR (organization_id = current_setting('app.current_org', true)::uuid AND organization_id IS NOT NULL)
-    OR auth.is_super_admin()
+    OR public.is_super_admin()
   );
 
 CREATE POLICY consent_user_can_grant ON consents
@@ -165,7 +187,7 @@ CREATE POLICY audit_org_select ON audit_logs
   FOR SELECT
   USING (
     organization_id = current_setting('app.current_org', true)::uuid
-    OR (organization_id IS NULL AND auth.is_super_admin())
+    OR (organization_id IS NULL AND public.is_super_admin())
   );
 
 -- subscription_state_events: org_owner vê eventos da própria org
@@ -173,13 +195,13 @@ CREATE POLICY sse_org_select ON subscription_state_events
   FOR SELECT
   USING (
     organization_id = current_setting('app.current_org', true)::uuid
-    OR auth.is_super_admin()
+    OR public.is_super_admin()
   );
 
 -- users: cada user vê apenas o próprio User (PII global)
 CREATE POLICY user_self_only ON users
   FOR SELECT
-  USING (id = auth.uid() OR auth.is_super_admin());
+  USING (id = auth.uid() OR public.is_super_admin());
 
 CREATE POLICY user_self_update ON users
   FOR UPDATE
@@ -194,8 +216,8 @@ CREATE POLICY perm_public_select ON permissions
 
 CREATE POLICY perm_admin_modify ON permissions
   FOR ALL
-  USING (auth.is_super_admin())
-  WITH CHECK (auth.is_super_admin());
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
 
 CREATE POLICY role_perm_public_select ON role_permissions
   FOR SELECT
@@ -203,9 +225,9 @@ CREATE POLICY role_perm_public_select ON role_permissions
 
 CREATE POLICY role_perm_admin_modify ON role_permissions
   FOR ALL
-  USING (auth.is_super_admin())
-  WITH CHECK (auth.is_super_admin());
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
 
 -- ============================================================
--- COMMENT: Função auth.is_super_admin() definida em 005
+-- COMMENT: Função public.is_super_admin() definida em 005
 -- ============================================================

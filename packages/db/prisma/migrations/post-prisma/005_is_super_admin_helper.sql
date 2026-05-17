@@ -1,5 +1,5 @@
 -- ============================================================
--- 005 — Helper auth.is_super_admin() (Lock 12 preparado, S2a)
+-- 005 — Helper public.is_super_admin() (Lock 12 preparado, S2a)
 -- ============================================================
 -- Lê custom claim app_metadata.is_super_admin do JWT Supabase
 -- Usado por policies RLS para permitir bypass de tenant isolation
@@ -15,7 +15,7 @@
 -- A apps/admin (S18) terá UI para promover outros super-admins.
 -- ============================================================
 
-CREATE OR REPLACE FUNCTION auth.is_super_admin()
+CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS boolean
 LANGUAGE sql
 STABLE
@@ -30,7 +30,7 @@ AS $$
   );
 $$;
 
-GRANT EXECUTE ON FUNCTION auth.is_super_admin TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION public.is_super_admin TO authenticated, anon, service_role;
 
 -- ============================================================
 -- Helper para tenant context (usado por withTenant — ADR 0048)

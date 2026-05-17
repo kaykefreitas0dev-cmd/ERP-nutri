@@ -63,7 +63,7 @@ export interface ChainValidationResult {
   isValid: boolean;
   expectedHash: string;
   actualHash: string;
-  position: number;
+  pos: number;
 }
 
 export async function validateAuditChain(
@@ -75,7 +75,7 @@ export async function validateAuditChain(
       is_valid as "isValid",
       expected_hash as "expectedHash",
       actual_hash as "actualHash",
-      position
+      pos
     FROM audit.validate_chain(${limit ?? null}::int)
   `;
 }

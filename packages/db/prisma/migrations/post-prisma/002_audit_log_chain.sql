@@ -95,7 +95,7 @@ RETURNS TABLE (
   is_valid boolean,
   expected_hash text,
   actual_hash text,
-  position int
+  pos int
 )
 LANGUAGE plpgsql
 STABLE
@@ -131,7 +131,7 @@ BEGIN
     is_valid := (r.log_hash = v_expected_hash) AND (COALESCE(r.prev_log_hash, '') = COALESCE(v_prev_hash, ''));
     expected_hash := v_expected_hash;
     actual_hash := r.log_hash;
-    position := v_pos;
+    pos := v_pos;
 
     RETURN NEXT;
     v_prev_hash := r.log_hash;
