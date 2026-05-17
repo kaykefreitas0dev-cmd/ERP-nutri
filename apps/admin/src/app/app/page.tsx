@@ -4,7 +4,8 @@ import {
   FileText,
   Wallet,
   Calendar,
-  Utensils,
+  Activity,
+  CircleCheck,
   type LucideIcon,
 } from "lucide-react";
 import { prisma } from "@nutricore/db";
@@ -99,21 +100,29 @@ export default async function AdminDashboard() {
       </section>
 
       <section className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">
-          <Utensils className="inline h-4 w-4" strokeWidth={1.75} /> Health
-          check
+        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+          <Activity className="h-4 w-4" strokeWidth={1.75} />
+          Health check
         </h2>
-        <ul className="mt-3 space-y-1 text-sm text-slate-700">
-          <li>
-            ✓ DB conectado · {totalOrgs} orgs · {totalUsers} users
+        <ul className="mt-3 space-y-1.5 text-sm text-slate-700">
+          <li className="flex items-start gap-2">
+            <CircleCheck
+              className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+              strokeWidth={1.75}
+            />
+            DB conectado · {totalOrgs} orgs · {totalUsers} users
           </li>
-          <li>
-            ✓ Audit log ativo (use o menu &ldquo;Audit log&rdquo; para
-            inspecionar eventos)
+          <li className="flex items-start gap-2">
+            <CircleCheck
+              className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+              strokeWidth={1.75}
+            />
+            Audit log ativo (use o menu &ldquo;Audit log&rdquo; para inspecionar
+            eventos)
           </li>
           <li className="text-slate-500">
-            Funcionalidades adicionais virão no S19+ (suspender org, MFA admin,
-            métricas detalhadas, etc.)
+            Funcionalidades adicionais (suspender org, MFA admin, métricas
+            detalhadas) ainda virão em sprints futuras.
           </li>
         </ul>
       </section>

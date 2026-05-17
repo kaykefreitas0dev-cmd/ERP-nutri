@@ -24,11 +24,13 @@
     "db:post-prisma": "node -e \"console.log('Apply SQL in prisma/migrations/post-prisma/ via Supabase Studio or supabase db execute')\""
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@types/node": "^20.19.41",
+    "dotenv": "^17.4.2",
+    "eslint": "^9.39.1",
     "prisma": "^7.8.0",
     "typescript": "5.9.2",
-    "@repo/eslint-config": "workspace:*",
-    "eslint": "^9.39.1"
+    "vitest": "^4.1.6"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

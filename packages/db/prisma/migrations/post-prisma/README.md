@@ -12,15 +12,17 @@ Esses arquivos cobrem o que o Prisma não modela diretamente:
 
 ## Ordem de aplicação
 
-| Ordem | Arquivo | Conteúdo | Sprint |
-|---|---|---|---|
-| 1 | `001_enable_rls.sql` | ENABLE + FORCE RLS + policies tenant isolation | S2a |
-| 2 | `002_audit_log_chain.sql` | `audit.append_log()` SECURITY DEFINER + hash chain + REVOKE | S2a |
-| 3 | `003_gist_exclusion_appointments.sql` | Placeholder (ativado em S7) | S2a → S7 |
-| 4 | `004_pgcrypto_phi.sql` | `phi.encrypt_for_org` + Vault integration | S2a (PHI usado S3+) |
-| 5 | `005_is_super_admin_helper.sql` | `auth.is_super_admin()`, `current_org_id()`, `current_user_id()` | S2a |
-| 6 | `006_keepalive_table.sql` | Seed `_keepalive` + permissions service_health | S2a |
-| 7 | `007_handle_new_user_trigger.sql` | Trigger `auth.users` → `public.users` | S2a |
+| Ordem | Arquivo                               | Conteúdo                                                                     | Sprint              |
+| ----- | ------------------------------------- | ---------------------------------------------------------------------------- | ------------------- |
+| 1     | `001_enable_rls.sql`                  | ENABLE + FORCE RLS + policies tenant isolation                               | S2a                 |
+| 2     | `002_audit_log_chain.sql`             | `audit.append_log()` SECURITY DEFINER + hash chain + REVOKE                  | S2a                 |
+| 3     | `003_gist_exclusion_appointments.sql` | Placeholder (ativado em S7)                                                  | S2a → S7            |
+| 4     | `004_pgcrypto_phi.sql`                | `phi.encrypt_for_org` + Vault integration                                    | S2a (PHI usado S3+) |
+| 5     | `005_is_super_admin_helper.sql`       | `auth.is_super_admin()`, `current_org_id()`, `current_user_id()`             | S2a                 |
+| 6     | `006_keepalive_table.sql`             | Seed `_keepalive` + permissions service_health                               | S2a                 |
+| 7     | `007_handle_new_user_trigger.sql`     | Trigger `auth.users` → `public.users`                                        | S2a                 |
+| 22    | `022_audit_chain_timestamp_fix.sql`   | `audit.append_log` + `audit.validate_chain` com `to_char` UTC determinístico | S21                 |
+| 23    | `023_s21_nps_feedback_rls.sql`        | Tabela `nps_feedback` + RLS (SELECT próprio + admin org, INSERT self)        | S21                 |
 
 ## Como aplicar
 
@@ -50,6 +52,7 @@ pnpm --filter @nutricore/db exec vitest run tests/multi-tenant-isolation.spec.ts
 ```
 
 Deve passar todos os 7+ cenários:
+
 1. User1/Org A não vê dados de Org B (mesmo via SQL raw com claim forjado)
 2. Tentar UPDATE em audit_logs → erro permission denied
 3. Tentar DELETE em audit_logs → erro permission denied
