@@ -53,7 +53,7 @@ export default async function SettingsPage() {
   const canEdit = data.role === "org_owner" || data.role === "clinic_admin";
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-3xl">
         <Link href="/app" className="text-sm text-teal-700 hover:underline">
           ← Dashboard

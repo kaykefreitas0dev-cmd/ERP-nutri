@@ -69,14 +69,15 @@ export default async function FoodsPage({ searchParams }: Props) {
       return { foods, categories };
     });
   } catch (err) {
-    if (err instanceof ActionTenantError && err.code === "NO_ORG") redirect("/onboarding");
+    if (err instanceof ActionTenantError && err.code === "NO_ORG")
+      redirect("/onboarding");
     throw err;
   }
 
   if (!data) return null;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
           <Link href="/app" className="text-sm text-teal-700 hover:underline">
@@ -86,7 +87,8 @@ export default async function FoodsPage({ searchParams }: Props) {
             Biblioteca de Alimentos
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            {data.foods.length} alimentos • Fontes: TACO (UNICAMP), POF (IBGE), suas receitas
+            {data.foods.length} alimentos • Fontes: TACO (UNICAMP), POF (IBGE),
+            suas receitas
           </p>
         </header>
 
@@ -203,7 +205,8 @@ export default async function FoodsPage({ searchParams }: Props) {
         )}
 
         <p className="mt-4 text-xs text-slate-500">
-          💡 Valores nutricionais por 100g de alimento. PTN=Proteína, CHO=Carboidrato, LIP=Lipídio.
+          💡 Valores nutricionais por 100g de alimento. PTN=Proteína,
+          CHO=Carboidrato, LIP=Lipídio.
         </p>
       </div>
     </main>

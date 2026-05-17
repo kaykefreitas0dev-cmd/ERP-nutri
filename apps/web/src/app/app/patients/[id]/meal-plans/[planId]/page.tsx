@@ -104,7 +104,7 @@ export default async function MealPlanEditorPage({ params }: Props) {
   const pctOfTarget = target ? Math.round((totalKcal / target) * 100) : null;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-6xl">
         <Link
           href={`/app/patients/${id}/meal-plans`}

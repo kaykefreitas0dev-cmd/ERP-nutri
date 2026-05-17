@@ -62,7 +62,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
   if (!data) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}

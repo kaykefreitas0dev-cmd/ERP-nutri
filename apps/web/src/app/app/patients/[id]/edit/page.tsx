@@ -26,7 +26,7 @@ export default async function EditPatientPage({ params }: Props) {
   if (!patient) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-3xl">
         <Link
           href={`/app/patients/${id}`}
@@ -34,7 +34,9 @@ export default async function EditPatientPage({ params }: Props) {
         >
           ← Voltar para {patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">Editar paciente</h1>
+        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+          Editar paciente
+        </h1>
 
         <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <PatientForm mode="edit" patient={patient} />
