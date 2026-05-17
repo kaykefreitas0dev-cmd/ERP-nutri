@@ -576,11 +576,65 @@ model Anthropometry {
 }
 
 // =====================================================================
+// ETL — IMPORTAÇÃO DE DADOS (S5)
+// =====================================================================
+// Wizard de migração CSV (Dietbox, Webdiet, genérico)
+// Processamento sync no MVP (worker async em S5+ se volume justificar)
+
+model DataImport {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  source          String // 'dietbox' | 'webdiet' | 'custom_csv'
+  entityType      String   @map("entity_type") @default("patient") // 'patient' | 'appointment' | etc.
+  originalFileName String  @map("original_file_name")
+  storagePath     String?  @map("storage_path") // Supabase Storage
+  fileSizeBytes   Int      @map("file_size_bytes")
+  encoding        String   @default("utf-8")
+  status          ImportStatus @default(PENDING)
+  columnMapping   Json     @default("{}") @map("column_mapping") // {csv_col: schema_field}
+  totalRows       Int      @default(0) @map("total_rows")
+  processedRows   Int      @default(0) @map("processed_rows")
+  errorRows       Int      @default(0) @map("error_rows")
+  errors          Json     @default("[]") // Array<{row, error, raw}>
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, status, createdAt(sort: Desc)])
+  @@map("data_imports")
+}
+
+enum ImportStatus {
+  PENDING
+  MAPPING // Aguardando user mapear colunas
+  VALIDATING // Dry-run em background
+  PROCESSING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+// Templates pré-prontos para mapeamento (Dietbox, Webdiet, etc.)
+// Seed inicial criado em S5; user pode customizar via "Salvar como template"
+model ImportTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String?  @map("organization_id") @db.Uuid // null = global (seed)
+  source          String
+  entityType      String   @map("entity_type")
+  name            String
+  columnMapping   Json     @map("column_mapping")
+  isPublic        Boolean  @default(false) @map("is_public") // public = aparece para todos da org
+  createdByUserId String?  @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, source, entityType])
+  @@map("import_templates")
+}
+
+// =====================================================================
 // ESQUELETO RESERVADO (implementação em sprints futuras)
 // =====================================================================
-//
-// FASE 1 restante (S5):
-//   - DataImport, ImportColumnMapping (S5 - ETL Dietbox/Webdiet)
 //
 // FASE 2 (S6-S9):
 //   - Food (com version + isActive + supersededById + FC + IC — Lock 15 trigger),
