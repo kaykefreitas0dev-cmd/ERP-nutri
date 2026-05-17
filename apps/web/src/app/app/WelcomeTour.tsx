@@ -131,7 +131,7 @@ export function WelcomeTour() {
           type="button"
           onClick={dismiss}
           aria-label="Dispensar tour"
-          className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          className="rounded-md p-1 text-text-subtle transition hover:bg-bg-subtle hover:text-text-secondary"
         >
           <X className="h-4 w-4" />
         </button>
@@ -145,11 +145,13 @@ export function WelcomeTour() {
           <div>
             <h2
               id="welcome-tour-title"
-              className="text-base font-semibold text-slate-900"
+              className="text-base font-semibold text-text-primary"
             >
               {current.title}
             </h2>
-            <p className="mt-1 text-sm text-slate-600">{current.description}</p>
+            <p className="mt-1 text-sm text-text-secondary">
+              {current.description}
+            </p>
           </div>
         </div>
 
@@ -181,7 +183,7 @@ export function WelcomeTour() {
                 "h-1.5 rounded-full transition-all " +
                 (i === step
                   ? "w-6 bg-brand-primary"
-                  : "w-1.5 bg-slate-300 hover:bg-slate-400")
+                  : "w-1.5 bg-border-default hover:bg-border-strong")
               }
             />
           ))}
@@ -192,7 +194,7 @@ export function WelcomeTour() {
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={isFirst}
-            className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+            className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-text-secondary transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:text-text-subtle disabled:hover:bg-transparent"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
             Anterior
@@ -201,7 +203,7 @@ export function WelcomeTour() {
             <button
               type="button"
               onClick={dismiss}
-              className="inline-flex h-8 items-center gap-1 rounded-md bg-slate-900 px-3 text-xs font-medium text-white transition hover:bg-slate-800"
+              className="inline-flex h-8 items-center gap-1 rounded-md bg-text-primary px-3 text-xs font-medium text-white transition hover:bg-text-primary"
             >
               Concluir
             </button>
@@ -209,7 +211,7 @@ export function WelcomeTour() {
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-text-secondary transition hover:bg-bg-subtle"
             >
               Próximo
               <ChevronRight className="h-3.5 w-3.5" />

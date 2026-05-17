@@ -70,25 +70,27 @@ export default async function PatientMealPlansPage({ params }: Props) {
         >
           ← {data.patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold text-text-primary">
           Planos alimentares
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-text-secondary">
           {data.plans.length} plano(s) registrado(s)
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             {data.plans.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-                <p className="text-slate-600">Nenhum plano alimentar criado.</p>
+              <div className="rounded-lg border border-dashed border-border-default bg-white p-12 text-center">
+                <p className="text-text-secondary">
+                  Nenhum plano alimentar criado.
+                </p>
               </div>
             ) : (
               <ul className="space-y-3">
                 {data.plans.map((p) => (
                   <li
                     key={p.id}
-                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                    className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between">
                       <div>
@@ -98,7 +100,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
                         >
                           {p.name}
                         </Link>
-                        <div className="mt-1 text-xs text-slate-600">
+                        <div className="mt-1 text-xs text-text-secondary">
                           {p.targetKcal && (
                             <span className="mr-3">
                               🎯 {p.targetKcal.toString()} kcal/dia
@@ -125,7 +127,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
                             ? "bg-green-100 text-green-800"
                             : p.status === "DRAFT"
                               ? "bg-amber-100 text-amber-800"
-                              : "bg-slate-200 text-slate-600"
+                              : "bg-bg-muted text-text-secondary"
                         }`}
                       >
                         {p.status}

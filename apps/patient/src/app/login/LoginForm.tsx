@@ -95,7 +95,7 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
-      <div className="flex rounded-md border border-slate-200 bg-slate-50 p-0.5 text-sm">
+      <div className="flex rounded-md border border-border-subtle bg-bg-subtle p-0.5 text-sm">
         <button
           type="button"
           onClick={() => {
@@ -104,8 +104,8 @@ export function LoginForm() {
           }}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
             mode === "password"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary"
           }`}
         >
           <KeyRound className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -119,8 +119,8 @@ export function LoginForm() {
           }}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
             mode === "magic"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary"
           }`}
         >
           <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -142,7 +142,7 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="voce@email.com"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-base"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-base"
             />
           </div>
           <div>
@@ -159,7 +159,7 @@ export function LoginForm() {
               minLength={6}
               maxLength={72}
               placeholder="••••••••"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-base"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-base"
             />
           </div>
           {error && (
@@ -189,7 +189,7 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="voce@email.com"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-base"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-base"
             />
           </div>
           {error && (
@@ -204,7 +204,7 @@ export function LoginForm() {
           >
             {sending ? "Enviando..." : "Enviar link mágico"}
           </button>
-          <p className="flex items-center gap-1.5 text-[10px] text-slate-500">
+          <p className="flex items-center gap-1.5 text-[10px] text-text-muted">
             <TriangleAlert className="h-3 w-3" strokeWidth={2} />
             Se não chegar email, use senha acima.
           </p>

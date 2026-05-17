@@ -37,14 +37,14 @@ export default async function MyPlansPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
-      <h1 className="text-2xl font-bold text-slate-900">Meus planos</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-2xl font-bold text-text-primary">Meus planos</h1>
+      <p className="mt-1 text-sm text-text-secondary">
         {plans.length} plano(s) recebido(s) ao todo
       </p>
 
       <div className="mt-6">
         {plans.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+          <div className="rounded-lg border border-dashed border-border-default bg-white p-8 text-center text-text-secondary">
             Nenhum plano alimentar disponível ainda.
           </div>
         ) : (
@@ -53,18 +53,18 @@ export default async function MyPlansPage() {
               <li key={p.id}>
                 <Link
                   href={`/app/meu-plano/${p.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-400 hover:shadow-md transition"
+                  className="block rounded-lg border border-border-subtle bg-white p-4 shadow-sm hover:border-brand-400 hover:shadow-md transition"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-base font-semibold text-slate-900">
+                      <p className="text-base font-semibold text-text-primary">
                         {p.name}
                       </p>
-                      <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                      <p className="mt-1 flex items-center gap-1 text-xs text-text-secondary">
                         <Hospital className="h-3 w-3" strokeWidth={1.75} />
                         {p.patient.organization.name}
                       </p>
-                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-slate-500">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-muted">
                         {p.targetKcal && (
                           <>
                             <Target className="h-3 w-3" strokeWidth={1.75} />
@@ -81,7 +81,7 @@ export default async function MyPlansPage() {
                           ? "bg-green-100 text-green-800"
                           : p.status === "DRAFT"
                             ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-200 text-slate-600"
+                            : "bg-bg-muted text-text-secondary"
                       }`}
                     >
                       {p.status}

@@ -54,7 +54,7 @@ export function ContactForm() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-slate-900"
+            className="block text-sm font-medium text-text-primary"
           >
             Nome completo *
           </label>
@@ -64,13 +64,13 @@ export function ContactForm() {
             type="text"
             required
             autoComplete="name"
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-slate-900"
+            className="block text-sm font-medium text-text-primary"
           >
             Email *
           </label>
@@ -80,7 +80,7 @@ export function ContactForm() {
             type="email"
             required
             autoComplete="email"
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
       </div>
@@ -88,7 +88,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="phone"
-          className="block text-sm font-medium text-slate-900"
+          className="block text-sm font-medium text-text-primary"
         >
           WhatsApp (opcional)
         </label>
@@ -98,14 +98,14 @@ export function ContactForm() {
           type="tel"
           autoComplete="tel"
           placeholder="(11) 99999-9999"
-          className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         />
       </div>
 
       <div>
         <label
           htmlFor="subject"
-          className="block text-sm font-medium text-slate-900"
+          className="block text-sm font-medium text-text-primary"
         >
           Assunto *
         </label>
@@ -114,7 +114,7 @@ export function ContactForm() {
           name="subject"
           required
           defaultValue=""
-          className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         >
           <option value="" disabled>
             Selecione…
@@ -130,7 +130,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-slate-900"
+          className="block text-sm font-medium text-text-primary"
         >
           Mensagem *
         </label>
@@ -139,11 +139,11 @@ export function ContactForm() {
           name="message"
           rows={5}
           required
-          className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         />
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-text-muted">
         Ao enviar, você concorda com nossa{" "}
         <a href="/privacidade" className="text-brand-primary underline">
           política de privacidade

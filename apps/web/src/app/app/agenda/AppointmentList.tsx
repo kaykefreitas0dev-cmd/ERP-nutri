@@ -7,8 +7,12 @@ import {
   Video,
   Phone,
   CircleCheck,
+  Calendar,
   type LucideIcon,
 } from "lucide-react";
+import { Badge } from "@repo/ui/badge";
+import { Avatar } from "@repo/ui/avatar";
+import { StatusDot } from "@repo/ui/status-dot";
 import { updateAppointmentStatusAction } from "./actions";
 import { CompleteWithPaymentModal } from "./CompleteWithPaymentModal";
 
@@ -28,22 +32,33 @@ interface Props {
   appointments: Appointment[];
 }
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  SCHEDULED: { label: "Agendado", color: "bg-blue-100 text-blue-800" },
-  CONFIRMED: {
-    label: "Confirmado",
-    color: "bg-brand-100 text-brand-primary-hover",
-  },
-  CHECKED_IN: { label: "Check-in", color: "bg-purple-100 text-purple-800" },
-  COMPLETED: { label: "Realizada", color: "bg-green-100 text-green-800" },
-  CANCELLED: { label: "Cancelada", color: "bg-slate-200 text-slate-600" },
-  NO_SHOW: { label: "No-show", color: "bg-red-100 text-red-800" },
+type BadgeVariant =
+  | "neutral"
+  | "info"
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger";
+
+interface StatusInfo {
+  label: string;
+  variant: BadgeVariant;
+  dot?: "active" | "warning" | "danger" | "inactive" | "info";
+}
+
+const STATUS_INFO: Record<string, StatusInfo> = {
+  SCHEDULED: { label: "Agendado", variant: "info", dot: "info" },
+  CONFIRMED: { label: "Confirmado", variant: "primary", dot: "active" },
+  CHECKED_IN: { label: "Check-in", variant: "info", dot: "info" },
+  COMPLETED: { label: "Realizada", variant: "success", dot: "active" },
+  CANCELLED: { label: "Cancelada", variant: "neutral", dot: "inactive" },
+  NO_SHOW: { label: "No-show", variant: "danger", dot: "danger" },
 };
 
-const MODALITY_ICON: Record<string, LucideIcon> = {
-  in_person: MapPin,
-  video: Video,
-  phone: Phone,
+const MODALITY: Record<string, { Icon: LucideIcon; label: string }> = {
+  in_person: { Icon: MapPin, label: "Presencial" },
+  video: { Icon: Video, label: "Vídeo" },
+  phone: { Icon: Phone, label: "Telefone" },
 };
 
 export function AppointmentList({ appointments }: Props) {
@@ -70,112 +85,138 @@ export function AppointmentList({ appointments }: Props) {
 
   if (appointments.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-        <p className="text-slate-600">
-          Nenhuma consulta agendada para este dia.
-        </p>
-        <p className="mt-2 text-sm text-slate-500">
-          Use o formulário ao lado para criar uma nova.
+      <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-12 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-bg-subtle text-text-muted">
+          <Calendar className="h-5 w-5" strokeWidth={1.75} />
+        </div>
+        <h2 className="mt-4 text-h3 font-semibold text-text-primary">
+          Nenhuma consulta agendada
+        </h2>
+        <p className="mt-1 text-caption text-text-secondary">
+          Use o formulário ao lado para criar uma nova consulta.
         </p>
       </div>
     );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-2.5">
       {appointments.map((apt) => {
         const start = new Date(apt.startsAt);
         const end = new Date(apt.endsAt);
-        const statusInfo = STATUS_LABEL[apt.status] ?? {
+        const info = STATUS_INFO[apt.status] ?? {
           label: apt.status,
-          color: "bg-slate-100",
+          variant: "neutral" as const,
         };
+        const mod = MODALITY[apt.modality];
         const patientName =
           apt.patientName ?? apt.externalPatientName ?? "(sem paciente)";
+        const isCompleted = apt.status === "COMPLETED";
+        const isCancelled = apt.status === "CANCELLED";
 
         return (
           <li
             key={apt.id}
-            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+            className={
+              "rounded-lg border bg-bg-surface p-4 transition-all duration-fast " +
+              (isCancelled
+                ? "border-border-subtle opacity-60"
+                : isCompleted
+                  ? "border-border-subtle [box-shadow:var(--shadow-xs)]"
+                  : "border-border-subtle [box-shadow:var(--shadow-xs)] hover:[box-shadow:var(--shadow-sm)]")
+            }
           >
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-semibold text-slate-900">
+              <div className="flex items-start gap-3 min-w-0">
+                {/* Horário */}
+                <div className="flex flex-col items-center min-w-[56px] rounded-md bg-bg-subtle px-2 py-2 text-text-primary">
+                  <span className="text-h3 font-semibold tabular-nums leading-tight">
                     {start.toLocaleTimeString("pt-BR", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>
-                  <span className="text-sm text-slate-500">
-                    –{" "}
-                    {end.toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <span className="text-[10px] text-text-muted tabular-nums">
+                    {Math.round((end.getTime() - start.getTime()) / 60_000)} min
                   </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo.color}`}
-                  >
-                    {statusInfo.label}
-                  </span>
-                  {(() => {
-                    const ModIcon = MODALITY_ICON[apt.modality];
-                    return ModIcon ? (
-                      <ModIcon
-                        className="h-4 w-4 text-slate-500"
+                </div>
+
+                {/* Paciente + meta */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {apt.patientId && <Avatar name={patientName} size="xs" />}
+                    <span className="text-body font-medium text-text-primary truncate">
+                      {patientName}
+                    </span>
+                    <Badge
+                      variant={info.variant}
+                      leftIcon={
+                        info.dot ? (
+                          <StatusDot
+                            status={info.dot}
+                            pulse={apt.status === "CONFIRMED"}
+                            size={1.5}
+                          />
+                        ) : undefined
+                      }
+                    >
+                      {info.label}
+                    </Badge>
+                  </div>
+                  {mod && (
+                    <p className="mt-1 inline-flex items-center gap-1 text-caption text-text-muted">
+                      <mod.Icon
+                        className="h-3.5 w-3.5"
                         strokeWidth={1.75}
+                        aria-hidden
                       />
-                    ) : null;
-                  })()}
+                      {mod.label}
+                    </p>
+                  )}
+                  {apt.notes && (
+                    <p className="mt-1 text-caption text-text-secondary line-clamp-2">
+                      {apt.notes}
+                    </p>
+                  )}
                 </div>
-                <div className="mt-1 font-medium text-slate-900">
-                  {patientName}
-                </div>
-                {apt.notes && (
-                  <p className="mt-1 text-sm text-slate-600">{apt.notes}</p>
-                )}
               </div>
 
-              <div className="flex flex-col gap-1">
+              {/* Ações */}
+              <div className="flex shrink-0 flex-col gap-1">
                 {apt.status === "SCHEDULED" && (
                   <>
-                    <button
-                      type="button"
+                    <ActionButton
                       onClick={() => updateStatus(apt.id, "CONFIRMED")}
                       disabled={pending && updatingId === apt.id}
-                      className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+                      tone="primary"
                     >
                       Confirmar
-                    </button>
-                    <button
-                      type="button"
+                    </ActionButton>
+                    <ActionButton
                       onClick={() => updateStatus(apt.id, "CANCELLED")}
                       disabled={pending && updatingId === apt.id}
-                      className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs hover:bg-slate-50 disabled:opacity-50"
+                      tone="ghost"
                     >
                       Cancelar
-                    </button>
+                    </ActionButton>
                   </>
                 )}
                 {apt.status === "CONFIRMED" && (
                   <>
-                    <button
-                      type="button"
+                    <ActionButton
                       onClick={() => updateStatus(apt.id, "CHECKED_IN")}
                       disabled={pending && updatingId === apt.id}
-                      className="rounded-md bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                      tone="info"
                     >
                       Check-in
-                    </button>
-                    <button
-                      type="button"
+                    </ActionButton>
+                    <ActionButton
                       onClick={() => updateStatus(apt.id, "NO_SHOW")}
                       disabled={pending && updatingId === apt.id}
-                      className="rounded-md border border-red-300 bg-white px-3 py-1 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      tone="danger"
                     >
                       No-show
-                    </button>
+                    </ActionButton>
                   </>
                 )}
                 {(apt.status === "CHECKED_IN" ||
@@ -183,24 +224,27 @@ export function AppointmentList({ appointments }: Props) {
                   apt.status === "SCHEDULED") && (
                   <>
                     {apt.patientId ? (
-                      <button
-                        type="button"
+                      <ActionButton
                         onClick={() => setPayingAppt(apt)}
                         disabled={pending && updatingId === apt.id}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                        tone="success"
+                        icon={
+                          <CircleCheck
+                            className="h-3.5 w-3.5"
+                            strokeWidth={2}
+                          />
+                        }
                       >
-                        <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
                         Concluir + recibo
-                      </button>
+                      </ActionButton>
                     ) : (
-                      <button
-                        type="button"
+                      <ActionButton
                         onClick={() => updateStatus(apt.id, "COMPLETED")}
                         disabled={pending && updatingId === apt.id}
-                        className="rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                        tone="success"
                       >
                         Marcar realizada
-                      </button>
+                      </ActionButton>
                     )}
                   </>
                 )}
@@ -217,5 +261,47 @@ export function AppointmentList({ appointments }: Props) {
         />
       )}
     </ul>
+  );
+}
+
+type ActionTone = "primary" | "ghost" | "info" | "success" | "danger";
+
+function ActionButton({
+  children,
+  onClick,
+  disabled,
+  tone,
+  icon,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  tone: ActionTone;
+  icon?: React.ReactNode;
+}) {
+  const toneClass: Record<ActionTone, string> = {
+    primary:
+      "bg-brand-primary text-white hover:bg-brand-primary-hover [box-shadow:var(--shadow-sm)]",
+    ghost:
+      "border border-border-default bg-bg-surface text-text-primary hover:bg-bg-surface-hover",
+    info: "bg-info text-white hover:opacity-90 [box-shadow:var(--shadow-sm)]",
+    success:
+      "bg-success text-white hover:opacity-90 [box-shadow:var(--shadow-sm)]",
+    danger:
+      "border border-danger-border bg-danger-bg text-danger hover:bg-danger hover:text-white",
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={
+        "inline-flex h-7 items-center justify-center gap-1 rounded-md px-3 text-tiny font-medium transition-all duration-fast disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] " +
+        toneClass[tone]
+      }
+    >
+      {icon}
+      {children}
+    </button>
   );
 }

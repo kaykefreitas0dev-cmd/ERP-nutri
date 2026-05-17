@@ -136,7 +136,7 @@ export function ImportWizard() {
   if (step === "upload") {
     return (
       <form action={handleUpload} className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-text-primary">
           1. Selecione o arquivo
         </h2>
 
@@ -157,7 +157,7 @@ export function ImportWizard() {
             id="source"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           >
             <option value="dietbox">Dietbox (export padrão)</option>
             <option value="webdiet">Webdiet (export padrão)</option>
@@ -175,9 +175,9 @@ export function ImportWizard() {
             type="file"
             accept=".csv,text/csv"
             required
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand-primary file:px-3 file:py-1 file:text-xs file:text-white"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand-primary file:px-3 file:py-1 file:text-xs file:text-white"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-text-muted">
             Até 10MB. UTF-8 ou Latin-1.
           </p>
         </div>
@@ -196,7 +196,7 @@ export function ImportWizard() {
   if (step === "mapping") {
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-text-primary">
           2. Mapear colunas ({totalRows} linhas detectadas)
         </h2>
 
@@ -227,22 +227,22 @@ export function ImportWizard() {
           </div>
         )}
 
-        <div className="overflow-hidden rounded-md border border-slate-200">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
+        <div className="overflow-hidden rounded-md border border-border-subtle">
+          <table className="min-w-full divide-y divide-border-subtle text-sm">
+            <thead className="bg-bg-subtle">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-slate-500">
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-text-muted">
                   Coluna CSV
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-slate-500">
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-text-muted">
                   Mapear para
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-slate-500">
+                <th className="px-3 py-2 text-left text-xs font-medium uppercase text-text-muted">
                   Preview (linha 1)
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-border-subtle">
               {headers.map((h) => (
                 <tr key={h}>
                   <td className="px-3 py-2 font-mono text-xs">{h}</td>
@@ -250,7 +250,7 @@ export function ImportWizard() {
                     <select
                       value={mapping[h] ?? ""}
                       onChange={(e) => updateMapping(h, e.target.value)}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                      className="rounded-md border border-border-default px-2 py-1 text-xs"
                     >
                       {TARGET_FIELDS.map((f) => (
                         <option key={f.value} value={f.value}>
@@ -259,7 +259,7 @@ export function ImportWizard() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs text-slate-500">
+                  <td className="px-3 py-2 font-mono text-xs text-text-muted">
                     {preview[0]?.[h]?.slice(0, 40) ?? "—"}
                   </td>
                 </tr>
@@ -272,7 +272,7 @@ export function ImportWizard() {
           <button
             type="button"
             onClick={() => setStep("upload")}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-white px-4 text-sm font-medium hover:bg-bg-subtle"
           >
             ← Voltar
           </button>
@@ -293,10 +293,10 @@ export function ImportWizard() {
     return (
       <div className="py-12 text-center">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand-300 border-t-brand-primary" />
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-text-secondary">
           Importando {totalRows} pacientes…
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-text-muted">
           Aguarde — pode demorar alguns segundos para listas grandes.
         </p>
       </div>
@@ -309,10 +309,10 @@ export function ImportWizard() {
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-bg text-success">
         <CircleCheck className="h-10 w-10" strokeWidth={1.75} />
       </div>
-      <h2 className="text-xl font-semibold text-slate-900">
+      <h2 className="text-xl font-semibold text-text-primary">
         Importação concluída!
       </h2>
-      <p className="text-slate-600">
+      <p className="text-text-secondary">
         <strong>{processed}</strong> pacientes importados com sucesso
         {errorCount > 0 && (
           <span>
@@ -334,7 +334,7 @@ export function ImportWizard() {
         <button
           type="button"
           onClick={reset}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-white px-4 text-sm font-medium hover:bg-bg-subtle"
         >
           Nova importação
         </button>

@@ -3,21 +3,21 @@ import { Container } from "@repo/ui/container";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 py-12">
+    <footer className="border-t border-border-subtle bg-bg-subtle py-12">
       <Container>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 text-xl font-bold text-brand-primary">
               NutriCore
             </div>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-text-secondary">
               Plataforma de gestão para nutricionistas brasileiros.
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Produto</h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <h3 className="text-sm font-semibold text-text-primary">Produto</h3>
+            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
               <li>
                 <Link
                   href="/#funcionalidades"
@@ -40,8 +40,8 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Suporte</h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <h3 className="text-sm font-semibold text-text-primary">Suporte</h3>
+            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
               <li>
                 <Link href="/contato" className="hover:text-brand-primary">
                   Contato
@@ -59,8 +59,8 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Legal</h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <h3 className="text-sm font-semibold text-text-primary">Legal</h3>
+            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
               <li>
                 <Link href="/privacidade" className="hover:text-brand-primary">
                   Privacidade (LGPD)
@@ -83,7 +83,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-slate-200 pt-6 text-center text-xs text-slate-500">
+        <div className="mt-10 border-t border-border-subtle pt-6 text-center text-xs text-text-muted">
           © {new Date().getFullYear()} NutriCore. Plataforma brasileira.
           <br className="sm:hidden" />
           <span className="ml-2">CFN 599/2018 • Lei 13.787/2018 • LGPD</span>

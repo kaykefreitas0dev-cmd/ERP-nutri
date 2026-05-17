@@ -52,10 +52,10 @@ export default async function NewDocumentPage({ params }: Props) {
         >
           ← Documentos de {data.patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold text-text-primary">
           Novo documento clínico
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-text-secondary">
           Selecione o tipo, escreva o corpo, anexe CIDs e salve como rascunho. A
           assinatura digital é aplicada ao emitir.
         </p>

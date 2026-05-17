@@ -23,8 +23,8 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">
+    <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
+      <h2 className="text-base font-semibold text-text-primary">
         Novo plano alimentar
       </h2>
 
@@ -48,7 +48,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
             type="text"
             required
             placeholder="Ex: Plano semanal março"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           />
         </div>
 
@@ -63,7 +63,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
             min="600"
             max="6000"
             placeholder="Ex: 2000"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           />
         </div>
 
@@ -76,7 +76,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
               id="startDate"
               name="startDate"
               type="date"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
             />
           </div>
           <div>
@@ -87,7 +87,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
               id="endDate"
               name="endDate"
               type="date"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
             />
           </div>
         </div>
@@ -100,7 +100,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
           {pending ? "Criando…" : "Criar plano"}
         </button>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-text-muted">
           ✨ Cria com 1 dia padrão e 6 refeições (café, lanches, almoço, jantar,
           ceia). Personalize depois.
         </p>

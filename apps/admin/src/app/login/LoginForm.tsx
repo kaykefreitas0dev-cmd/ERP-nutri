@@ -55,7 +55,7 @@ export function LoginForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
         />
       </div>
       <div>
@@ -70,7 +70,7 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
         />
       </div>
       {error && (
@@ -81,7 +81,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={sending}
-        className="block w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="block w-full rounded-md bg-text-primary px-4 py-2 text-sm font-medium text-white hover:bg-text-primary disabled:opacity-50"
       >
         {sending ? "Entrando..." : "Entrar"}
       </button>

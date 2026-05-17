@@ -27,7 +27,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   PENDING: { label: "Pendente", color: "bg-amber-100 text-amber-800" },
   PAID: { label: "Pago", color: "bg-green-100 text-green-800" },
   REFUNDED: { label: "Estornado", color: "bg-red-100 text-red-800" },
-  CANCELLED: { label: "Cancelado", color: "bg-slate-200 text-slate-600" },
+  CANCELLED: { label: "Cancelado", color: "bg-bg-muted text-text-secondary" },
 };
 
 function brMoney(cents: number): string {
@@ -78,8 +78,8 @@ export default async function PatientPaymentsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
-      <h1 className="text-2xl font-bold text-slate-900">Pagamentos</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-2xl font-bold text-text-primary">Pagamentos</h1>
+      <p className="mt-1 text-sm text-text-secondary">
         Recibos das consultas que você pagou
       </p>
 
@@ -99,7 +99,7 @@ export default async function PatientPaymentsPage() {
 
       <div className="mt-6">
         {payments.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+          <div className="rounded-lg border border-dashed border-border-default bg-white p-8 text-center text-text-secondary">
             Nenhum pagamento registrado ainda.
           </div>
         ) : (
@@ -110,17 +110,17 @@ export default async function PatientPaymentsPage() {
                 METHOD_LABEL[p.externalPaymentMethod];
               const s = STATUS_LABEL[p.status] ?? {
                 label: p.status,
-                color: "bg-slate-100",
+                color: "bg-bg-subtle",
               };
               return (
                 <li
                   key={p.id}
-                  className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
+                  className="rounded-lg border border-border-subtle bg-white p-3 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold tabular-nums text-slate-900">
+                        <span className="text-lg font-bold tabular-nums text-text-primary">
                           {brMoney(p.amountCents)}
                         </span>
                         <span
@@ -129,7 +129,7 @@ export default async function PatientPaymentsPage() {
                           {s.label}
                         </span>
                       </div>
-                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-slate-600">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-secondary">
                         {new Date(p.paymentDate).toLocaleDateString("pt-BR")}
                         {m && (
                           <>
@@ -139,12 +139,12 @@ export default async function PatientPaymentsPage() {
                           </>
                         )}
                       </p>
-                      <p className="flex items-center gap-1 text-xs text-slate-500">
+                      <p className="flex items-center gap-1 text-xs text-text-muted">
                         <Hospital className="h-3 w-3" strokeWidth={1.75} />
                         {p.patient.organization.name}
                       </p>
                       {p.description && (
-                        <p className="mt-1 text-xs text-slate-600 italic">
+                        <p className="mt-1 text-xs text-text-secondary italic">
                           &ldquo;{p.description}&rdquo;
                         </p>
                       )}

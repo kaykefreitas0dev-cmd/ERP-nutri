@@ -53,8 +53,8 @@ export default async function AdminAuditPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Audit log</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-text-primary">Audit log</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           {rows.length} entrada(s) — Merkle-style hash chain (mostra 8 chars
           finais do hash pra verificação)
         </p>
@@ -66,19 +66,19 @@ export default async function AdminAuditPage({ searchParams }: Props) {
           name="action"
           defaultValue={action ?? ""}
           placeholder="Filtrar action (ex: patient.create)"
-          className="flex-1 min-w-40 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="flex-1 min-w-40 rounded-md border border-border-default px-3 py-2 text-sm"
         />
         <input
           type="text"
           name="org"
           defaultValue={org ?? ""}
           placeholder="Org ID (UUID)"
-          className="w-72 rounded-md border border-slate-300 px-3 py-2 font-mono text-xs"
+          className="w-72 rounded-md border border-border-default px-3 py-2 font-mono text-xs"
         />
         <select
           name="limit"
           defaultValue={limit ?? "100"}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-md border border-border-default px-3 py-2 text-sm"
         >
           <option value="50">50</option>
           <option value="100">100</option>
@@ -86,15 +86,15 @@ export default async function AdminAuditPage({ searchParams }: Props) {
         </select>
         <button
           type="submit"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          className="rounded-md bg-text-primary px-4 py-2 text-sm font-medium text-white hover:bg-text-primary"
         >
           Filtrar
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-border-subtle bg-white shadow-sm">
         <table className="w-full text-xs">
-          <thead className="border-b border-slate-200 bg-slate-50 uppercase tracking-wider text-slate-500">
+          <thead className="border-b border-border-subtle bg-bg-subtle uppercase tracking-wider text-text-muted">
             <tr>
               <th className="px-3 py-2 text-left">Quando</th>
               <th className="px-3 py-2 text-left">Action</th>
@@ -105,29 +105,29 @@ export default async function AdminAuditPage({ searchParams }: Props) {
               <th className="px-3 py-2 text-left">Hash</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border-subtle">
             {rows.map((r) => (
-              <tr key={r.id} className="hover:bg-slate-50">
-                <td className="px-3 py-2 text-[10px] text-slate-500">
+              <tr key={r.id} className="hover:bg-bg-subtle">
+                <td className="px-3 py-2 text-[10px] text-text-muted">
                   {new Date(r.created_at).toLocaleString("pt-BR")}
                 </td>
                 <td className="px-3 py-2 font-mono">{r.action}</td>
                 <td className="px-3 py-2 text-[11px]">
                   {r.entity_type}
                   {r.entity_id && (
-                    <span className="ml-1 text-slate-500">
+                    <span className="ml-1 text-text-muted">
                       ({r.entity_id.toString().slice(0, 8)}...)
                     </span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-[11px]">{r.actor_role}</td>
-                <td className="px-3 py-2 font-mono text-[10px] text-slate-500">
+                <td className="px-3 py-2 font-mono text-[10px] text-text-muted">
                   {r.organization_id.slice(0, 8)}...
                 </td>
-                <td className="px-3 py-2 text-[11px] text-slate-600">
+                <td className="px-3 py-2 text-[11px] text-text-secondary">
                   {r.fields_accessed?.join(", ") ?? "—"}
                 </td>
-                <td className="px-3 py-2 font-mono text-[10px] text-slate-400">
+                <td className="px-3 py-2 font-mono text-[10px] text-text-subtle">
                   ...{r.log_hash.slice(-8)}
                 </td>
               </tr>
@@ -135,7 +135,7 @@ export default async function AdminAuditPage({ searchParams }: Props) {
           </tbody>
         </table>
         {rows.length === 0 && (
-          <p className="p-5 text-center text-sm text-slate-500">
+          <p className="p-5 text-center text-sm text-text-muted">
             Nenhuma entrada (ajuste os filtros).
           </p>
         )}

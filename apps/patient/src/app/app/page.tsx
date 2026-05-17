@@ -85,11 +85,11 @@ export default async function PatientHomePage({
         </div>
       )}
 
-      <h1 className="text-2xl font-bold text-slate-900">
+      <h1 className="text-2xl font-bold text-text-primary">
         Olá
         {patients[0]?.preferredName ? `, ${patients[0].preferredName}` : ""}!
       </h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-text-secondary">
         Aqui está o resumo do seu acompanhamento nutricional.
       </p>
 
@@ -103,7 +103,7 @@ export default async function PatientHomePage({
       >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-text-primary">
               {todayCheckin && (
                 <CircleCheck
                   className="h-4 w-4 text-green-600"
@@ -131,11 +131,11 @@ export default async function PatientHomePage({
       </div>
 
       {patients.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-          <p className="text-slate-600">
+        <div className="mt-6 rounded-lg border border-dashed border-border-default bg-white p-8 text-center">
+          <p className="text-text-secondary">
             Você ainda não está vinculado a nenhum profissional.
           </p>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-text-muted">
             Peça à sua(seu) nutricionista um link de convite para conectar sua
             conta.
           </p>
@@ -145,29 +145,29 @@ export default async function PatientHomePage({
           {patients.map((p) => (
             <section
               key={p.id}
-              className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
             >
-              <header className="border-b border-slate-100 pb-3">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <header className="border-b border-border-subtle pb-3">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
                   <Hospital
                     className="h-5 w-5 text-brand-primary"
                     strokeWidth={1.75}
                   />
                   {p.organization.name}
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   Registrado como: {p.fullName}
                 </p>
               </header>
 
               {/* Planos */}
               <div className="mt-3">
-                <h3 className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                <h3 className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
                   <Utensils className="h-4 w-4" strokeWidth={1.75} />
                   Planos alimentares ({p.mealPlans.length})
                 </h3>
                 {p.mealPlans.length === 0 ? (
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-xs text-text-muted">
                     Nenhum plano ativo ainda.
                   </p>
                 ) : (
@@ -176,13 +176,13 @@ export default async function PatientHomePage({
                       <li key={mp.id}>
                         <Link
                           href={`/app/meu-plano/${mp.id}`}
-                          className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm hover:border-brand-400 hover:bg-brand-primary-bg"
+                          className="flex items-center justify-between rounded-md border border-border-subtle px-3 py-2 text-sm hover:border-brand-400 hover:bg-brand-primary-bg"
                         >
                           <div>
-                            <p className="font-medium text-slate-800">
+                            <p className="font-medium text-text-primary">
                               {mp.name}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-text-muted">
                               {mp.targetKcal &&
                                 `${Number(mp.targetKcal).toFixed(0)} kcal/dia · `}
                               Atualizado{" "}
@@ -210,7 +210,7 @@ export default async function PatientHomePage({
               {/* Documentos */}
               {p.clinicalDocuments.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                  <h3 className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
                     <FileText className="h-4 w-4" strokeWidth={1.75} />
                     Últimos documentos
                   </h3>
@@ -218,21 +218,21 @@ export default async function PatientHomePage({
                     {p.clinicalDocuments.map((d) => (
                       <li
                         key={d.id}
-                        className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm"
+                        className="flex items-center justify-between rounded-md border border-border-subtle px-3 py-2 text-sm"
                       >
                         <div>
-                          <p className="font-medium text-slate-800">
+                          <p className="font-medium text-text-primary">
                             {d.title}
                           </p>
                           {d.issuedAt && (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-text-muted">
                               {new Date(d.issuedAt).toLocaleDateString("pt-BR")}
                             </p>
                           )}
                         </div>
                         <Link
                           href={`/app/documentos/${d.id}`}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
+                          className="rounded border border-border-default px-2 py-1 text-xs hover:bg-bg-subtle"
                         >
                           Ver
                         </Link>

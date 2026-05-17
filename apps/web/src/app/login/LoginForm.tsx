@@ -79,7 +79,7 @@ export function LoginForm() {
       )}
 
       {/* Toggle */}
-      <div className="flex rounded-md border border-slate-200 bg-slate-50 p-0.5 text-sm">
+      <div className="flex rounded-md border border-border-subtle bg-bg-subtle p-0.5 text-sm">
         <button
           type="button"
           onClick={() => {
@@ -89,8 +89,8 @@ export function LoginForm() {
           }}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition ${
             mode === "password"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary hover:text-text-primary"
           }`}
         >
           <KeyRound className="h-4 w-4" strokeWidth={1.75} />
@@ -105,8 +105,8 @@ export function LoginForm() {
           }}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition ${
             mode === "magic"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-text-primary shadow-sm"
+              : "text-text-secondary hover:text-text-primary"
           }`}
         >
           <Mail className="h-4 w-4" strokeWidth={1.75} />
@@ -193,7 +193,7 @@ export function LoginForm() {
           >
             {loading ? "Enviando..." : "Enviar magic link"}
           </button>
-          <p className="flex items-start gap-1.5 text-xs text-slate-500">
+          <p className="flex items-start gap-1.5 text-xs text-text-muted">
             <TriangleAlert
               className="mt-0.5 h-3 w-3 shrink-0"
               strokeWidth={2}

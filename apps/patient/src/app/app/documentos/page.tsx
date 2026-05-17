@@ -43,15 +43,15 @@ export default async function MyDocumentsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
-      <h1 className="text-2xl font-bold text-slate-900">Documentos</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-2xl font-bold text-text-primary">Documentos</h1>
+      <p className="mt-1 text-sm text-text-secondary">
         Atestados, receitas e encaminhamentos emitidos pelo(a) seu(sua)
         nutricionista
       </p>
 
       <div className="mt-6">
         {docs.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+          <div className="rounded-lg border border-dashed border-border-default bg-white p-8 text-center text-text-secondary">
             Nenhum documento emitido ainda.
           </div>
         ) : (
@@ -59,25 +59,25 @@ export default async function MyDocumentsPage() {
             {docs.map((d) => (
               <li
                 key={d.id}
-                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-slate-900 truncate">
+                    <p className="font-semibold text-text-primary truncate">
                       {d.title}
                     </p>
-                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-600">
+                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-text-secondary">
                       <FileText className="h-3 w-3" strokeWidth={1.75} />
                       {TYPE_LABELS[d.documentType] ?? d.documentType} •{" "}
                       {d.issuerName}
                       {d.issuerCrn && ` (CRN ${d.issuerCrn})`}
                     </p>
-                    <p className="flex items-center gap-1 text-xs text-slate-500">
+                    <p className="flex items-center gap-1 text-xs text-text-muted">
                       <Hospital className="h-3 w-3" strokeWidth={1.75} />
                       {d.patient.organization.name}
                     </p>
                     {d.issuedAt && (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-text-muted">
                         Emitido em{" "}
                         {new Date(d.issuedAt).toLocaleDateString("pt-BR")}
                         {d.validUntil &&

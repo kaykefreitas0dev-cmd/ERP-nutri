@@ -36,7 +36,7 @@ export default async function OnboardingPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8">
+    <main className="min-h-screen bg-bg-subtle py-8">
       <OnboardingWizard
         userId={user.id}
         userEmail={user.email ?? ""}

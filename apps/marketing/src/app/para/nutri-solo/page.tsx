@@ -46,11 +46,11 @@ export default function NutriSoloPage() {
             <p className="mb-3 inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-medium uppercase tracking-wider text-brand-primary-hover">
               Para nutricionistas autônomos
             </p>
-            <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold text-text-primary sm:text-5xl">
               Toda a operação da sua consultoria em{" "}
               <span className="text-brand-primary">um lugar</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-text-secondary">
               Pare de juntar Dietbox + WhatsApp + Google Agenda + boleto na mão.
               NutriCore tem prontuário, agenda, plano alimentar, recibo e app do
               paciente — tudo integrado.
@@ -64,7 +64,7 @@ export default function NutriSoloPage() {
               </Link>
               <Link
                 href="/"
-                className="rounded-md border border-slate-300 bg-white px-6 py-3 text-base font-medium hover:bg-slate-50"
+                className="rounded-md border border-border-default bg-white px-6 py-3 text-base font-medium hover:bg-bg-subtle"
               >
                 Ver planos
               </Link>
@@ -75,17 +75,17 @@ export default function NutriSoloPage() {
         {/* Features */}
         <section className="px-4 py-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">
+            <h2 className="text-center text-2xl font-bold text-text-primary">
               O que você ganha
             </h2>
             <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
               {FEATURES.map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                  className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
                 >
-                  <h3 className="font-semibold text-slate-900">{f.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{f.body}</p>
+                  <h3 className="font-semibold text-text-primary">{f.title}</h3>
+                  <p className="mt-2 text-sm text-text-secondary">{f.body}</p>
                 </div>
               ))}
             </div>
@@ -93,12 +93,12 @@ export default function NutriSoloPage() {
         </section>
 
         {/* Pricing teaser */}
-        <section className="bg-slate-50 px-4 py-16">
+        <section className="bg-bg-subtle px-4 py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-text-primary">
               Investimento honesto
             </h2>
-            <p className="mt-3 text-slate-600">
+            <p className="mt-3 text-text-secondary">
               Plano Starter pra quem está começando. Sem fidelidade. Sem taxa
               por paciente. Cobramos uma mensalidade fixa que cabe no orçamento
               de um autônomo.
@@ -115,35 +115,35 @@ export default function NutriSoloPage() {
         {/* FAQ específico */}
         <section className="px-4 py-16">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">
+            <h2 className="text-center text-2xl font-bold text-text-primary">
               Perguntas comuns
             </h2>
             <dl className="mt-8 space-y-6">
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Posso migrar do Dietbox?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Sim. Use nosso importador CSV (Configurações → Importar
                   pacientes) com mapping automático pros formatos Dietbox e
                   Webdiet.
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   E a NF-e dos recibos?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Hoje geramos recibo simples (vale pra controle interno + IRPF
                   do paciente). NF-e completa via Focus NFe chega na Fase 7, por
                   enquanto você emite no seu sistema fiscal próprio.
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   Como funciona o pagamento dos pacientes?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Você cobra como sempre faz (PIX próprio, cartão, dinheiro). Na
                   hora de marcar a consulta como concluída, registra o valor +
                   método → plataforma gera o recibo assinado. Sem intermediação
@@ -151,10 +151,10 @@ export default function NutriSoloPage() {
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold text-slate-900">
+                <dt className="font-semibold text-text-primary">
                   É LGPD compliant?
                 </dt>
-                <dd className="mt-1 text-sm text-slate-600">
+                <dd className="mt-1 text-sm text-text-secondary">
                   Sim. Dados em isolamento por organização (RLS), prontuário
                   criptografado, audit log imutável com hash chain, export ZIP +
                   anonimização disponíveis pra atender Art. 18.

@@ -80,7 +80,7 @@ export function AcceptInviteForm({ token, defaultEmail }: Props) {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-base"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-base"
         />
       </div>
 

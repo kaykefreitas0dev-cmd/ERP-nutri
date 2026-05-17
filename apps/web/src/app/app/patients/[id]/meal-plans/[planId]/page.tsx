@@ -115,25 +115,25 @@ export default async function MealPlanEditorPage({ params }: Props) {
 
         <header className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-text-primary">
               {data.plan.name}
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-text-secondary">
               Paciente: {data.patient.fullName} • Status:{" "}
               <span className="font-medium">{data.plan.status}</span>
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-4 text-right shadow-sm">
+          <div className="rounded-lg border border-border-subtle bg-white p-4 text-right shadow-sm">
             <div className="text-2xl font-bold text-brand-primary tabular-nums">
               {totalKcal.toFixed(0)} kcal
             </div>
             {target && (
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-text-muted">
                 Meta: {target.toFixed(0)} kcal ({pctOfTarget}%)
               </div>
             )}
-            <div className="mt-2 text-xs text-slate-600 tabular-nums">
+            <div className="mt-2 text-xs text-text-secondary tabular-nums">
               PTN <strong>{totalProtein.toFixed(0)}g</strong> · CHO{" "}
               <strong>{totalCarb.toFixed(0)}g</strong> · LIP{" "}
               <strong>{totalFat.toFixed(0)}g</strong>

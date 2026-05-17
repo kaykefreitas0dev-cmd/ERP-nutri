@@ -78,10 +78,10 @@ export default async function AnthropometryPage({ params }: Props) {
         >
           ← Voltar para {data.patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold text-text-primary">
           Antropometria
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-text-secondary">
           Histórico de medições. Cálculos automáticos: IMC, GEB
           (Mifflin/Harris/FAO), %GC (Pollock).
         </p>
@@ -89,8 +89,8 @@ export default async function AnthropometryPage({ params }: Props) {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Form coluna 1-2 */}
           <div className="lg:col-span-2">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">
+            <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Nova medição
               </h2>
               <AnthropometryForm
@@ -103,11 +103,11 @@ export default async function AnthropometryPage({ params }: Props) {
 
           {/* Histórico coluna 3 */}
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-slate-900">
+            <h2 className="mb-3 text-sm font-semibold text-text-primary">
               Histórico ({data.records.length})
             </h2>
             {data.records.length === 0 ? (
-              <p className="rounded-md border border-dashed border-slate-300 p-4 text-center text-xs text-slate-500">
+              <p className="rounded-md border border-dashed border-border-default p-4 text-center text-xs text-text-muted">
                 Nenhuma medição registrada.
               </p>
             ) : (
@@ -115,12 +115,12 @@ export default async function AnthropometryPage({ params }: Props) {
                 {data.records.map((r) => (
                   <li
                     key={r.id}
-                    className="rounded-md border border-slate-200 bg-white p-3 text-xs"
+                    className="rounded-md border border-border-subtle bg-white p-3 text-xs"
                   >
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-text-primary">
                       {new Date(r.measuredAt).toLocaleDateString("pt-BR")}
                     </div>
-                    <dl className="mt-1 space-y-0.5 text-slate-600">
+                    <dl className="mt-1 space-y-0.5 text-text-secondary">
                       {r.weightKg && (
                         <div>
                           Peso:{" "}

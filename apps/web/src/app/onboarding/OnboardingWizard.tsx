@@ -73,12 +73,12 @@ export function OnboardingWizard({
         <h1 className="text-2xl font-bold text-brand-primary">
           Bem-vindo ao NutriCore
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-text-secondary">
           Vamos configurar sua conta em poucos passos
         </p>
 
         <div className="mx-auto mt-6 max-w-md">
-          <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
+          <div className="mb-2 flex items-center justify-between text-xs text-text-muted">
             <span>
               Etapa {step} de {totalSteps}
             </span>
@@ -89,7 +89,7 @@ export function OnboardingWizard({
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="h-2 overflow-hidden rounded-full bg-slate-200"
+            className="h-2 overflow-hidden rounded-full bg-bg-muted"
           >
             <div
               className="h-full bg-brand-primary transition-all duration-300"
@@ -108,7 +108,7 @@ export function OnboardingWizard({
         </div>
       )}
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-sm sm:p-8">
         {step === 1 && (
           <Step1Welcome
             email={userEmail}
@@ -178,10 +178,10 @@ function Step1Welcome({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">
+      <h2 className="text-xl font-semibold text-text-primary">
         Olá! Vamos começar.
       </h2>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-text-secondary">
         Vamos personalizar sua conta para começar a atender pacientes.
       </p>
 
@@ -196,10 +196,10 @@ function Step1Welcome({
           autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           placeholder="Ana Silva"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-text-muted">
           Aparecerá no prontuário e receitas. Conta: {email}
         </p>
       </div>
@@ -251,8 +251,10 @@ function Step2ProfessionalType({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">Como você atua?</h2>
-      <p className="mt-2 text-sm text-slate-600">
+      <h2 className="text-xl font-semibold text-text-primary">
+        Como você atua?
+      </h2>
+      <p className="mt-2 text-sm text-text-secondary">
         Vamos adaptar a experiência ao seu perfil.
       </p>
 
@@ -263,7 +265,7 @@ function Step2ProfessionalType({
             className={`flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${
               type === opt.value
                 ? "border-brand-primary bg-brand-primary-bg"
-                : "border-slate-300 hover:bg-slate-50"
+                : "border-border-default hover:bg-bg-subtle"
             }`}
           >
             <input
@@ -275,10 +277,10 @@ function Step2ProfessionalType({
               className="mt-1 h-4 w-4 text-brand-primary focus:ring-brand-primary"
             />
             <div>
-              <div className="text-sm font-medium text-slate-900">
+              <div className="text-sm font-medium text-text-primary">
                 {opt.label}
               </div>
-              <div className="text-xs text-slate-600">{opt.desc}</div>
+              <div className="text-xs text-text-secondary">{opt.desc}</div>
             </div>
           </label>
         ))}
@@ -288,7 +290,7 @@ function Step2ProfessionalType({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-medium hover:bg-slate-50"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-border-default bg-white px-6 text-sm font-medium hover:bg-bg-subtle"
         >
           ← Voltar
         </button>
@@ -320,8 +322,10 @@ function Step3CRN({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">CRN (opcional)</h2>
-      <p className="mt-2 text-sm text-slate-600">
+      <h2 className="text-xl font-semibold text-text-primary">
+        CRN (opcional)
+      </h2>
+      <p className="mt-2 text-sm text-text-secondary">
         Aparecerá em receitas, atestados e encaminhamentos. Pode adicionar
         depois.
       </p>
@@ -335,7 +339,7 @@ function Step3CRN({
           type="text"
           value={crn}
           onChange={(e) => setCrn(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           placeholder="CRN-3/12345"
         />
       </div>
@@ -344,7 +348,7 @@ function Step3CRN({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-medium hover:bg-slate-50"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-border-default bg-white px-6 text-sm font-medium hover:bg-bg-subtle"
         >
           ← Voltar
         </button>
@@ -387,10 +391,10 @@ function Step4Organization({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">
+      <h2 className="text-xl font-semibold text-text-primary">
         Nome da sua clínica
       </h2>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-text-secondary">
         Para autônomo: pode ser seu nome profissional. Para clínica: o nome
         fantasia.
       </p>
@@ -406,7 +410,7 @@ function Step4Organization({
             required
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
             placeholder="Nutrição Ana Silva"
           />
         </div>
@@ -424,11 +428,11 @@ function Step4Organization({
               setSlug(slugify(e.target.value));
               setSlugTouched(true);
             }}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary font-mono"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary font-mono"
             placeholder="nutricao-ana-silva"
             pattern="[a-z0-9-]+"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-text-muted">
             Sua página pública será:{" "}
             <span className="font-mono">nutricore.app/c/{slug || "..."}</span>
           </p>
@@ -439,7 +443,7 @@ function Step4Organization({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-medium hover:bg-slate-50"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-border-default bg-white px-6 text-sm font-medium hover:bg-bg-subtle"
         >
           ← Voltar
         </button>
@@ -469,42 +473,42 @@ function Step5Confirm({
 }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-slate-900">
+      <h2 className="text-xl font-semibold text-text-primary">
         Confirmar e finalizar
       </h2>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-text-secondary">
         Revise os dados antes de criar sua organização.
       </p>
 
-      <div className="mt-6 rounded-md bg-slate-50 p-4 text-sm">
+      <div className="mt-6 rounded-md bg-bg-subtle p-4 text-sm">
         <dl className="space-y-2">
           <div className="flex justify-between">
-            <dt className="text-slate-600">Nome:</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="text-text-secondary">Nome:</dt>
+            <dd className="font-medium text-text-primary">
               {String(data.fullName ?? "—")}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-600">Tipo:</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="text-text-secondary">Tipo:</dt>
+            <dd className="font-medium text-text-primary">
               {String(data.professionalType ?? "—")}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-600">CRN:</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="text-text-secondary">CRN:</dt>
+            <dd className="font-medium text-text-primary">
               {String(data.crn || "Não informado")}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-600">Organização:</dt>
-            <dd className="font-medium text-slate-900">
+            <dt className="text-text-secondary">Organização:</dt>
+            <dd className="font-medium text-text-primary">
               {String(data.orgName ?? "—")}
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-600">Slug:</dt>
-            <dd className="font-mono text-slate-900">
+            <dt className="text-text-secondary">Slug:</dt>
+            <dd className="font-mono text-text-primary">
               {String(data.orgSlug ?? "—")}
             </dd>
           </div>
@@ -535,7 +539,7 @@ function Step5Confirm({
           value={String(data.orgSlug ?? "")}
         />
 
-        <label className="flex items-start gap-2 text-sm text-slate-700">
+        <label className="flex items-start gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             name="acceptedTerms"
@@ -567,7 +571,7 @@ function Step5Confirm({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-6 text-sm font-medium hover:bg-slate-50"
+            className="inline-flex h-11 items-center justify-center rounded-md border border-border-default bg-white px-6 text-sm font-medium hover:bg-bg-subtle"
           >
             ← Voltar
           </button>

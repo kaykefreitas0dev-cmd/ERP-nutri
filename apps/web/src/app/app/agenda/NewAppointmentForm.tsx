@@ -40,8 +40,8 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Nova consulta</h2>
+    <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-text-primary">Nova consulta</h2>
 
       {error && (
         <div
@@ -69,7 +69,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
             type="datetime-local"
             required
             defaultValue={defaultDateTime}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           />
         </div>
 
@@ -84,7 +84,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
             id="durationMinutes"
             name="durationMinutes"
             defaultValue="60"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           >
             <option value="30">30 minutos</option>
             <option value="45">45 minutos</option>
@@ -103,7 +103,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               className={`rounded-md px-2 py-1 ${
                 patientMode === "existing"
                   ? "bg-brand-primary text-white"
-                  : "border border-slate-300 bg-white"
+                  : "border border-border-default bg-white"
               }`}
             >
               Existente
@@ -114,7 +114,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               className={`rounded-md px-2 py-1 ${
                 patientMode === "external"
                   ? "bg-brand-primary text-white"
-                  : "border border-slate-300 bg-white"
+                  : "border border-border-default bg-white"
               }`}
             >
               Externo (avulso)
@@ -127,7 +127,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               name="patientId"
               required={patientMode === "existing"}
               defaultValue=""
-              className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="mt-2 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
             >
               <option value="" disabled>
                 Selecione…
@@ -146,19 +146,19 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
                 type="text"
                 required={patientMode === "external"}
                 placeholder="Nome completo"
-                className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="externalPatientEmail"
                 type="email"
                 placeholder="Email (opcional)"
-                className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
               <input
                 name="externalPatientPhone"
                 type="tel"
                 placeholder="Telefone (opcional)"
-                className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -172,7 +172,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
             id="modality"
             name="modality"
             defaultValue="in_person"
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           >
             <option value="in_person">📍 Presencial</option>
             <option value="video">📹 Videochamada</option>
@@ -188,7 +188,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
             id="notes"
             name="notes"
             rows={2}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
           />
         </div>
 
@@ -200,7 +200,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
           {pending ? "Agendando…" : "Agendar"}
         </button>
 
-        <p className="flex items-start gap-1.5 text-xs text-slate-500">
+        <p className="flex items-start gap-1.5 text-xs text-text-muted">
           <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
           Anti-overlap via Postgres EXCLUDE constraint — se houver conflito,
           retorna erro.

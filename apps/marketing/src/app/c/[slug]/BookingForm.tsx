@@ -128,7 +128,7 @@ export function BookingForm({
   return (
     <Card>
       <CardContent className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-text-primary">
           Agende sua consulta
         </h2>
 
@@ -142,7 +142,7 @@ export function BookingForm({
                     ? "bg-brand-primary text-white"
                     : isBeforeStep(s, step)
                       ? "bg-brand-100 text-brand-primary-hover"
-                      : "bg-slate-200 text-slate-500"
+                      : "bg-bg-muted text-text-muted"
                 }`}
               >
                 {i + 1}
@@ -154,7 +154,7 @@ export function BookingForm({
                     ? "Horário"
                     : "Dados"}
               </span>
-              {i < 2 && <span className="text-slate-300">→</span>}
+              {i < 2 && <span className="text-text-subtle">→</span>}
             </div>
           ))}
         </div>
@@ -171,7 +171,7 @@ export function BookingForm({
         <div className="mt-6">
           {step === "service" && (
             <div className="space-y-3">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-text-secondary">
                 Escolha o tipo de consulta:
               </p>
               {services.length === 0 ? (
@@ -187,15 +187,15 @@ export function BookingForm({
                       setSelectedService(s);
                       setStep("datetime");
                     }}
-                    className="block w-full rounded-md border border-slate-200 p-4 text-left transition-colors hover:border-brand-primary hover:bg-brand-primary-bg"
+                    className="block w-full rounded-md border border-border-subtle p-4 text-left transition-colors hover:border-brand-primary hover:bg-brand-primary-bg"
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-slate-900">
+                        <div className="font-medium text-text-primary">
                           {s.name}
                         </div>
                         {s.description && (
-                          <p className="mt-1 text-sm text-slate-600">
+                          <p className="mt-1 text-sm text-text-secondary">
                             {s.description}
                           </p>
                         )}
@@ -204,7 +204,7 @@ export function BookingForm({
                         <div className="text-sm font-medium text-brand-primary">
                           {formatPrice(s.priceCents)}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-text-muted">
                           {s.durationMinutes}min
                         </div>
                       </div>
@@ -225,7 +225,7 @@ export function BookingForm({
                 >
                   ← Trocar serviço
                 </button>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-text-muted">
                   {selectedService.name} ({selectedService.durationMinutes}min)
                 </span>
               </div>
@@ -248,7 +248,7 @@ export function BookingForm({
                     setSelectedDate(e.target.value);
                     setSelectedSlot("");
                   }}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
                 />
               </div>
 
@@ -258,7 +258,7 @@ export function BookingForm({
                     Horário disponível *
                   </span>
                   {loadingSlots ? (
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p className="mt-2 text-sm text-text-muted">
                       Buscando horários…
                     </p>
                   ) : availableSlots.length === 0 ? (
@@ -284,7 +284,7 @@ export function BookingForm({
                             className={`rounded-md border px-3 py-2 text-sm transition-colors ${
                               selectedSlot === slot
                                 ? "border-brand-primary bg-brand-primary text-white"
-                                : "border-slate-300 bg-white hover:border-brand-primary"
+                                : "border-border-default bg-white hover:border-brand-primary"
                             }`}
                           >
                             {label}
@@ -308,7 +308,7 @@ export function BookingForm({
                 >
                   ← Mudar horário
                 </button>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-text-muted">
                   {selectedService.name} •{" "}
                   {new Date(selectedSlot).toLocaleString("pt-BR")}
                 </span>
@@ -327,7 +327,7 @@ export function BookingForm({
                   type="text"
                   required
                   autoComplete="name"
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
                 />
               </div>
 
@@ -344,7 +344,7 @@ export function BookingForm({
                   type="email"
                   required
                   autoComplete="email"
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
                 />
               </div>
 
@@ -360,7 +360,7 @@ export function BookingForm({
                   name="patientPhone"
                   type="tel"
                   autoComplete="tel"
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
                 />
               </div>
 
@@ -373,7 +373,7 @@ export function BookingForm({
                   name="notes"
                   rows={3}
                   placeholder="Conte um pouco do seu objetivo..."
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
                 />
               </div>
 
@@ -385,7 +385,7 @@ export function BookingForm({
                 {pending ? "Confirmando…" : "Confirmar agendamento"}
               </button>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-text-muted">
                 Ao confirmar você concorda com nossa{" "}
                 <a href="/privacidade" className="text-brand-primary underline">
                   política de privacidade

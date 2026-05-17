@@ -36,10 +36,10 @@ export function Faq() {
     <section id="faq" className="bg-white py-20">
       <Container size="md">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
             Perguntas frequentes
           </h2>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg text-text-secondary">
             Tirando dúvidas mais comuns. Ainda restou alguma?{" "}
             <a href="/contato" className="text-brand-primary underline">
               Fale com a gente
@@ -52,16 +52,16 @@ export function Faq() {
           {FAQ_ITEMS.map((item, idx) => (
             <details
               key={item.q}
-              className="group rounded-lg border border-slate-200 bg-white p-6 transition-colors hover:bg-slate-50"
+              className="group rounded-lg border border-border-subtle bg-white p-6 transition-colors hover:bg-bg-subtle"
               open={idx === 0}
             >
               <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
-                <h3 className="text-base font-semibold text-slate-900">
+                <h3 className="text-base font-semibold text-text-primary">
                   {item.q}
                 </h3>
                 <svg
                   aria-hidden
-                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-text-subtle transition-transform group-open:rotate-180"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -74,7 +74,7 @@ export function Faq() {
                   />
                 </svg>
               </summary>
-              <p className="mt-4 text-sm leading-relaxed text-slate-600">
+              <p className="mt-4 text-sm leading-relaxed text-text-secondary">
                 {item.a}
               </p>
             </details>

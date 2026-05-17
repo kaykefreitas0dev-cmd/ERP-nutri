@@ -13,17 +13,17 @@ export default function ContatoPage() {
   return (
     <>
       <SiteHeader />
-      <main className="bg-slate-50 py-16">
+      <main className="bg-bg-subtle py-16">
         <Container size="md">
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
               Fale com a gente
             </h1>
-            <p className="mt-3 text-lg text-slate-600">
+            <p className="mt-3 text-lg text-text-secondary">
               Suporte técnico, dúvidas comerciais ou parcerias. Respondemos em
               até 1 dia útil.
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-text-muted">
               Email direto:{" "}
               <a
                 href="mailto:suporte@nutricore.app"
@@ -34,10 +34,12 @@ export default function ContatoPage() {
             </p>
           </div>
 
-          <div className="mt-10 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mt-10 rounded-lg border border-border-subtle bg-white p-6 shadow-sm sm:p-8">
             <Suspense
               fallback={
-                <p className="text-sm text-slate-500">Carregando formulário…</p>
+                <p className="text-sm text-text-muted">
+                  Carregando formulário…
+                </p>
               }
             >
               <ContactForm />

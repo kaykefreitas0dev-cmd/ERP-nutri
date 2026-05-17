@@ -86,10 +86,10 @@ export default async function PatientDocumentsPage({ params }: Props) {
 
         <header className="mt-2 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-text-primary">
               Documentos clínicos
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-text-secondary">
               {data.docs.length} documento(s) — atestados, receitas,
               encaminhamentos
             </p>
@@ -104,11 +104,11 @@ export default async function PatientDocumentsPage({ params }: Props) {
 
         <div className="mt-6">
           {data.docs.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-              <p className="text-slate-600">
+            <div className="rounded-lg border border-dashed border-border-default bg-white p-12 text-center">
+              <p className="text-text-secondary">
                 Nenhum documento clínico emitido ainda.
               </p>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-text-muted">
                 Crie atestados, receitas de suplemento e encaminhamentos com
                 CID-10 e assinatura.
               </p>
@@ -118,7 +118,7 @@ export default async function PatientDocumentsPage({ params }: Props) {
               {data.docs.map((d) => (
                 <li
                   key={d.id}
-                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                  className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -132,18 +132,18 @@ export default async function PatientDocumentsPage({ params }: Props) {
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                             STATUS_STYLE[d.status] ??
-                            "bg-slate-200 text-slate-600"
+                            "bg-bg-muted text-text-secondary"
                           }`}
                         >
                           {d.status}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-600">
+                      <p className="mt-1 text-xs text-text-secondary">
                         📄 {TYPE_LABELS[d.documentType] ?? d.documentType} •
                         Emissor: {d.issuerName}
                         {d.issuerCrn && ` (CRN ${d.issuerCrn})`}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">
+                      <p className="mt-0.5 text-xs text-text-muted">
                         {d.issuedAt ? (
                           <>
                             Emitido em{" "}
@@ -172,7 +172,7 @@ export default async function PatientDocumentsPage({ params }: Props) {
                       href={`/api/v1/documents/${d.id}/pdf`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
+                      className="shrink-0 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs font-medium hover:bg-bg-subtle"
                     >
                       📥 PDF
                     </a>
