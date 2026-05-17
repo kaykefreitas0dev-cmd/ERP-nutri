@@ -28,8 +28,16 @@ export default async function PatientDetailPage({ params }: Props) {
     status: string;
     createdAt: Date;
     updatedAt: Date;
-    allergies: Array<{ id: string; severity: string; allergen: { name: string; slug: string } }>;
-    clinicalConditions: Array<{ id: string; conditionName: string; severity: string | null }>;
+    allergies: Array<{
+      id: string;
+      severity: string;
+      allergen: { name: string; slug: string };
+    }>;
+    clinicalConditions: Array<{
+      id: string;
+      conditionName: string;
+      severity: string | null;
+    }>;
   } | null = null;
 
   try {
@@ -37,7 +45,9 @@ export default async function PatientDetailPage({ params }: Props) {
       const p = await tx.patient.findFirst({
         where: { id },
         include: {
-          allergies: { include: { allergen: { select: { name: true, slug: true } } } },
+          allergies: {
+            include: { allergen: { select: { name: true, slug: true } } },
+          },
           clinicalConditions: { orderBy: { createdAt: "desc" } },
         },
       });
@@ -89,29 +99,49 @@ export default async function PatientDetailPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-5xl">
-        <Link href="/app/patients" className="text-sm text-teal-700 hover:underline">
+        <Link
+          href="/app/patients"
+          className="text-sm text-teal-700 hover:underline"
+        >
           ← Pacientes
         </Link>
 
         <header className="mt-2 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">{patient.fullName}</h1>
+            <h1 className="text-2xl font-bold text-slate-900">
+              {patient.fullName}
+            </h1>
             {patient.preferredName && (
               <p className="text-sm text-slate-600">
-                Prefere: <span className="font-medium">{patient.preferredName}</span>
+                Prefere:{" "}
+                <span className="font-medium">{patient.preferredName}</span>
               </p>
             )}
             <p className="mt-1 text-sm text-slate-500">
-              {calcAge(patient.birthDate)} • {patient.biologicalSex ?? "—"} • Cliente desde{" "}
-              {formatDate(patient.createdAt)}
+              {calcAge(patient.birthDate)} • {patient.biologicalSex ?? "—"} •
+              Cliente desde {formatDate(patient.createdAt)}
             </p>
           </div>
-          <Link
-            href={`/app/patients/${patient.id}/edit`}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
-          >
-            ✏️ Editar
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/app/patients/${patient.id}/meal-plans`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+            >
+              🍽️ Planos
+            </Link>
+            <Link
+              href={`/app/patients/${patient.id}/documents`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+            >
+              📄 Documentos
+            </Link>
+            <Link
+              href={`/app/patients/${patient.id}/edit`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+            >
+              ✏️ Editar
+            </Link>
+          </div>
         </header>
 
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -135,7 +165,9 @@ export default async function PatientDetailPage({ params }: Props) {
                 <div>
                   <dt className="text-xs text-slate-500">Cidade</dt>
                   <dd>
-                    {patient.city ? `${patient.city}${patient.state ? `/${patient.state}` : ""}` : "—"}
+                    {patient.city
+                      ? `${patient.city}${patient.state ? `/${patient.state}` : ""}`
+                      : "—"}
                   </dd>
                 </div>
                 <div>
@@ -150,7 +182,9 @@ export default async function PatientDetailPage({ params }: Props) {
                 Alergias ({patient.allergies.length})
               </h2>
               {patient.allergies.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-500">Sem alergias registradas.</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  Sem alergias registradas.
+                </p>
               ) : (
                 <ul className="mt-2 space-y-1 text-sm">
                   {patient.allergies.map((a) => (
@@ -166,7 +200,9 @@ export default async function PatientDetailPage({ params }: Props) {
                         aria-hidden
                       />
                       <span>{a.allergen.name}</span>
-                      <span className="text-xs text-slate-500">({a.severity})</span>
+                      <span className="text-xs text-slate-500">
+                        ({a.severity})
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -178,7 +214,9 @@ export default async function PatientDetailPage({ params }: Props) {
                 Condições clínicas ({patient.clinicalConditions.length})
               </h2>
               {patient.clinicalConditions.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-500">Nenhuma registrada.</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  Nenhuma registrada.
+                </p>
               ) : (
                 <ul className="mt-2 space-y-1 text-sm">
                   {patient.clinicalConditions.map((c) => (
