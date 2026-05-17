@@ -34,8 +34,19 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        # Prisma 7 gera .ts files que são gitignored — gerar antes do turbo
+        run: pnpm --filter @nutricore/db exec prisma generate
+
       - name: Lint + Typecheck + Test + Build (Turbo)
         run: pnpm turbo run lint typecheck test build
+        env:
+          # Stubs para CI — testes que precisam DB real são skipped automaticamente
+          # (multi-tenant-isolation.spec.ts checa process.env.DATABASE_URL com HAS_DB)
+          NEXT_PUBLIC_SUPABASE_URL: https://stub.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: stub-anon-key-for-build-only
+          NEXT_PUBLIC_SANITY_PROJECT_ID: stub
+          NEXT_PUBLIC_SANITY_DATASET: production
 
       - name: Semgrep SAST (built-in + NutriCore custom)
         uses: returntocorp/semgrep-action@v1
