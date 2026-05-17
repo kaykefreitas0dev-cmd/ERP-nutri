@@ -1,0 +1,40 @@
+[
+  {
+    "source": "dietbox",
+    "entityType": "patient",
+    "name": "Dietbox - Pacientes (CSV padrão)",
+    "columnMapping": {
+      "Nome": "fullName",
+      "Email": "email",
+      "Telefone": "phone",
+      "WhatsApp": "phone",
+      "CPF": "cpf",
+      "Data de nascimento": "birthDate",
+      "Sexo": "biologicalSex",
+      "Cidade": "city",
+      "UF": "state",
+      "Profissão": "occupation"
+    }
+  },
+  {
+    "source": "webdiet",
+    "entityType": "patient",
+    "name": "Webdiet - Pacientes (CSV padrão)",
+    "columnMapping": {
+      "nome_completo": "fullName",
+      "email_paciente": "email",
+      "telefone_celular": "phone",
+      "cpf_paciente": "cpf",
+      "data_nascimento": "birthDate",
+      "sexo_biologico": "biologicalSex",
+      "cidade": "city",
+      "estado": "state"
+    }
+  },
+  {
+    "source": "custom_csv",
+    "entityType": "patient",
+    "name": "CSV Genérico - Mapeamento manual",
+    "columnMapping": {}
+  }
+]
