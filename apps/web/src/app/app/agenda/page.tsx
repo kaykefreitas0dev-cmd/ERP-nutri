@@ -27,6 +27,7 @@ export default async function AgendaPage({ searchParams }: Props) {
       endsAt: Date;
       status: string;
       modality: string;
+      patientId: string | null;
       patientName: string | null;
       externalPatientName: string | null;
       notes: string | null;
@@ -65,13 +66,18 @@ export default async function AgendaPage({ searchParams }: Props) {
       });
 
       const patientMap = new Map<string, string>(
-        patients.map((p: { id: string; fullName: string }) => [p.id, p.fullName]),
+        patients.map((p: { id: string; fullName: string }) => [
+          p.id,
+          p.fullName,
+        ]),
       );
 
       const enriched = appointments.map(
-        (a: typeof appointments[number] & { patientId: string | null }) => ({
+        (a: (typeof appointments)[number] & { patientId: string | null }) => ({
           ...a,
-          patientName: a.patientId ? patientMap.get(a.patientId) ?? null : null,
+          patientName: a.patientId
+            ? (patientMap.get(a.patientId) ?? null)
+            : null,
         }),
       );
 
@@ -149,7 +155,10 @@ export default async function AgendaPage({ searchParams }: Props) {
             <AppointmentList appointments={data.appointments} />
           </div>
           <div>
-            <NewAppointmentForm patients={data.patients} defaultDate={targetDate} />
+            <NewAppointmentForm
+              patients={data.patients}
+              defaultDate={targetDate}
+            />
           </div>
         </div>
       </div>
