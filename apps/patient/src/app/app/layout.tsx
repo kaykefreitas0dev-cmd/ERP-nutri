@@ -39,24 +39,31 @@ export default async function AppLayout({
         <div className="mx-auto flex max-w-3xl justify-around text-xs">
           <Link
             href="/app"
-            className="flex flex-col items-center gap-1 rounded-md px-4 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">🏠</span>
             <span>Início</span>
           </Link>
           <Link
+            href="/app/checkin"
+            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
+          >
+            <span className="text-xl">✅</span>
+            <span>Check-in</span>
+          </Link>
+          <Link
             href="/app/meu-plano"
-            className="flex flex-col items-center gap-1 rounded-md px-4 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">🍽️</span>
-            <span>Meu plano</span>
+            <span>Plano</span>
           </Link>
           <Link
             href="/app/documentos"
-            className="flex flex-col items-center gap-1 rounded-md px-4 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">📄</span>
-            <span>Documentos</span>
+            <span>Docs</span>
           </Link>
         </div>
       </nav>
