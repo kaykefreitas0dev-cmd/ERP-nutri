@@ -7,7 +7,10 @@ export const metadata = { title: "Consultas — NutriCore" };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   SCHEDULED: { label: "Agendada", color: "bg-blue-100 text-blue-800" },
-  CONFIRMED: { label: "Confirmada", color: "bg-teal-100 text-teal-800" },
+  CONFIRMED: {
+    label: "Confirmada",
+    color: "bg-brand-100 text-brand-primary-hover",
+  },
   CHECKED_IN: { label: "Em andamento", color: "bg-purple-100 text-purple-800" },
   COMPLETED: { label: "Realizada", color: "bg-green-100 text-green-800" },
   CANCELLED: { label: "Cancelada", color: "bg-slate-200 text-slate-600" },

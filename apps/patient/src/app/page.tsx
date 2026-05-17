@@ -16,7 +16,7 @@ export default async function HomePage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="bg-teal-700 px-5 py-4 text-white shadow-sm">
+      <header className="bg-brand-primary px-5 py-4 text-white shadow-sm">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-xl font-bold">NutriCore</h1>
           <p className="text-xs opacity-90">Seu acompanhamento nutricional</p>
@@ -34,7 +34,7 @@ export default async function HomePage() {
           <div className="mt-8 space-y-3">
             <Link
               href="/login"
-              className="inline-flex h-12 w-full items-center justify-center rounded-md bg-teal-700 px-6 text-base font-semibold text-white hover:bg-teal-800"
+              className="inline-flex h-12 w-full items-center justify-center rounded-md bg-brand-primary px-6 text-base font-semibold text-white hover:bg-brand-primary-hover"
             >
               📧 Entrar com email
             </Link>

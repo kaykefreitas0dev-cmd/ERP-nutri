@@ -175,7 +175,7 @@ export function ImportWizard() {
             type="file"
             accept=".csv,text/csv"
             required
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-teal-700 file:px-3 file:py-1 file:text-xs file:text-white"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand-primary file:px-3 file:py-1 file:text-xs file:text-white"
           />
           <p className="mt-1 text-xs text-slate-500">
             Até 10MB. UTF-8 ou Latin-1.
@@ -185,7 +185,7 @@ export function ImportWizard() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Analisando…" : "Próximo →"}
         </button>
@@ -210,15 +210,15 @@ export function ImportWizard() {
         )}
 
         {templates.length > 0 && (
-          <div className="rounded-md bg-teal-50 p-3 text-sm">
-            <p className="font-medium text-teal-900">Templates disponíveis:</p>
+          <div className="rounded-md bg-brand-primary-bg p-3 text-sm">
+            <p className="font-medium text-brand-800">Templates disponíveis:</p>
             <div className="mt-1 flex flex-wrap gap-2">
               {templates.map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => applyTemplate(t.id)}
-                  className="rounded-full bg-white px-3 py-1 text-xs font-medium text-teal-700 ring-1 ring-teal-300 hover:bg-teal-100"
+                  className="rounded-full bg-white px-3 py-1 text-xs font-medium text-brand-primary ring-1 ring-brand-300 hover:bg-brand-100"
                 >
                   {t.name}
                 </button>
@@ -280,7 +280,7 @@ export function ImportWizard() {
             type="button"
             disabled={pending}
             onClick={handleConfirm}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             Importar {totalRows} pacientes
           </button>
@@ -292,7 +292,7 @@ export function ImportWizard() {
   if (step === "processing") {
     return (
       <div className="py-12 text-center">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-teal-300 border-t-teal-700" />
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand-300 border-t-brand-primary" />
         <p className="mt-4 text-sm text-slate-600">
           Importando {totalRows} pacientes…
         </p>
@@ -327,7 +327,7 @@ export function ImportWizard() {
         <button
           type="button"
           onClick={() => router.push("/app/patients")}
-          className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800"
+          className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover"
         >
           Ver pacientes →
         </button>

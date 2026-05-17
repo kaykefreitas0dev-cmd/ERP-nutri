@@ -31,7 +31,7 @@ export default async function AppLayout({
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-slate-200 bg-white px-5 py-3 shadow-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <Link href="/app" className="text-lg font-bold text-teal-700">
+          <Link href="/app" className="text-lg font-bold text-brand-primary">
             NutriCore
           </Link>
           <div className="flex items-center gap-3 text-xs">

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Users,
@@ -10,16 +9,20 @@ import {
   Salad,
   Download,
   Settings,
-  type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
 import { WelcomeTour } from "./WelcomeTour";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard — NutriCore" };
 
-function brMoney(cents: number): string {
-  return `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 5) return "Boa madrugada";
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
 }
 
 export default async function AppDashboard() {
@@ -136,173 +139,160 @@ export default async function AppDashboard() {
 
   if (!data) return null;
 
+  const totalAppts =
+    data.counts.apptsToday +
+    (data.counts.apptsThisWeek - data.counts.apptsToday);
+
   return (
     <main className="px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-6xl">
+        {/* Hero header — saudação contextual + org info */}
         <header className="mb-6">
           <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Organização ativa
+            {greeting()}
           </p>
-          <h1 className="text-display font-semibold tracking-tight text-text-primary">
+          <h1 className="mt-1 text-display font-semibold tracking-tight text-text-primary">
             {data.org.name}
           </h1>
           <p className="mt-2 text-caption text-text-secondary">
-            Plano:{" "}
-            <span className="font-medium text-text-primary">
-              {data.org.plan}
+            Você tem{" "}
+            <span className="font-medium text-text-primary tabular-nums">
+              {data.counts.apptsToday}
             </span>{" "}
-            · Status:{" "}
-            <span className="font-medium text-text-primary">
-              {data.org.subscriptionStatus}
-            </span>{" "}
-            · Role:{" "}
-            <span className="font-medium text-text-primary">{data.role}</span>
+            consulta{data.counts.apptsToday !== 1 ? "s" : ""} hoje
+            {data.counts.mealPlansActive > 0 && (
+              <>
+                {" "}
+                e{" "}
+                <span className="font-medium text-text-primary tabular-nums">
+                  {data.counts.mealPlansActive}
+                </span>{" "}
+                plano{data.counts.mealPlansActive !== 1 ? "s ativos" : " ativo"}
+              </>
+            )}
+            .
           </p>
         </header>
 
         <WelcomeTour />
 
-        {/* KPIs */}
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <KpiCard
-            href="/app/patients"
+        {/* KPIs — MetricCards animados */}
+        <section
+          aria-label="Métricas principais"
+          className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6"
+        >
+          <MetricCard
             label="Pacientes ativos"
-            value={data.counts.activePatients.toString()}
+            value={data.counts.activePatients}
             Icon={Users}
+            href="/app/patients"
+            sub={data.counts.activePatients === 1 ? "1 ativo" : "total ativos"}
           />
-          <KpiCard
-            href="/app/agenda"
+          <MetricCard
             label="Consultas hoje"
-            value={data.counts.apptsToday.toString()}
+            value={data.counts.apptsToday}
             Icon={Calendar}
-          />
-          <KpiCard
             href="/app/agenda"
+            sub="agendadas hoje"
+          />
+          <MetricCard
             label="Consultas semana"
-            value={data.counts.apptsThisWeek.toString()}
+            value={data.counts.apptsThisWeek}
             Icon={CalendarDays}
-          />
-          <KpiCard
-            href="/app/patients"
-            label="Planos ativos"
-            value={data.counts.mealPlansActive.toString()}
-            Icon={Utensils}
-          />
-          <KpiCard
-            href="/app/financeiro"
-            label="Receita do mês"
-            value={brMoney(data.counts.paymentsThisMonth.totalCents)}
-            Icon={Wallet}
-            sub={`${data.counts.paymentsThisMonth.count} pagamento(s)`}
-          />
-          <KpiCard
-            href="/app/patients"
-            label="Docs do mês"
-            value={data.counts.docsThisMonth.toString()}
-            Icon={FileText}
-          />
-        </section>
-
-        {/* Nav cards */}
-        <section className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <NavCard
-            href="/app/patients"
-            title="Pacientes"
-            description="Cadastro, anamnese, planos, check-ins, documentos."
-            Icon={Users}
-          />
-          <NavCard
             href="/app/agenda"
-            title="Agenda"
-            description="Consultas, check-in, conclusão com recibo."
-            Icon={Calendar}
+            sub={`${totalAppts >= data.counts.apptsThisWeek ? "" : "+ extras"}`}
           />
-          <NavCard
-            href="/app/financeiro"
-            title="Financeiro"
-            description="Pagamentos registrados, faturamento por mês."
+          <MetricCard
+            label="Planos ativos"
+            value={data.counts.mealPlansActive}
+            Icon={Utensils}
+            href="/app/patients"
+            sub="em andamento"
+          />
+          <MetricCard
+            label="Receita do mês"
+            prefix="R$"
+            value={data.counts.paymentsThisMonth.totalCents / 100}
+            decimals={2}
             Icon={Wallet}
+            href="/app/financeiro"
+            sub={`${data.counts.paymentsThisMonth.count} pagamento${data.counts.paymentsThisMonth.count !== 1 ? "s" : ""}`}
           />
-          <NavCard
-            href="/app/alimentos"
-            title="Alimentos & Receitas"
-            description="Biblioteca TACO/POF + receitas próprias."
-            Icon={Salad}
-          />
-          <NavCard
-            href="/app/imports"
-            title="Importar pacientes"
-            description="Migrar de Dietbox, Webdiet ou CSV genérico."
-            Icon={Download}
-          />
-          <NavCard
-            href="/app/settings"
-            title="Configurações"
-            description="Branding (logo, cores), nome no email, dados da org."
-            Icon={Settings}
+          <MetricCard
+            label="Docs do mês"
+            value={data.counts.docsThisMonth}
+            Icon={FileText}
+            href="/app/patients"
+            sub="emitidos no mês"
           />
         </section>
 
-        <form action="/api/auth/signout" method="POST" className="mt-8">
-          <button
-            type="submit"
-            className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-bg-surface px-4 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover"
-          >
-            Sair
-          </button>
-        </form>
+        {/* Nav cards — seções principais */}
+        <section aria-label="Atalhos" className="mt-10">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-h2 font-semibold text-text-primary">Atalhos</h2>
+            <p className="text-caption text-text-muted">
+              Pressione{" "}
+              <kbd className="rounded border border-border-subtle bg-bg-muted px-1.5 py-0.5 font-mono text-tiny font-medium text-text-secondary">
+                ⌘K
+              </kbd>{" "}
+              para busca rápida
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <NavCard
+              href="/app/patients"
+              title="Pacientes"
+              description="Cadastro, anamnese, planos, check-ins, documentos."
+              Icon={Users}
+            />
+            <NavCard
+              href="/app/agenda"
+              title="Agenda"
+              description="Consultas, check-in, conclusão com recibo."
+              Icon={Calendar}
+            />
+            <NavCard
+              href="/app/financeiro"
+              title="Financeiro"
+              description="Pagamentos registrados, faturamento por mês."
+              Icon={Wallet}
+            />
+            <NavCard
+              href="/app/alimentos"
+              title="Alimentos & Receitas"
+              description="Biblioteca TACO/POF + receitas próprias."
+              Icon={Salad}
+            />
+            <NavCard
+              href="/app/imports"
+              title="Importar pacientes"
+              description="Migrar de Dietbox, Webdiet ou CSV genérico."
+              Icon={Download}
+            />
+            <NavCard
+              href="/app/settings"
+              title="Configurações"
+              description="Branding, nome no email, dados da org."
+              Icon={Settings}
+            />
+          </div>
+        </section>
+
+        {/* Status meta — plano + role (footer sutil) */}
+        <p className="mt-10 text-tiny text-text-muted">
+          Plano:{" "}
+          <span className="font-medium text-text-secondary">
+            {data.org.plan}
+          </span>{" "}
+          · Status:{" "}
+          <span className="font-medium text-text-secondary">
+            {data.org.subscriptionStatus}
+          </span>{" "}
+          · Sua role:{" "}
+          <span className="font-medium text-text-secondary">{data.role}</span>
+        </p>
       </div>
     </main>
-  );
-}
-
-function KpiCard({
-  href,
-  label,
-  value,
-  Icon,
-  sub,
-}: {
-  href: string;
-  label: string;
-  value: string;
-  Icon: LucideIcon;
-  sub?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-teal-400 hover:shadow-md"
-    >
-      <p className="flex items-center gap-1.5 text-xs text-slate-500">
-        <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
-        {label}
-      </p>
-      <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-[10px] text-slate-500">{sub}</p>}
-    </Link>
-  );
-}
-
-function NavCard({
-  href,
-  title,
-  description,
-  Icon,
-}: {
-  href: string;
-  title: string;
-  description: string;
-  Icon: LucideIcon;
-}) {
-  return (
-    <Link
-      href={href}
-      className="block rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-400 hover:shadow-md"
-    >
-      <Icon className="h-7 w-7 text-teal-600" strokeWidth={1.5} />
-      <h3 className="mt-2 font-semibold text-slate-900">{title}</h3>
-      <p className="mt-1 text-sm text-slate-600">{description}</p>
-    </Link>
   );
 }

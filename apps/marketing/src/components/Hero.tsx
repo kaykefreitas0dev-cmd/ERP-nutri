@@ -4,7 +4,7 @@ import { Badge } from "@repo/ui/badge";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-b from-teal-50 via-white to-white py-20 sm:py-28">
+    <section className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-b from-brand-primary-bg via-white to-white py-20 sm:py-28">
       <Container>
         <div className="mx-auto max-w-3xl text-center">
           <Badge variant="default" className="mb-6">
@@ -12,24 +12,26 @@ export function Hero() {
           </Badge>
 
           <h1 className="text-balance text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
-            Toda sua clínica de nutrição em <span className="text-teal-700">uma única plataforma</span>
+            Toda sua clínica de nutrição em{" "}
+            <span className="text-brand-primary">uma única plataforma</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-slate-600">
-            Agenda, prontuário, planos alimentares com custeio em R$, lembretes via WhatsApp e
-            app PWA do paciente. Pensado para o profissional autônomo e clínicas multi-profissionais.
+            Agenda, prontuário, planos alimentares com custeio em R$, lembretes
+            via WhatsApp e app PWA do paciente. Pensado para o profissional
+            autônomo e clínicas multi-profissionais.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/#precos"
-              className="inline-flex h-12 items-center justify-center rounded-md bg-teal-700 px-8 text-base font-medium text-white shadow-sm hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+              className="inline-flex h-12 items-center justify-center rounded-md bg-brand-primary px-8 text-base font-medium text-white shadow-sm hover:bg-brand-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
             >
               Começar grátis (14 dias)
             </Link>
             <Link
               href="/#funcionalidades"
-              className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-8 text-base font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-slate-300 bg-white px-8 text-base font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
             >
               Ver funcionalidades
             </Link>

@@ -15,7 +15,7 @@ export default async function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="bg-teal-700 px-5 py-4 text-white shadow-sm">
+      <header className="bg-brand-primary px-5 py-4 text-white shadow-sm">
         <div className="mx-auto max-w-md">
           <Link href="/" className="text-xl font-bold">
             NutriCore

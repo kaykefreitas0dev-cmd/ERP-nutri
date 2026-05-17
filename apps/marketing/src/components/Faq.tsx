@@ -41,7 +41,7 @@ export function Faq() {
           </h2>
           <p className="mt-4 text-lg text-slate-600">
             Tirando dúvidas mais comuns. Ainda restou alguma?{" "}
-            <a href="/contato" className="text-teal-700 underline">
+            <a href="/contato" className="text-brand-primary underline">
               Fale com a gente
             </a>
             .

@@ -74,7 +74,7 @@ export default async function AnthropometryPage({ params }: Props) {
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Voltar para {data.patient.fullName}
         </Link>

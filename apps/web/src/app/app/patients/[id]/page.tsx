@@ -124,7 +124,7 @@ export default async function PatientDetailPage({ params }: Props) {
       <div className="mx-auto max-w-5xl">
         <Link
           href="/app/patients"
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Pacientes
         </Link>

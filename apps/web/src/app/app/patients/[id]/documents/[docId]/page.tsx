@@ -91,7 +91,7 @@ export default async function ViewDocumentPage({ params }: Props) {
       <div className="mx-auto max-w-4xl">
         <Link
           href={`/app/patients/${id}/documents`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Documentos de {patient.fullName}
         </Link>
@@ -167,7 +167,9 @@ export default async function ViewDocumentPage({ params }: Props) {
                 <ul className="mt-2 space-y-1 text-xs">
                   {doc.cidCodes.map((c) => (
                     <li key={c.id}>
-                      <strong className="text-teal-700">{c.cid.code}</strong>{" "}
+                      <strong className="text-brand-primary">
+                        {c.cid.code}
+                      </strong>{" "}
                       {c.cid.description}
                     </li>
                   ))}

@@ -150,7 +150,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
                     onClick={() => setMethod(m.value)}
                     className={`flex flex-col items-center rounded-md border p-2 text-xs transition ${
                       method === m.value
-                        ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
+                        ? "border-brand-primary bg-brand-primary-bg ring-1 ring-brand-primary"
                         : "border-slate-300 bg-white hover:border-slate-400"
                     }`}
                   >

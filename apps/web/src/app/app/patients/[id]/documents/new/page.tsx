@@ -48,7 +48,7 @@ export default async function NewDocumentPage({ params }: Props) {
       <div className="mx-auto max-w-3xl">
         <Link
           href={`/app/patients/${id}/documents`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← Documentos de {data.patient.fullName}
         </Link>

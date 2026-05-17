@@ -7,7 +7,7 @@ export function SiteHeader() {
       <Container className="flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 text-xl font-bold text-teal-700"
+          className="flex items-center gap-2 text-xl font-bold text-brand-primary"
           aria-label="NutriCore - página inicial"
         >
           <svg
@@ -32,22 +32,22 @@ export function SiteHeader() {
           aria-label="Navegação principal"
           className="hidden items-center gap-6 text-sm font-medium text-slate-700 md:flex"
         >
-          <Link href="/#funcionalidades" className="hover:text-teal-700">
+          <Link href="/#funcionalidades" className="hover:text-brand-primary">
             Funcionalidades
           </Link>
-          <Link href="/para/nutri-solo" className="hover:text-teal-700">
+          <Link href="/para/nutri-solo" className="hover:text-brand-primary">
             Nutri autônomo
           </Link>
-          <Link href="/para/clinica" className="hover:text-teal-700">
+          <Link href="/para/clinica" className="hover:text-brand-primary">
             Clínicas
           </Link>
-          <Link href="/#precos" className="hover:text-teal-700">
+          <Link href="/#precos" className="hover:text-brand-primary">
             Preços
           </Link>
-          <Link href="/status" className="hover:text-teal-700">
+          <Link href="/status" className="hover:text-brand-primary">
             Status
           </Link>
-          <Link href="/contato" className="hover:text-teal-700">
+          <Link href="/contato" className="hover:text-brand-primary">
             Contato
           </Link>
         </nav>
@@ -55,13 +55,13 @@ export function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link
             href="https://erp-nutri-web.vercel.app/login"
-            className="hidden text-sm font-medium text-slate-700 hover:text-teal-700 sm:inline-block"
+            className="hidden text-sm font-medium text-slate-700 hover:text-brand-primary sm:inline-block"
           >
             Entrar
           </Link>
           <Link
             href="/#precos"
-            className="inline-flex h-9 items-center justify-center rounded-md bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             Começar grátis
           </Link>

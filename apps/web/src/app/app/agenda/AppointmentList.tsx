@@ -30,7 +30,10 @@ interface Props {
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   SCHEDULED: { label: "Agendado", color: "bg-blue-100 text-blue-800" },
-  CONFIRMED: { label: "Confirmado", color: "bg-teal-100 text-teal-800" },
+  CONFIRMED: {
+    label: "Confirmado",
+    color: "bg-brand-100 text-brand-primary-hover",
+  },
   CHECKED_IN: { label: "Check-in", color: "bg-purple-100 text-purple-800" },
   COMPLETED: { label: "Realizada", color: "bg-green-100 text-green-800" },
   CANCELLED: { label: "Cancelada", color: "bg-slate-200 text-slate-600" },
@@ -141,7 +144,7 @@ export function AppointmentList({ appointments }: Props) {
                       type="button"
                       onClick={() => updateStatus(apt.id, "CONFIRMED")}
                       disabled={pending && updatingId === apt.id}
-                      className="rounded-md bg-teal-700 px-3 py-1 text-xs font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+                      className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
                     >
                       Confirmar
                     </button>

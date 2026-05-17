@@ -195,7 +195,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
               onClick={() => handleTypeChange(opt.value)}
               className={`rounded-md border p-3 text-left text-sm transition ${
                 docType === opt.value
-                  ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
+                  ? "border-brand-primary bg-brand-primary-bg ring-1 ring-brand-primary"
                   : "border-slate-300 bg-white hover:border-slate-400"
               }`}
             >
@@ -281,14 +281,14 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
             {cidsSelected.map((c) => (
               <span
                 key={c.id}
-                className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2.5 py-1 text-xs font-medium text-teal-800"
+                className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-primary-hover"
               >
                 <strong>{c.code}</strong>
                 <span className="max-w-[200px] truncate">{c.description}</span>
                 <button
                   type="button"
                   onClick={() => removeCid(c.id)}
-                  className="ml-1 text-teal-600 hover:text-red-600"
+                  className="ml-1 text-brand-primary hover:text-red-600"
                   aria-label={`Remover CID ${c.code}`}
                 >
                   ×
@@ -315,7 +315,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
                 <button
                   type="button"
                   onClick={() => addCid(c)}
-                  className="block w-full rounded px-3 py-1.5 text-left text-xs hover:bg-teal-50"
+                  className="block w-full rounded px-3 py-1.5 text-left text-xs hover:bg-brand-primary-bg"
                 >
                   <strong>{c.code}</strong> — {c.description}
                 </button>
@@ -354,7 +354,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
         <button
           type="submit"
           disabled={pending || !title.trim() || body.trim().length < 5}
-          className="rounded-md bg-teal-700 px-5 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="rounded-md bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Salvando..." : "Salvar como rascunho"}
         </button>

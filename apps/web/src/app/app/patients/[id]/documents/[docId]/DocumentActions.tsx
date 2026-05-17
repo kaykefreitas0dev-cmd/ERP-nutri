@@ -64,7 +64,7 @@ export function DocumentActions({ documentId, status }: Props) {
             type="button"
             onClick={handleIssue}
             disabled={pending}
-            className="rounded-md bg-teal-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {pending ? "Assinando…" : "✍️ Assinar e emitir"}
           </button>

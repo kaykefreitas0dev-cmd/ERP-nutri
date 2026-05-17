@@ -139,9 +139,9 @@ export function BookingForm({
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                   step === s
-                    ? "bg-teal-700 text-white"
+                    ? "bg-brand-primary text-white"
                     : isBeforeStep(s, step)
-                      ? "bg-teal-100 text-teal-800"
+                      ? "bg-brand-100 text-brand-primary-hover"
                       : "bg-slate-200 text-slate-500"
                 }`}
               >
@@ -187,7 +187,7 @@ export function BookingForm({
                       setSelectedService(s);
                       setStep("datetime");
                     }}
-                    className="block w-full rounded-md border border-slate-200 p-4 text-left transition-colors hover:border-teal-500 hover:bg-teal-50"
+                    className="block w-full rounded-md border border-slate-200 p-4 text-left transition-colors hover:border-brand-primary hover:bg-brand-primary-bg"
                   >
                     <div className="flex items-start justify-between">
                       <div>
@@ -201,7 +201,7 @@ export function BookingForm({
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-teal-700">
+                        <div className="text-sm font-medium text-brand-primary">
                           {formatPrice(s.priceCents)}
                         </div>
                         <div className="text-xs text-slate-500">
@@ -221,7 +221,7 @@ export function BookingForm({
                 <button
                   type="button"
                   onClick={() => setStep("service")}
-                  className="text-sm text-teal-700 hover:underline"
+                  className="text-sm text-brand-primary hover:underline"
                 >
                   ← Trocar serviço
                 </button>
@@ -283,8 +283,8 @@ export function BookingForm({
                             }}
                             className={`rounded-md border px-3 py-2 text-sm transition-colors ${
                               selectedSlot === slot
-                                ? "border-teal-700 bg-teal-700 text-white"
-                                : "border-slate-300 bg-white hover:border-teal-500"
+                                ? "border-brand-primary bg-brand-primary text-white"
+                                : "border-slate-300 bg-white hover:border-brand-primary"
                             }`}
                           >
                             {label}
@@ -304,7 +304,7 @@ export function BookingForm({
                 <button
                   type="button"
                   onClick={() => setStep("datetime")}
-                  className="text-sm text-teal-700 hover:underline"
+                  className="text-sm text-brand-primary hover:underline"
                 >
                   ← Mudar horário
                 </button>
@@ -380,14 +380,14 @@ export function BookingForm({
               <button
                 type="submit"
                 disabled={pending}
-                className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+                className="w-full rounded-md bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
               >
                 {pending ? "Confirmando…" : "Confirmar agendamento"}
               </button>
 
               <p className="text-xs text-slate-500">
                 Ao confirmar você concorda com nossa{" "}
-                <a href="/privacidade" className="text-teal-700 underline">
+                <a href="/privacidade" className="text-brand-primary underline">
                   política de privacidade
                 </a>
                 .

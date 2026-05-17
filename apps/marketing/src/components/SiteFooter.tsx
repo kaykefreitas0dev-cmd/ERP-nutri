@@ -7,7 +7,7 @@ export function SiteFooter() {
       <Container>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 text-xl font-bold text-teal-700">
+            <div className="flex items-center gap-2 text-xl font-bold text-brand-primary">
               NutriCore
             </div>
             <p className="mt-2 text-sm text-slate-600">
@@ -19,17 +19,20 @@ export function SiteFooter() {
             <h3 className="text-sm font-semibold text-slate-900">Produto</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li>
-                <Link href="/#funcionalidades" className="hover:text-teal-700">
+                <Link
+                  href="/#funcionalidades"
+                  className="hover:text-brand-primary"
+                >
                   Funcionalidades
                 </Link>
               </li>
               <li>
-                <Link href="/#precos" className="hover:text-teal-700">
+                <Link href="/#precos" className="hover:text-brand-primary">
                   Preços
                 </Link>
               </li>
               <li>
-                <Link href="/status" className="hover:text-teal-700">
+                <Link href="/status" className="hover:text-brand-primary">
                   Status
                 </Link>
               </li>
@@ -40,14 +43,14 @@ export function SiteFooter() {
             <h3 className="text-sm font-semibold text-slate-900">Suporte</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li>
-                <Link href="/contato" className="hover:text-teal-700">
+                <Link href="/contato" className="hover:text-brand-primary">
                   Contato
                 </Link>
               </li>
               <li>
                 <a
                   href="mailto:suporte@nutricore.app"
-                  className="hover:text-teal-700"
+                  className="hover:text-brand-primary"
                 >
                   suporte@nutricore.app
                 </a>
@@ -59,17 +62,20 @@ export function SiteFooter() {
             <h3 className="text-sm font-semibold text-slate-900">Legal</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li>
-                <Link href="/privacidade" className="hover:text-teal-700">
+                <Link href="/privacidade" className="hover:text-brand-primary">
                   Privacidade (LGPD)
                 </Link>
               </li>
               <li>
-                <Link href="/termos" className="hover:text-teal-700">
+                <Link href="/termos" className="hover:text-brand-primary">
                   Termos de uso
                 </Link>
               </li>
               <li>
-                <Link href="/portabilidade" className="hover:text-teal-700">
+                <Link
+                  href="/portabilidade"
+                  className="hover:text-brand-primary"
+                >
                   Portabilidade & dados
                 </Link>
               </li>

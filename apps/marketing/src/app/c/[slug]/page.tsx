@@ -20,7 +20,13 @@ export async function generateMetadata({ params }: Props) {
   try {
     const bp = await prisma.bookingPage.findFirst({
       where: { slug, isPublished: true },
-      select: { displayName: true, bio: true, specialties: true, crn: true, crnUf: true },
+      select: {
+        displayName: true,
+        bio: true,
+        specialties: true,
+        crn: true,
+        crnUf: true,
+      },
     });
     if (!bp) return { title: "Profissional não encontrado" };
     return {
@@ -162,7 +168,7 @@ export default async function BookingPagePublic({ params }: Props) {
                   </div>
                 ) : (
                   <div
-                    className="flex h-24 w-24 items-center justify-center rounded-full bg-teal-100 text-3xl font-bold text-teal-700"
+                    className="flex h-24 w-24 items-center justify-center rounded-full bg-brand-100 text-3xl font-bold text-brand-primary"
                     aria-hidden
                   >
                     {data.bookingPage.displayName.charAt(0)}
@@ -213,7 +219,7 @@ export default async function BookingPagePublic({ params }: Props) {
               <CardContent className="p-6 text-center text-sm text-slate-600">
                 Esta profissional não está aceitando novos pacientes no momento.
                 <br />
-                <Link href="/" className="text-teal-700 underline">
+                <Link href="/" className="text-brand-primary underline">
                   Explore outros profissionais
                 </Link>
               </CardContent>

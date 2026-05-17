@@ -98,7 +98,7 @@ export default async function PatientHomePage({
         className={`mt-4 rounded-lg border p-4 ${
           todayCheckin
             ? "border-green-200 bg-green-50"
-            : "border-teal-300 bg-teal-50"
+            : "border-brand-300 bg-brand-primary-bg"
         }`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -123,7 +123,7 @@ export default async function PatientHomePage({
           </div>
           <Link
             href="/app/checkin"
-            className="shrink-0 rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+            className="shrink-0 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             {todayCheckin ? "Editar" : "Fazer check-in"}
           </Link>
@@ -150,7 +150,7 @@ export default async function PatientHomePage({
               <header className="border-b border-slate-100 pb-3">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <Hospital
-                    className="h-5 w-5 text-teal-600"
+                    className="h-5 w-5 text-brand-primary"
                     strokeWidth={1.75}
                   />
                   {p.organization.name}
@@ -176,7 +176,7 @@ export default async function PatientHomePage({
                       <li key={mp.id}>
                         <Link
                           href={`/app/meu-plano/${mp.id}`}
-                          className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm hover:border-teal-400 hover:bg-teal-50"
+                          className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm hover:border-brand-400 hover:bg-brand-primary-bg"
                         >
                           <div>
                             <p className="font-medium text-slate-800">

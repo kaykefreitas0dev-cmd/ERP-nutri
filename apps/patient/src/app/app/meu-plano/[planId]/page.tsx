@@ -83,7 +83,7 @@ export default async function PlanDetailPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-5 py-6">
       <Link
         href="/app/meu-plano"
-        className="text-sm text-teal-700 hover:underline"
+        className="text-sm text-brand-primary hover:underline"
       >
         ← Meus planos
       </Link>
@@ -91,21 +91,21 @@ export default async function PlanDetailPage({ params }: Props) {
       <header className="mt-2">
         <h1 className="text-2xl font-bold text-slate-900">{plan.name}</h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
-          <Hospital className="h-4 w-4 text-teal-600" strokeWidth={1.75} />
+          <Hospital className="h-4 w-4 text-brand-primary" strokeWidth={1.75} />
           {plan.patient.organization.name}
         </p>
       </header>
 
-      <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50 p-4">
-        <p className="text-2xl font-bold text-teal-700">
+      <div className="mt-4 rounded-lg border border-brand-200 bg-brand-primary-bg p-4">
+        <p className="text-2xl font-bold text-brand-primary">
           {totalKcal.toFixed(0)} kcal/dia
         </p>
         {target && (
-          <p className="text-xs text-teal-700">
+          <p className="text-xs text-brand-primary">
             Meta: {target.toFixed(0)} kcal ({pct}%)
           </p>
         )}
-        <p className="mt-2 text-xs text-teal-800">
+        <p className="mt-2 text-xs text-brand-primary-hover">
           PTN <strong>{totalP.toFixed(0)}g</strong> · CHO{" "}
           <strong>{totalC.toFixed(0)}g</strong> · LIP{" "}
           <strong>{totalF.toFixed(0)}g</strong>
@@ -135,7 +135,7 @@ export default async function PlanDetailPage({ params }: Props) {
                     <header className="flex items-center justify-between">
                       <h3 className="flex items-center gap-1.5 font-medium text-slate-900">
                         <Utensils
-                          className="h-3.5 w-3.5 text-teal-600"
+                          className="h-3.5 w-3.5 text-brand-primary"
                           strokeWidth={1.75}
                         />
                         {meal.name}

@@ -14,7 +14,9 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [protocol, setProtocol] = useState<"pollock_3" | "pollock_7" | "manual_bia">("pollock_3");
+  const [protocol, setProtocol] = useState<
+    "pollock_3" | "pollock_7" | "manual_bia"
+  >("pollock_3");
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -33,7 +35,10 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
   return (
     <form action={handleSubmit} className="mt-4 space-y-4">
       {error && (
-        <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+        <div
+          role="alert"
+          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+        >
           {error}
         </div>
       )}
@@ -48,7 +53,7 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
             name="measuredAt"
             type="datetime-local"
             defaultValue={new Date().toISOString().slice(0, 16)}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
@@ -69,7 +74,9 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
       </div>
 
       <fieldset>
-        <legend className="text-sm font-semibold text-slate-900">Medidas básicas</legend>
+        <legend className="text-sm font-semibold text-slate-900">
+          Medidas básicas
+        </legend>
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label htmlFor="weightKg" className="block text-xs font-medium">
@@ -103,7 +110,9 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm font-semibold text-slate-900">Circunferências (cm)</legend>
+        <legend className="text-sm font-semibold text-slate-900">
+          Circunferências (cm)
+        </legend>
         <div className="mt-2 grid grid-cols-3 gap-3">
           <input
             name="waist"
@@ -188,7 +197,9 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
 
       {protocol === "pollock_7" && (
         <fieldset>
-          <legend className="text-sm font-semibold text-slate-900">Dobras Pollock 7 (mm)</legend>
+          <legend className="text-sm font-semibold text-slate-900">
+            Dobras Pollock 7 (mm)
+          </legend>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {[
               ["chest", "Peitoral"],
@@ -214,10 +225,15 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
 
       {protocol === "manual_bia" && (
         <fieldset>
-          <legend className="text-sm font-semibold text-slate-900">Bioimpedância</legend>
+          <legend className="text-sm font-semibold text-slate-900">
+            Bioimpedância
+          </legend>
           <div className="mt-2 grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="biaBodyFatPct" className="block text-xs font-medium">
+              <label
+                htmlFor="biaBodyFatPct"
+                className="block text-xs font-medium"
+              >
                 %GC (BIA)
               </label>
               <input
@@ -231,7 +247,10 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
               />
             </div>
             <div>
-              <label htmlFor="biaLeanMassKg" className="block text-xs font-medium">
+              <label
+                htmlFor="biaLeanMassKg"
+                className="block text-xs font-medium"
+              >
                 Massa magra (kg)
               </label>
               <input
@@ -262,14 +281,14 @@ export function AnthropometryForm({ patientId, patientSex }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-11 items-center justify-center rounded-md bg-teal-700 px-6 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+        className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
       >
         {pending ? "Calculando + salvando…" : "Salvar medição"}
       </button>
 
       <p className="text-xs text-slate-500">
-        💡 IMC, GEB (Mifflin/Harris/FAO) e %GC (Pollock) são calculados automaticamente
-        usando idade + sexo do paciente.
+        💡 IMC, GEB (Mifflin/Harris/FAO) e %GC (Pollock) são calculados
+        automaticamente usando idade + sexo do paciente.
       </p>
     </form>
   );

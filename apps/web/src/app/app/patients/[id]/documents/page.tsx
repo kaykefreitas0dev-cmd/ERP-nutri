@@ -79,7 +79,7 @@ export default async function PatientDocumentsPage({ params }: Props) {
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-teal-700 hover:underline"
+          className="text-sm text-brand-primary hover:underline"
         >
           ← {data.patient.fullName}
         </Link>
@@ -96,7 +96,7 @@ export default async function PatientDocumentsPage({ params }: Props) {
           </div>
           <Link
             href={`/app/patients/${id}/documents/new`}
-            className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800"
+            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
           >
             + Novo documento
           </Link>
@@ -125,7 +125,7 @@ export default async function PatientDocumentsPage({ params }: Props) {
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/app/patients/${id}/documents/${d.id}`}
-                          className="text-base font-semibold text-teal-700 hover:underline truncate"
+                          className="text-base font-semibold text-brand-primary hover:underline truncate"
                         >
                           {d.title}
                         </Link>

@@ -102,7 +102,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               onClick={() => setPatientMode("existing")}
               className={`rounded-md px-2 py-1 ${
                 patientMode === "existing"
-                  ? "bg-teal-700 text-white"
+                  ? "bg-brand-primary text-white"
                   : "border border-slate-300 bg-white"
               }`}
             >
@@ -113,7 +113,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               onClick={() => setPatientMode("external")}
               className={`rounded-md px-2 py-1 ${
                 patientMode === "external"
-                  ? "bg-teal-700 text-white"
+                  ? "bg-brand-primary text-white"
                   : "border border-slate-300 bg-white"
               }`}
             >
@@ -195,7 +195,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+          className="w-full rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Agendando…" : "Agendar"}
         </button>
