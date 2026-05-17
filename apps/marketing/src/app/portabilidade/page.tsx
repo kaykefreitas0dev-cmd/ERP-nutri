@@ -197,8 +197,8 @@ export default function PortabilidadePage() {
               <div>
                 <dt className="font-semibold text-slate-900">Quem é o DPO?</dt>
                 <dd className="mt-1 text-sm text-slate-600">
-                  Contato direto pelo formulário em /contato, assunto "DPO /
-                  LGPD". Resposta em até 15 dias úteis (Art. 19, § 2º).
+                  Contato direto pelo formulário em /contato, assunto &ldquo;DPO
+                  / LGPD&rdquo;. Resposta em até 15 dias úteis (Art. 19, § 2º).
                 </dd>
               </div>
               <div>
