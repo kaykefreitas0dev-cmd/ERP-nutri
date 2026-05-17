@@ -4,6 +4,7 @@ import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ClinicalNotesSection } from "./ClinicalNotesSection";
 import { InvitePatientButton } from "./invites/InvitePatientButton";
 import { AnonymizeButton } from "./anonymize/AnonymizeButton";
+import { ExportDataButton } from "./export/ExportButton";
 
 export const dynamic = "force-dynamic";
 
@@ -324,10 +325,11 @@ export default async function PatientDetailPage({ params }: Props) {
                 Privacidade (LGPD)
               </h2>
               <p className="mt-2 text-xs text-slate-600">
-                Arquive para ocultar das listas. Anonimização é irreversível —
-                use só com solicitação documentada do titular (Art. 18).
+                Exporte (Art. 18 II — portabilidade), arquive ou anonimize (Art.
+                18 V — esquecimento, irreversível).
               </p>
-              <div className="mt-3">
+              <div className="mt-3 space-y-2">
+                <ExportDataButton patientId={patient.id} />
                 <AnonymizeButton
                   patientId={patient.id}
                   patientName={patient.fullName}
