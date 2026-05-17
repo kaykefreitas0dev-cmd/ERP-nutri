@@ -289,6 +289,48 @@ model SubscriptionStateEvent {
 }
 
 // =====================================================================
+// ONBOARDING (v11.2 Diff C.2 — wizard state DB-backed)
+// =====================================================================
+
+// Lock 6 — User-scoped (não tenant-aware): wizard pode ocorrer ANTES de criar org
+model OnboardingProgress {
+  userId          String   @id @map("user_id") @db.Uuid
+  currentStep     Int      @default(1) @map("current_step")
+  totalSteps      Int      @default(5) @map("total_steps")
+  data            Json     @default("{}") // {fullName, professionalType, crn, orgName, ...}
+  startedAt       DateTime @default(now()) @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  abandonedAt     DateTime? @map("abandoned_at")
+  organizationId  String?  @map("organization_id") @db.Uuid // preenchido ao completar
+
+  @@index([completedAt])
+  @@map("onboarding_progress")
+}
+
+// =====================================================================
+// CONTATO / SUPPORT (Marketing forms)
+// =====================================================================
+
+model ContactSubmission {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  source      String   @default("/contato") // pode ser /landing-specific, etc.
+  ipAddress   String?  @map("ip_address") @db.Inet
+  userAgent   String?  @map("user_agent")
+  emailSentAt DateTime? @map("email_sent_at")
+  status      String   @default("pending") // pending | sent | failed | spam
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@map("contact_submissions")
+}
+
+// =====================================================================
 // INFRA — Healthcheck + Monitoring
 // =====================================================================
 

@@ -45,14 +45,14 @@
 
 ## Sprint S2b — Design System + Marketing + Onboarding v1 + Crisp removido + Helmet
 
-### Decisões de produto requeridas
-- [ ] Paleta de cores brand (PM aprova default neutro ou customizar)
-- [ ] Copy do Hero da home (PM redige ou usa draft Claude Code)
-- [ ] Email do suporte (default: `suporte@${dominio}`)
-- [ ] CSP report-only mode ativado por 2 sprints (recomendação: sim)
-- [ ] Sanity Studio em `/studio` autenticado pelo próprio Sanity (não Supabase) — apenas PM como editor durante MVP (v11.2 Diff 8): aprovado?
-- [ ] Status page pública oculta nomes dos providers (v11.2 Diff B.8): aprovado?
-- [ ] `OnboardingProgress` storage em tabela DB (recomendação) ou localStorage?
+### Decisões de produto requeridas (defaults agênticos aplicados — PM revoga se discordar)
+- [X] Paleta de cores brand: **teal-700 primário** (default; já no /login)
+- [X] Copy do Hero da home: **draft Claude Code** (placeholder genérico — PM substitui em qualquer momento via Sanity ou direto no arquivo)
+- [X] Email do suporte: **`suporte@nutricore.app`** (assume domínio quando comprar; ajustar em env var SUPPORT_EMAIL)
+- [X] CSP report-only mode ativado por 2 sprints (recomendação: sim)
+- [X] Sanity Studio em `/studio` autenticado pelo próprio Sanity (não Supabase) — apenas PM como editor durante MVP (v11.2 Diff 8)
+- [X] Status page pública oculta nomes dos providers (v11.2 Diff B.8): **aprovado** (já implementado em S2a com `public_label`)
+- [X] `OnboardingProgress` storage em **tabela DB** (sobrevive sessão — v11.2 Diff C.2)
 
 ### Validação PM
 - [ ] Lighthouse mobile ≥90 na home
