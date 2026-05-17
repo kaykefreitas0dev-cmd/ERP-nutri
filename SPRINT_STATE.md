@@ -1,58 +1,55 @@
 # SPRINT_STATE
 
 current_sprint: S6
-status: ready
+status: gates_pending
 last_updated: 2026-05-17
-mode: autonomous (full agentic — PM autorizou auto-merge, ADR 0058)
+mode: autonomous (paused — S2a-S5 mergeados, S6 aguarda decisões PM)
 
 ---
 
-## Como funciona (ADR 0041 + ADR 0058)
+## Como funciona (ADR 0041)
 
-Claude Code lê este arquivo + `SPRINT_GATES.md` no início de cada sessão.
+Claude Code lê este arquivo + `SPRINT_GATES.md` no início de cada sessão. Se houver decisões pendentes na sprint atual marcada como `gates_pending`, recusa execução até PM marcar `[x]` em todas as decisões e atualizar `status: ready`.
 
-**ADR 0058 — Full Agentic Mode** (em vigor desde 2026-05-17):
-- Claude implementa + commita + abre PR + aguarda CI verde + resolve threads + **auto-mergeia**
-- PM foca em estratégia (decisões produto + bloqueios externos como Meta/AWS)
-- Sherlock review continua obrigatória pré-beta (label `needs-sherlock-review` aplicada automaticamente)
-- PM pode revogar a qualquer momento via PUT branch protection
+Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X]` em decisões com escolhas razoáveis e segue. PM revoga em qualquer momento.
 
 ---
 
-## Estado atual
+## Estado: 6 sprints completas na `main`
 
-| Sprint | Commit | PR | Status |
-|---|---|---|---|
-| S5 (ETL CSV) | `6e6af06` | #6 | MERGED |
-| S4 (Antropometria + Engine) | `8947860` | #5 | MERGED |
-| S3 (Patient + Encrypted Notes) | `ccd3f11` | #4 | MERGED |
-| S2b (Design + Marketing + Onboarding) | `48e7bd6` | #3 | MERGED |
-| S2a (Auth + RBAC + Tenant + Audit) | `3a9d896` | #2 | MERGED |
-| S1 (Bootstrap monorepo) | `9f4852e` | era #1 | MERGED |
+Histórico squash-merged consolidado:
 
-### S6 em andamento (Agenda + Calendar Sync)
+| Commit | Sprint | PR |
+|---|---|---|
+| `6e6af06` | S5 (ETL CSV import wizard) | #6 |
+| `8947860` | S4 (Antropometria + Engine nutricional) | #5 |
+| `ccd3f11` | S3 (Patient CRUD + Clinical Notes encrypted) | #4 |
+| `48e7bd6` | S2b (Design System + Marketing + Onboarding) | #3 |
+| `3a9d896` | S2a (Auth + RBAC + Tenant Guard + Audit + Healthcheck) | #2 |
+| `9f4852e` | S1 (Bootstrap monorepo) | #1 |
 
-Defaults aprovados via modo agêntico em SPRINT_GATES.md:
-- Calendar: Google Calendar API direto (zero custo recorrente)
-- UI: Schedule-X (free MIT)
-- Buffer time: 15min/15min, Min notice: 4h, Max advance: 60d
-- Conflict: first-write-wins via Postgres EXCLUDE GiST
-- Booking page: `/c/:slug` SEO público
+### Branch protection ativa
 
-### Branch protection (ADR 0058)
-- `required_approving_review_count: 0` ← agentic auto-merge
+- `required_approving_review_count: 1`
+- `enforce_admins: true`
 - `required_status_checks: validate + sherlock-required` (strict)
 - `required_linear_history: true`
 - `required_conversation_resolution: true`
-- `enforce_admins: true`
 - `allow_force_pushes: false`
+
+---
+
+## S6 (Agenda + Calendar Sync) — decisões pendentes
+
+Ver [SPRINT_GATES.md](SPRINT_GATES.md) seção S6 (a ser criada) + [docs/pm-required.md](docs/pm-required.md) decisões S6.
+
+**Quando autorizar:** marca `[X]` nas decisões S6 + atualiza `status: ready` aqui → modo agêntico retoma.
 
 ---
 
 ## Histórico
 
-- 2026-05-16 — S1 entregue (bootstrap monorepo + 3 apps + CI/CD).
-- 2026-05-17 (manhã) — S2a (Auth + RBAC + Tenant + Audit + Healthcheck + CF Worker).
-- 2026-05-17 (autônomo) — S2b/S3/S4/S5 entregues.
-- 2026-05-17 (tarde) — Merge cascade #2-#6; rotação service_role completa; branch protection restaurada.
-- 2026-05-17 (transição) — **ADR 0058 Full Agentic Mode aprovado**. PR #7 cleanup mergeado. Branch protection ajustada para `review_count=0`. S6 iniciada com defaults.
+- 2026-05-16 — S1 entregue (T1); bootstrap monorepo + 3 apps + CI/CD + branch protection.
+- 2026-05-17 (manhã) — S2a entregue; Auth + RBAC + Tenant Guard + Audit hash chain + Healthcheck + Status page + CF Worker; Supabase provisionado.
+- 2026-05-17 (autônomo) — S2b/S3/S4/S5 entregues; 5 PRs encadeados; 12 migrations SQL + 30 testes engine.
+- 2026-05-17 (tarde) — **Merge cascade completo** (PRs #2-#6); rotação service_role (sb_secret_*); branch protection restaurada.
