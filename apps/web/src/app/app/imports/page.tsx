@@ -36,20 +36,24 @@ export default async function ImportsPage() {
       });
     });
   } catch (err) {
-    if (err instanceof ActionTenantError && err.code === "NO_ORG") redirect("/onboarding");
+    if (err instanceof ActionTenantError && err.code === "NO_ORG")
+      redirect("/onboarding");
     throw err;
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-6">
           <Link href="/app" className="text-sm text-teal-700 hover:underline">
             ← Dashboard
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Importar pacientes</h1>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">
+            Importar pacientes
+          </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Migre seus pacientes de outros sistemas (Dietbox, Webdiet) ou via CSV genérico.
+            Migre seus pacientes de outros sistemas (Dietbox, Webdiet) ou via
+            CSV genérico.
           </p>
         </header>
 
@@ -61,7 +65,9 @@ export default async function ImportsPage() {
           </div>
 
           <aside>
-            <h2 className="text-sm font-semibold text-slate-900">Importações recentes</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Importações recentes
+            </h2>
             {imports.length === 0 ? (
               <p className="mt-3 rounded-md border border-dashed border-slate-300 p-3 text-xs text-slate-500">
                 Nenhuma importação ainda.

@@ -5,16 +5,21 @@ export const metadata = { title: "Novo paciente" };
 
 export default function NewPatientPage() {
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-3xl">
         <header className="mb-6">
-          <Link href="/app/patients" className="text-sm text-teal-700 hover:underline">
+          <Link
+            href="/app/patients"
+            className="text-sm text-teal-700 hover:underline"
+          >
             ← Voltar para Pacientes
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Novo paciente</h1>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">
+            Novo paciente
+          </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Apenas dados básicos. Anamnese completa, antropometria e exames podem ser
-            adicionados depois.
+            Apenas dados básicos. Anamnese completa, antropometria e exames
+            podem ser adicionados depois.
           </p>
         </header>
 

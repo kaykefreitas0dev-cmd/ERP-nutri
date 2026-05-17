@@ -14,7 +14,12 @@ export default async function AnthropometryPage({ params }: Props) {
   const { id } = await params;
 
   let data: {
-    patient: { id: string; fullName: string; biologicalSex: string | null; birthDate: Date | null };
+    patient: {
+      id: string;
+      fullName: string;
+      biologicalSex: string | null;
+      birthDate: Date | null;
+    };
     records: Array<{
       id: string;
       measuredAt: Date;
@@ -31,7 +36,12 @@ export default async function AnthropometryPage({ params }: Props) {
     data = await withTenantAction(async ({ tx }) => {
       const patient = await tx.patient.findFirst({
         where: { id },
-        select: { id: true, fullName: true, biologicalSex: true, birthDate: true },
+        select: {
+          id: true,
+          fullName: true,
+          biologicalSex: true,
+          birthDate: true,
+        },
       });
       if (!patient) return null;
       const records = await tx.anthropometry.findMany({
@@ -52,14 +62,15 @@ export default async function AnthropometryPage({ params }: Props) {
       return { patient, records };
     });
   } catch (err) {
-    if (err instanceof ActionTenantError && err.code === "NO_ORG") redirect("/onboarding");
+    if (err instanceof ActionTenantError && err.code === "NO_ORG")
+      redirect("/onboarding");
     throw err;
   }
 
   if (!data) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
@@ -67,17 +78,21 @@ export default async function AnthropometryPage({ params }: Props) {
         >
           ← Voltar para {data.patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900">Antropometria</h1>
+        <h1 className="mt-2 text-2xl font-bold text-slate-900">
+          Antropometria
+        </h1>
         <p className="mt-1 text-sm text-slate-600">
-          Histórico de medições. Cálculos automáticos: IMC, GEB (Mifflin/Harris/FAO), %GC
-          (Pollock).
+          Histórico de medições. Cálculos automáticos: IMC, GEB
+          (Mifflin/Harris/FAO), %GC (Pollock).
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Form coluna 1-2 */}
           <div className="lg:col-span-2">
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Nova medição</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Nova medição
+              </h2>
               <AnthropometryForm
                 patientId={id}
                 patientSex={data.patient.biologicalSex}
@@ -108,18 +123,26 @@ export default async function AnthropometryPage({ params }: Props) {
                     <dl className="mt-1 space-y-0.5 text-slate-600">
                       {r.weightKg && (
                         <div>
-                          Peso: <span className="font-medium">{r.weightKg.toString()}kg</span>
+                          Peso:{" "}
+                          <span className="font-medium">
+                            {r.weightKg.toString()}kg
+                          </span>
                         </div>
                       )}
                       {r.bodyMassIndex && (
                         <div>
-                          IMC: <span className="font-medium">{r.bodyMassIndex.toString()}</span>
+                          IMC:{" "}
+                          <span className="font-medium">
+                            {r.bodyMassIndex.toString()}
+                          </span>
                         </div>
                       )}
                       {r.bodyFatPctCalc && (
                         <div>
                           %GC:{" "}
-                          <span className="font-medium">{r.bodyFatPctCalc.toString()}%</span>
+                          <span className="font-medium">
+                            {r.bodyFatPctCalc.toString()}%
+                          </span>
                         </div>
                       )}
                       {r.basalMetabolismMifflin && (

@@ -56,7 +56,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="bg-transparent p-6">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between">
           <div>

@@ -137,16 +137,26 @@ export default async function AppDashboard() {
   if (!data) return null;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6">
-          <p className="text-xs text-slate-500">Organização ativa</p>
-          <h1 className="text-2xl font-bold text-slate-900">{data.org.name}</h1>
-          <p className="mt-1 text-xs text-slate-600">
-            Plano: <span className="font-medium">{data.org.plan}</span> ·
-            Status:{" "}
-            <span className="font-medium">{data.org.subscriptionStatus}</span> ·
-            Role: <span className="font-medium">{data.role}</span>
+          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+            Organização ativa
+          </p>
+          <h1 className="text-display font-semibold tracking-tight text-text-primary">
+            {data.org.name}
+          </h1>
+          <p className="mt-2 text-caption text-text-secondary">
+            Plano:{" "}
+            <span className="font-medium text-text-primary">
+              {data.org.plan}
+            </span>{" "}
+            · Status:{" "}
+            <span className="font-medium text-text-primary">
+              {data.org.subscriptionStatus}
+            </span>{" "}
+            · Role:{" "}
+            <span className="font-medium text-text-primary">{data.role}</span>
           </p>
         </header>
 
@@ -236,7 +246,7 @@ export default async function AppDashboard() {
         <form action="/api/auth/signout" method="POST" className="mt-8">
           <button
             type="submit"
-            className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-bg-surface px-4 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover"
           >
             Sair
           </button>
