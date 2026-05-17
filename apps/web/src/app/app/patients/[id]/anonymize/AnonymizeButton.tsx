@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Lock, Archive, Undo2, AlertTriangle } from "lucide-react";
 import { anonymizePatientAction, archivePatientAction } from "./actions";
 
 interface Props {
@@ -22,8 +23,9 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
 
   if (status === "ANONYMIZED") {
     return (
-      <div className="rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-xs text-slate-700">
-        🔒 Paciente anonimizado — dados não recuperáveis (LGPD)
+      <div className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-xs text-slate-700">
+        <Lock className="h-3.5 w-3.5" strokeWidth={2} />
+        Paciente anonimizado — dados não recuperáveis (LGPD)
       </div>
     );
   }
@@ -75,30 +77,45 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
             type="button"
             onClick={handleArchive}
             disabled={pending}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs hover:bg-slate-50 disabled:opacity-50"
           >
-            {status === "ARCHIVED" ? "↩️ Desarquivar" : "📦 Arquivar"}
+            {status === "ARCHIVED" ? (
+              <>
+                <Undo2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Desarquivar
+              </>
+            ) : (
+              <>
+                <Archive className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Arquivar
+              </>
+            )}
           </button>
           <button
             type="button"
             onClick={() => setShowAnonymize(true)}
-            className="block w-full rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs text-red-700 hover:bg-red-50"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs text-red-700 hover:bg-red-50"
           >
-            🔒 Anonimizar (LGPD)
+            <Lock className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Anonimizar (LGPD)
           </button>
         </>
       ) : (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
             <header className="border-b border-red-200 bg-red-50 px-5 py-3">
-              <h2 className="text-lg font-bold text-red-900">
-                🔒 Anonimizar dados de {patientName}
+              <h2 className="flex items-center gap-2 text-lg font-bold text-red-900">
+                <Lock className="h-5 w-5" strokeWidth={2} />
+                Anonimizar dados de {patientName}
               </h2>
             </header>
 
             <div className="space-y-4 p-5">
               <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900">
-                <p className="font-semibold">⚠️ Ação irreversível</p>
+                <p className="flex items-center gap-1.5 font-semibold">
+                  <AlertTriangle className="h-4 w-4" strokeWidth={2} />
+                  Ação irreversível
+                </p>
                 <ul className="mt-2 list-inside list-disc space-y-0.5 text-xs">
                   <li>Nome, CPF, email, telefone, endereço — apagados</li>
                   <li>Anamnese clínica — preservada (sem identificação)</li>
@@ -185,9 +202,16 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
                     confirmText.trim().toUpperCase() !== CONFIRM_PHRASE ||
                     reason.trim().length < 10
                   }
-                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {pending ? "Anonimizando..." : "🔒 Confirmar anonimização"}
+                  {pending ? (
+                    "Anonimizando..."
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" strokeWidth={2} />
+                      Confirmar anonimização
+                    </>
+                  )}
                 </button>
               </div>
             </div>

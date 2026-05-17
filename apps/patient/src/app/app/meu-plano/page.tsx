@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Hospital, Target } from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -59,12 +60,17 @@ export default async function MyPlansPage() {
                       <p className="text-base font-semibold text-slate-900">
                         {p.name}
                       </p>
-                      <p className="mt-1 text-xs text-slate-600">
-                        🏥 {p.patient.organization.name}
+                      <p className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                        <Hospital className="h-3 w-3" strokeWidth={1.75} />
+                        {p.patient.organization.name}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {p.targetKcal &&
-                          `🎯 ${Number(p.targetKcal).toFixed(0)} kcal/dia · `}
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-slate-500">
+                        {p.targetKcal && (
+                          <>
+                            <Target className="h-3 w-3" strokeWidth={1.75} />
+                            {Number(p.targetKcal).toFixed(0)} kcal/dia ·{" "}
+                          </>
+                        )}
                         Atualizado{" "}
                         {new Date(p.updatedAt).toLocaleDateString("pt-BR")}
                       </p>

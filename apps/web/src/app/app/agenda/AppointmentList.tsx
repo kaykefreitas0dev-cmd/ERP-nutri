@@ -2,6 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  MapPin,
+  Video,
+  Phone,
+  CircleCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { updateAppointmentStatusAction } from "./actions";
 import { CompleteWithPaymentModal } from "./CompleteWithPaymentModal";
 
@@ -30,10 +37,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   NO_SHOW: { label: "No-show", color: "bg-red-100 text-red-800" },
 };
 
-const MODALITY_ICON: Record<string, string> = {
-  in_person: "📍",
-  video: "📹",
-  phone: "📞",
+const MODALITY_ICON: Record<string, LucideIcon> = {
+  in_person: MapPin,
+  video: Video,
+  phone: Phone,
 };
 
 export function AppointmentList({ appointments }: Props) {
@@ -109,9 +116,15 @@ export function AppointmentList({ appointments }: Props) {
                   >
                     {statusInfo.label}
                   </span>
-                  <span aria-hidden className="text-base">
-                    {MODALITY_ICON[apt.modality] ?? ""}
-                  </span>
+                  {(() => {
+                    const ModIcon = MODALITY_ICON[apt.modality];
+                    return ModIcon ? (
+                      <ModIcon
+                        className="h-4 w-4 text-slate-500"
+                        strokeWidth={1.75}
+                      />
+                    ) : null;
+                  })()}
                 </div>
                 <div className="mt-1 font-medium text-slate-900">
                   {patientName}
@@ -171,9 +184,10 @@ export function AppointmentList({ appointments }: Props) {
                         type="button"
                         onClick={() => setPayingAppt(apt)}
                         disabled={pending && updatingId === apt.id}
-                        className="rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
                       >
-                        ✅ Concluir + recibo
+                        <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                        Concluir + recibo
                       </button>
                     ) : (
                       <button

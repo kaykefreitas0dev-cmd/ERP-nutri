@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Home,
+  CircleCheck,
+  Utensils,
+  Calendar,
+  FileText,
+  Wallet,
+} from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
 
@@ -41,42 +49,42 @@ export default async function AppLayout({
             href="/app"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">🏠</span>
+            <Home className="h-5 w-5" strokeWidth={1.75} />
             <span>Início</span>
           </Link>
           <Link
             href="/app/checkin"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">✅</span>
+            <CircleCheck className="h-5 w-5" strokeWidth={1.75} />
             <span>Check-in</span>
           </Link>
           <Link
             href="/app/meu-plano"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">🍽️</span>
+            <Utensils className="h-5 w-5" strokeWidth={1.75} />
             <span>Plano</span>
           </Link>
           <Link
             href="/app/consultas"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">📅</span>
+            <Calendar className="h-5 w-5" strokeWidth={1.75} />
             <span>Consultas</span>
           </Link>
           <Link
             href="/app/documentos"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">📄</span>
+            <FileText className="h-5 w-5" strokeWidth={1.75} />
             <span>Docs</span>
           </Link>
           <Link
             href="/app/pagamentos"
             className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
-            <span className="text-xl">💰</span>
+            <Wallet className="h-5 w-5" strokeWidth={1.75} />
             <span>Pagto</span>
           </Link>
         </div>

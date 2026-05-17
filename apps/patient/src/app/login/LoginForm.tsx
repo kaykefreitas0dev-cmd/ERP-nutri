@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { KeyRound, Mail, MailCheck } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "magic" | "password";
@@ -69,7 +70,10 @@ export function LoginForm() {
   if (sent) {
     return (
       <div className="rounded-md border border-green-300 bg-green-50 p-4 text-center text-sm text-green-800">
-        <p className="text-2xl">📬</p>
+        <MailCheck
+          className="mx-auto h-8 w-8 text-green-600"
+          strokeWidth={1.5}
+        />
         <p className="mt-2 font-medium">Email enviado!</p>
         <p className="mt-1 text-xs">
           Verifique sua caixa de entrada (e spam) em <strong>{email}</strong> e
@@ -98,13 +102,14 @@ export function LoginForm() {
             setMode("password");
             setError(null);
           }}
-          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
             mode === "password"
               ? "bg-white text-slate-900 shadow-sm"
               : "text-slate-600"
           }`}
         >
-          🔑 Email + senha
+          <KeyRound className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Email + senha
         </button>
         <button
           type="button"
@@ -112,13 +117,14 @@ export function LoginForm() {
             setMode("magic");
             setError(null);
           }}
-          className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
             mode === "magic"
               ? "bg-white text-slate-900 shadow-sm"
               : "text-slate-600"
           }`}
         >
-          📧 Magic link
+          <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Magic link
         </button>
       </div>
 

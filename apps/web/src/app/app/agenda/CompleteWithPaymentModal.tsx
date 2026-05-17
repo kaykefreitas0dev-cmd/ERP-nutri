@@ -2,6 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Smartphone,
+  CreditCard,
+  Banknote,
+  Landmark,
+  HelpCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { completeAppointmentWithPaymentAction } from "./payment-actions";
 
 interface Appointment {
@@ -20,13 +28,13 @@ interface Props {
 const METHODS: Array<{
   value: "PIX" | "CARD_EXTERNAL" | "CASH" | "BANK_TRANSFER" | "OTHER";
   label: string;
-  icon: string;
+  Icon: LucideIcon;
 }> = [
-  { value: "PIX", label: "PIX", icon: "📲" },
-  { value: "CARD_EXTERNAL", label: "Cartão", icon: "💳" },
-  { value: "CASH", label: "Dinheiro", icon: "💵" },
-  { value: "BANK_TRANSFER", label: "Transferência", icon: "🏦" },
-  { value: "OTHER", label: "Outro", icon: "❓" },
+  { value: "PIX", label: "PIX", Icon: Smartphone },
+  { value: "CARD_EXTERNAL", label: "Cartão", Icon: CreditCard },
+  { value: "CASH", label: "Dinheiro", Icon: Banknote },
+  { value: "BANK_TRANSFER", label: "Transferência", Icon: Landmark },
+  { value: "OTHER", label: "Outro", Icon: HelpCircle },
 ];
 
 function todayLocalISO(): string {
@@ -132,21 +140,24 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               Forma de pagamento *
             </label>
             <div className="mt-1 grid grid-cols-3 gap-1.5">
-              {METHODS.map((m) => (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setMethod(m.value)}
-                  className={`rounded-md border p-2 text-xs transition ${
-                    method === m.value
-                      ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
-                      : "border-slate-300 bg-white hover:border-slate-400"
-                  }`}
-                >
-                  <div className="text-base">{m.icon}</div>
-                  <div className="mt-0.5 font-medium">{m.label}</div>
-                </button>
-              ))}
+              {METHODS.map((m) => {
+                const ItemIcon = m.Icon;
+                return (
+                  <button
+                    key={m.value}
+                    type="button"
+                    onClick={() => setMethod(m.value)}
+                    className={`flex flex-col items-center rounded-md border p-2 text-xs transition ${
+                      method === m.value
+                        ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
+                        : "border-slate-300 bg-white hover:border-slate-400"
+                    }`}
+                  >
+                    <ItemIcon className="h-5 w-5" strokeWidth={1.75} />
+                    <div className="mt-0.5 font-medium">{m.label}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

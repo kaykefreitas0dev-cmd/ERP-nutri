@@ -1,5 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Users,
+  Calendar,
+  CalendarDays,
+  Utensils,
+  Wallet,
+  FileText,
+  Salad,
+  Download,
+  type LucideIcon,
+} from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
@@ -143,38 +154,38 @@ export default async function AppDashboard() {
             href="/app/patients"
             label="Pacientes ativos"
             value={data.counts.activePatients.toString()}
-            emoji="👥"
+            Icon={Users}
           />
           <KpiCard
             href="/app/agenda"
             label="Consultas hoje"
             value={data.counts.apptsToday.toString()}
-            emoji="📅"
+            Icon={Calendar}
           />
           <KpiCard
             href="/app/agenda"
             label="Consultas semana"
             value={data.counts.apptsThisWeek.toString()}
-            emoji="🗓️"
+            Icon={CalendarDays}
           />
           <KpiCard
             href="/app/patients"
             label="Planos ativos"
             value={data.counts.mealPlansActive.toString()}
-            emoji="🍽️"
+            Icon={Utensils}
           />
           <KpiCard
             href="/app/financeiro"
             label="Receita do mês"
             value={brMoney(data.counts.paymentsThisMonth.totalCents)}
-            emoji="💰"
+            Icon={Wallet}
             sub={`${data.counts.paymentsThisMonth.count} pagamento(s)`}
           />
           <KpiCard
             href="/app/patients"
             label="Docs do mês"
             value={data.counts.docsThisMonth.toString()}
-            emoji="📄"
+            Icon={FileText}
           />
         </section>
 
@@ -184,31 +195,31 @@ export default async function AppDashboard() {
             href="/app/patients"
             title="Pacientes"
             description="Cadastro, anamnese, planos, check-ins, documentos."
-            emoji="👥"
+            Icon={Users}
           />
           <NavCard
             href="/app/agenda"
             title="Agenda"
             description="Consultas, check-in, conclusão com recibo."
-            emoji="📅"
+            Icon={Calendar}
           />
           <NavCard
             href="/app/financeiro"
             title="Financeiro"
             description="Pagamentos registrados, faturamento por mês."
-            emoji="💰"
+            Icon={Wallet}
           />
           <NavCard
             href="/app/alimentos"
             title="Alimentos & Receitas"
             description="Biblioteca TACO/POF + receitas próprias."
-            emoji="🥗"
+            Icon={Salad}
           />
           <NavCard
             href="/app/imports"
             title="Importar pacientes"
             description="Migrar de Dietbox, Webdiet ou CSV genérico."
-            emoji="📥"
+            Icon={Download}
           />
         </section>
 
@@ -229,13 +240,13 @@ function KpiCard({
   href,
   label,
   value,
-  emoji,
+  Icon,
   sub,
 }: {
   href: string;
   label: string;
   value: string;
-  emoji: string;
+  Icon: LucideIcon;
   sub?: string;
 }) {
   return (
@@ -243,8 +254,9 @@ function KpiCard({
       href={href}
       className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-teal-400 hover:shadow-md"
     >
-      <p className="text-xs text-slate-500">
-        {emoji} {label}
+      <p className="flex items-center gap-1.5 text-xs text-slate-500">
+        <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+        {label}
       </p>
       <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
       {sub && <p className="text-[10px] text-slate-500">{sub}</p>}
@@ -256,19 +268,19 @@ function NavCard({
   href,
   title,
   description,
-  emoji,
+  Icon,
 }: {
   href: string;
   title: string;
   description: string;
-  emoji: string;
+  Icon: LucideIcon;
 }) {
   return (
     <Link
       href={href}
       className="block rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-400 hover:shadow-md"
     >
-      <div className="text-2xl">{emoji}</div>
+      <Icon className="h-7 w-7 text-teal-600" strokeWidth={1.5} />
       <h3 className="mt-2 font-semibold text-slate-900">{title}</h3>
       <p className="mt-1 text-sm text-slate-600">{description}</p>
     </Link>

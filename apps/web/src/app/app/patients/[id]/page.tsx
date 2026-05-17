@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Utensils, CircleCheck, FileText, Pencil } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ClinicalNotesSection } from "./ClinicalNotesSection";
 import { InvitePatientButton } from "./invites/InvitePatientButton";
@@ -147,27 +148,31 @@ export default async function PatientDetailPage({ params }: Props) {
           <div className="flex items-center gap-2">
             <Link
               href={`/app/patients/${patient.id}/meal-plans`}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
             >
-              🍽️ Planos
+              <Utensils className="h-4 w-4" strokeWidth={1.75} />
+              Planos
             </Link>
             <Link
               href={`/app/patients/${patient.id}/checkins`}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
             >
-              ✅ Check-ins
+              <CircleCheck className="h-4 w-4" strokeWidth={1.75} />
+              Check-ins
             </Link>
             <Link
               href={`/app/patients/${patient.id}/documents`}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium hover:bg-slate-50"
             >
-              📄 Documentos
+              <FileText className="h-4 w-4" strokeWidth={1.75} />
+              Documentos
             </Link>
             <Link
               href={`/app/patients/${patient.id}/edit`}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
             >
-              ✏️ Editar
+              <Pencil className="h-4 w-4" strokeWidth={1.75} />
+              Editar
             </Link>
           </div>
         </header>
