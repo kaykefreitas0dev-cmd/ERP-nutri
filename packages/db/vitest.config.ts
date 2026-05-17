@@ -1,4 +1,9 @@
 import { defineConfig } from "vitest/config";
+import { config as loadDotenv } from "dotenv";
+import { resolve } from "node:path";
+
+// Carrega .env do package (DATABASE_URL etc.) antes dos testes rodarem
+loadDotenv({ path: resolve(__dirname, ".env") });
 
 export default defineConfig({
   test: {
@@ -6,10 +11,7 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 30_000,
     environment: "node",
-    poolOptions: {
-      threads: {
-        singleThread: true, // evita contention RLS em testes paralelos
-      },
-    },
+    pool: "threads",
+    singleThread: true, // evita contention RLS em testes paralelos (vitest 4 top-level)
   },
 });

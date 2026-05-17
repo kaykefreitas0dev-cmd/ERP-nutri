@@ -68,6 +68,11 @@ export function SiteFooter() {
                   Termos de uso
                 </Link>
               </li>
+              <li>
+                <Link href="/portabilidade" className="hover:text-teal-700">
+                  Portabilidade & dados
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

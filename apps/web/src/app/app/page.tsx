@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { WelcomeTour } from "./WelcomeTour";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard — NutriCore" };
@@ -148,6 +149,8 @@ export default async function AppDashboard() {
             Role: <span className="font-medium">{data.role}</span>
           </p>
         </header>
+
+        <WelcomeTour />
 
         {/* KPIs */}
         <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">

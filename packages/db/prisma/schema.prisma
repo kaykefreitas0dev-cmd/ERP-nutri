@@ -19,17 +19,17 @@ datasource db {
 // User espelha auth.users do Supabase via trigger handle_new_user()
 // PII essencial vive aqui; Patient (tenant-scoped) referencia este User.
 model User {
-  id                String       @id @db.Uuid
-  email             String?      @unique
-  phone             String?      @unique // E.164
-  fullName          String?      @map("full_name")
-  avatarUrl         String?      @map("avatar_url")
-  preferredLanguage String       @default("pt-BR") @map("preferred_language")
-  timezone          String       @default("America/Sao_Paulo")
-  status            UserStatus   @default(ACTIVE)
-  anonymizedAt      DateTime?    @map("anonymized_at") // Lock 13
-  createdAt         DateTime     @default(now()) @map("created_at")
-  updatedAt         DateTime     @updatedAt @map("updated_at")
+  id                String     @id @db.Uuid
+  email             String?    @unique
+  phone             String?    @unique // E.164
+  fullName          String?    @map("full_name")
+  avatarUrl         String?    @map("avatar_url")
+  preferredLanguage String     @default("pt-BR") @map("preferred_language")
+  timezone          String     @default("America/Sao_Paulo")
+  status            UserStatus @default(ACTIVE)
+  anonymizedAt      DateTime?  @map("anonymized_at") // Lock 13
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
 
   memberships Membership[]
   consents    Consent[]
@@ -50,14 +50,14 @@ enum UserStatus {
 // =====================================================================
 
 model Organization {
-  id                  String                   @id @default(uuid()) @db.Uuid
-  slug                String                   @unique
-  name                String
-  plan                String                   @default("starter") // PricingPlan.slug
-  subscriptionStatus  SubscriptionStatus       @default(TRIALING) @map("subscription_status")
-  trialEndsAt         DateTime?                @map("trial_ends_at")
-  createdAt           DateTime                 @default(now()) @map("created_at")
-  updatedAt           DateTime                 @updatedAt @map("updated_at")
+  id                 String             @id @default(uuid()) @db.Uuid
+  slug               String             @unique
+  name               String
+  plan               String             @default("starter") // PricingPlan.slug
+  subscriptionStatus SubscriptionStatus @default(TRIALING) @map("subscription_status")
+  trialEndsAt        DateTime?          @map("trial_ends_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
 
   branding           OrganizationBranding?
   clinics            Clinic[]
@@ -193,16 +193,16 @@ model RolePermission {
 // =====================================================================
 
 model Consent {
-  id                  String   @id @default(uuid()) @db.Uuid
-  userId              String   @map("user_id") @db.Uuid
-  organizationId      String?  @map("organization_id") @db.Uuid
-  purpose             String // 'treatment' | 'marketing' | 'research' | 'data_sharing'
-  termsVersion        String   @map("terms_version") // ex: 'v1.0' — referência ao texto aceito
-  grantedAt           DateTime @default(now()) @map("granted_at")
-  revokedAt           DateTime? @map("revoked_at")
-  proofHash           String   @map("proof_hash") // sha256(termsText + ip + userAgent + timestamp)
-  proofIp             String?  @map("proof_ip")
-  proofUserAgent      String?  @map("proof_user_agent")
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  organizationId String?   @map("organization_id") @db.Uuid
+  purpose        String // 'treatment' | 'marketing' | 'research' | 'data_sharing'
+  termsVersion   String    @map("terms_version") // ex: 'v1.0' — referência ao texto aceito
+  grantedAt      DateTime  @default(now()) @map("granted_at")
+  revokedAt      DateTime? @map("revoked_at")
+  proofHash      String    @map("proof_hash") // sha256(termsText + ip + userAgent + timestamp)
+  proofIp        String?   @map("proof_ip")
+  proofUserAgent String?   @map("proof_user_agent")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -219,21 +219,21 @@ model Consent {
 // Append-only via REVOKE UPDATE/DELETE + SECURITY DEFINER function
 // Hash chain estilo Merkle: log_hash = SHA256(prev_log_hash + content)
 model AuditLog {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String?  @map("organization_id") @db.Uuid // null para ações sistema (super_admin)
-  actorUserId     String?  @map("actor_user_id") @db.Uuid
-  actorRole       String?  @map("actor_role")
-  actorIp         String?  @map("actor_ip") @db.Inet
-  actorUserAgent  String?  @map("actor_user_agent")
-  action          String // 'read' | 'create' | 'update' | 'delete' | 'export' | 'lgpd.user_anonymized' | etc.
-  entityType      String   @map("entity_type") // 'Patient' | 'MealPlan' | etc.
-  entityId        String?  @map("entity_id")
-  patientId       String?  @map("patient_id") @db.Uuid // busca rápida em audit de paciente
-  fieldsAccessed  String[] @map("fields_accessed")
-  payloadHash     String   @map("payload_hash") // SHA-256 do payload (sem expor dados)
-  prevLogHash     String?  @map("prev_log_hash")
-  logHash         String   @map("log_hash")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid // null para ações sistema (super_admin)
+  actorUserId    String?  @map("actor_user_id") @db.Uuid
+  actorRole      String?  @map("actor_role")
+  actorIp        String?  @map("actor_ip") @db.Inet
+  actorUserAgent String?  @map("actor_user_agent")
+  action         String // 'read' | 'create' | 'update' | 'delete' | 'export' | 'lgpd.user_anonymized' | etc.
+  entityType     String   @map("entity_type") // 'Patient' | 'MealPlan' | etc.
+  entityId       String?  @map("entity_id")
+  patientId      String?  @map("patient_id") @db.Uuid // busca rápida em audit de paciente
+  fieldsAccessed String[] @map("fields_accessed")
+  payloadHash    String   @map("payload_hash") // SHA-256 do payload (sem expor dados)
+  prevLogHash    String?  @map("prev_log_hash")
+  logHash        String   @map("log_hash")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   actor        User?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
@@ -295,14 +295,14 @@ model SubscriptionStateEvent {
 
 // Lock 6 — User-scoped (não tenant-aware): wizard pode ocorrer ANTES de criar org
 model OnboardingProgress {
-  userId          String   @id @map("user_id") @db.Uuid
-  currentStep     Int      @default(1) @map("current_step")
-  totalSteps      Int      @default(5) @map("total_steps")
-  data            Json     @default("{}") // {fullName, professionalType, crn, orgName, ...}
-  startedAt       DateTime @default(now()) @map("started_at")
-  completedAt     DateTime? @map("completed_at")
-  abandonedAt     DateTime? @map("abandoned_at")
-  organizationId  String?  @map("organization_id") @db.Uuid // preenchido ao completar
+  userId         String    @id @map("user_id") @db.Uuid
+  currentStep    Int       @default(1) @map("current_step")
+  totalSteps     Int       @default(5) @map("total_steps")
+  data           Json      @default("{}") // {fullName, professionalType, crn, orgName, ...}
+  startedAt      DateTime  @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  abandonedAt    DateTime? @map("abandoned_at")
+  organizationId String?   @map("organization_id") @db.Uuid // preenchido ao completar
 
   @@index([completedAt])
   @@map("onboarding_progress")
@@ -313,18 +313,18 @@ model OnboardingProgress {
 // =====================================================================
 
 model ContactSubmission {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
   name        String
   email       String
   phone       String?
   subject     String
   message     String
-  source      String   @default("/contato") // pode ser /landing-specific, etc.
-  ipAddress   String?  @map("ip_address") @db.Inet
-  userAgent   String?  @map("user_agent")
+  source      String    @default("/contato") // pode ser /landing-specific, etc.
+  ipAddress   String?   @map("ip_address") @db.Inet
+  userAgent   String?   @map("user_agent")
   emailSentAt DateTime? @map("email_sent_at")
-  status      String   @default("pending") // pending | sent | failed | spam
-  createdAt   DateTime @default(now()) @map("created_at")
+  status      String    @default("pending") // pending | sent | failed | spam
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   @@index([status, createdAt(sort: Desc)])
   @@index([email])
@@ -347,14 +347,14 @@ model Keepalive {
 // v11.2 Diff B.7 — worker monitoring.health-aggregator (Cloudflare Worker Cron 5min)
 // grava status agregado dos serviços externos para status page
 model ServiceHealth {
-  id             String   @id @default(uuid()) @db.Uuid
-  serviceKey     String   @map("service_key") // 'database' | 'email' | 'payments' | 'storage'
-  publicLabel    String   @map("public_label") // versão pública (oculta provider) — Lock 0051
-  internalLabel  String   @map("internal_label") // versão interna (mostra Supabase, AWS SES, etc.)
-  status         String // 'operational' | 'degraded' | 'partial_outage' | 'major_outage'
-  latencyMs      Int?     @map("latency_ms")
-  message        String?
-  observedAt     DateTime @default(now()) @map("observed_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  serviceKey    String   @map("service_key") // 'database' | 'email' | 'payments' | 'storage'
+  publicLabel   String   @map("public_label") // versão pública (oculta provider) — Lock 0051
+  internalLabel String   @map("internal_label") // versão interna (mostra Supabase, AWS SES, etc.)
+  status        String // 'operational' | 'degraded' | 'partial_outage' | 'major_outage'
+  latencyMs     Int?     @map("latency_ms")
+  message       String?
+  observedAt    DateTime @default(now()) @map("observed_at")
 
   @@index([serviceKey, observedAt(sort: Desc)])
   @@map("service_health")
@@ -367,45 +367,45 @@ model ServiceHealth {
 // não ter User criado ainda — fluxo invite Lock 7 cria User depois)
 
 model Patient {
-  id                   String   @id @default(uuid()) @db.Uuid
-  organizationId       String   @map("organization_id") @db.Uuid
-  userId               String?  @map("user_id") @db.Uuid // criado quando paciente aceita invite
-  fullName             String   @map("full_name")
-  preferredName        String?  @map("preferred_name")
-  cpf                  String?  @db.VarChar(14) // formato 000.000.000-00 — opcional MVP
-  birthDate            DateTime? @map("birth_date") @db.Date
-  biologicalSex        String?  @map("biological_sex") // 'female' | 'male' | 'intersex' | 'undisclosed'
-  genderIdentity       String?  @map("gender_identity") // livre
-  email                String?
-  phone                String? // E.164
-  city                 String?
-  state                String?  @db.Char(2) // UF Brasil
-  postalCode           String?  @map("postal_code") @db.VarChar(10)
-  street               String?
-  number               String?
-  complement           String?
-  neighborhood         String?
-  occupation           String?
-  notes                String? // notas administrativas (NÃO clínicas — clinical_notes é separado)
-  status               PatientStatus @default(ACTIVE)
-  archivedAt           DateTime? @map("archived_at")
-  anonymizedAt         DateTime? @map("anonymized_at") // Lock 13 - LGPD
-  importedFromId       String?  @map("imported_from_id") @db.Uuid // FK DataImport (S5)
-  primaryNutritionistId String? @map("primary_nutritionist_id") @db.Uuid // User responsável (Lock 6)
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id                    String        @id @default(uuid()) @db.Uuid
+  organizationId        String        @map("organization_id") @db.Uuid
+  userId                String?       @map("user_id") @db.Uuid // criado quando paciente aceita invite
+  fullName              String        @map("full_name")
+  preferredName         String?       @map("preferred_name")
+  cpf                   String?       @db.VarChar(14) // formato 000.000.000-00 — opcional MVP
+  birthDate             DateTime?     @map("birth_date") @db.Date
+  biologicalSex         String?       @map("biological_sex") // 'female' | 'male' | 'intersex' | 'undisclosed'
+  genderIdentity        String?       @map("gender_identity") // livre
+  email                 String?
+  phone                 String? // E.164
+  city                  String?
+  state                 String?       @db.Char(2) // UF Brasil
+  postalCode            String?       @map("postal_code") @db.VarChar(10)
+  street                String?
+  number                String?
+  complement            String?
+  neighborhood          String?
+  occupation            String?
+  notes                 String? // notas administrativas (NÃO clínicas — clinical_notes é separado)
+  status                PatientStatus @default(ACTIVE)
+  archivedAt            DateTime?     @map("archived_at")
+  anonymizedAt          DateTime?     @map("anonymized_at") // Lock 13 - LGPD
+  importedFromId        String?       @map("imported_from_id") @db.Uuid // FK DataImport (S5)
+  primaryNutritionistId String?       @map("primary_nutritionist_id") @db.Uuid // User responsável (Lock 6)
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
 
-  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  allergies           PatientAllergy[]
-  dietaryRestrictions PatientDietaryRestriction[]
-  clinicalConditions  PatientClinicalCondition[]
-  clinicalNotes       ClinicalNote[]
-  examAttachments     ExamAttachment[]
+  organization         Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  allergies            PatientAllergy[]
+  dietaryRestrictions  PatientDietaryRestriction[]
+  clinicalConditions   PatientClinicalCondition[]
+  clinicalNotes        ClinicalNote[]
+  examAttachments      ExamAttachment[]
   anthropometryRecords Anthropometry[]
-  mealPlans           MealPlan[]
-  clinicalDocuments   ClinicalDocument[]
-  invites             PatientInvite[]
-  payments            PatientPayment[]
+  mealPlans            MealPlan[]
+  clinicalDocuments    ClinicalDocument[]
+  invites              PatientInvite[]
+  payments             PatientPayment[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -439,14 +439,14 @@ model Allergen {
 }
 
 model PatientAllergy {
-  id          String       @id @default(uuid()) @db.Uuid
-  patientId   String       @map("patient_id") @db.Uuid
-  allergenId  String       @map("allergen_id") @db.Uuid
+  id          String          @id @default(uuid()) @db.Uuid
+  patientId   String          @map("patient_id") @db.Uuid
+  allergenId  String          @map("allergen_id") @db.Uuid
   severity    AllergySeverity
-  diagnosedAt DateTime?    @map("diagnosed_at") @db.Date
+  diagnosedAt DateTime?       @map("diagnosed_at") @db.Date
   notes       String?
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
 
   patient  Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Restrict)
@@ -464,14 +464,14 @@ enum AllergySeverity {
 }
 
 model PatientDietaryRestriction {
-  id          String   @id @default(uuid()) @db.Uuid
-  patientId   String   @map("patient_id") @db.Uuid
-  type        String   // 'vegano' | 'vegetariano' | 'low_carb' | 'halal' | 'kosher' | 'diabético' | etc.
-  rules       Json     @default("{}") // regras estruturadas
-  validFrom   DateTime @default(now()) @map("valid_from")
-  validUntil  DateTime? @map("valid_until")
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String    @id @default(uuid()) @db.Uuid
+  patientId  String    @map("patient_id") @db.Uuid
+  type       String // 'vegano' | 'vegetariano' | 'low_carb' | 'halal' | 'kosher' | 'diabético' | etc.
+  rules      Json      @default("{}") // regras estruturadas
+  validFrom  DateTime  @default(now()) @map("valid_from")
+  validUntil DateTime? @map("valid_until")
+  notes      String?
+  createdAt  DateTime  @default(now()) @map("created_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -480,15 +480,15 @@ model PatientDietaryRestriction {
 }
 
 model PatientClinicalCondition {
-  id              String   @id @default(uuid()) @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
-  conditionName   String   @map("condition_name")
-  cid10Code       String?  @map("cid10_code") // ref preparado para S11
-  severity        String?  // 'mild' | 'moderate' | 'severe'
-  diagnosedAt     DateTime? @map("diagnosed_at") @db.Date
-  notes           String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id            String    @id @default(uuid()) @db.Uuid
+  patientId     String    @map("patient_id") @db.Uuid
+  conditionName String    @map("condition_name")
+  cid10Code     String?   @map("cid10_code") // ref preparado para S11
+  severity      String? // 'mild' | 'moderate' | 'severe'
+  diagnosedAt   DateTime? @map("diagnosed_at") @db.Date
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -499,16 +499,16 @@ model PatientClinicalCondition {
 // ClinicalNote: conteúdo CRIPTOGRAFADO via envelope encryption (DEK por org no Vault)
 // Plano v11 — anotações clínicas (PHI) ficam encriptadas em repouso
 model ClinicalNote {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
-  authorUserId    String   @map("author_user_id") @db.Uuid
-  encryptedContent Bytes   @map("encrypted_content") // bytea (pgp_sym_encrypt)
-  contentPreview  String?  @map("content_preview") // primeiros 60 chars não-criptografados (busca)
-  category        String   @default("evolution") // 'evolution' | 'anamnesis' | 'assessment' | 'plan'
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  patientId        String   @map("patient_id") @db.Uuid
+  authorUserId     String   @map("author_user_id") @db.Uuid
+  encryptedContent Bytes    @map("encrypted_content") // bytea (pgp_sym_encrypt)
+  contentPreview   String?  @map("content_preview") // primeiros 60 chars não-criptografados (busca)
+  category         String   @default("evolution") // 'evolution' | 'anamnesis' | 'assessment' | 'plan'
   consultationDate DateTime @default(now()) @map("consultation_date")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -519,19 +519,19 @@ model ClinicalNote {
 
 // ExamAttachment: arquivo de exame com URL ao Supabase Storage + metadata criptografada
 model ExamAttachment {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
-  uploadedByUserId String  @map("uploaded_by_user_id") @db.Uuid
-  fileName        String   @map("file_name") // nome original
-  storagePath     String   @map("storage_path") // path no Supabase Storage (bucket exams)
-  fileSizeBytes   Int      @map("file_size_bytes")
-  mimeType        String   @map("mime_type")
-  examType        String?  @map("exam_type") // 'blood' | 'urine' | 'bioimpedance' | etc.
-  examDate        DateTime? @map("exam_date") @db.Date
-  encryptedMetadata Bytes? @map("encrypted_metadata") // metadados sensíveis (lab, médico) criptografados
-  notesPreview    String?  @map("notes_preview")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id                String    @id @default(uuid()) @db.Uuid
+  organizationId    String    @map("organization_id") @db.Uuid
+  patientId         String    @map("patient_id") @db.Uuid
+  uploadedByUserId  String    @map("uploaded_by_user_id") @db.Uuid
+  fileName          String    @map("file_name") // nome original
+  storagePath       String    @map("storage_path") // path no Supabase Storage (bucket exams)
+  fileSizeBytes     Int       @map("file_size_bytes")
+  mimeType          String    @map("mime_type")
+  examType          String?   @map("exam_type") // 'blood' | 'urine' | 'bioimpedance' | etc.
+  examDate          DateTime? @map("exam_date") @db.Date
+  encryptedMetadata Bytes?    @map("encrypted_metadata") // metadados sensíveis (lab, médico) criptografados
+  notesPreview      String?   @map("notes_preview")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -547,19 +547,19 @@ model ExamAttachment {
 // Resultados calculados são preenchidos pelo engine @nutricore/nutrition
 
 model Anthropometry {
-  id                     String   @id @default(uuid()) @db.Uuid
-  organizationId         String   @map("organization_id") @db.Uuid
-  patientId              String   @map("patient_id") @db.Uuid
-  measuredByUserId       String   @map("measured_by_user_id") @db.Uuid
-  measuredAt             DateTime @default(now()) @map("measured_at")
-  protocol               String   @default("pollock_3")
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @map("organization_id") @db.Uuid
+  patientId        String   @map("patient_id") @db.Uuid
+  measuredByUserId String   @map("measured_by_user_id") @db.Uuid
+  measuredAt       DateTime @default(now()) @map("measured_at")
+  protocol         String   @default("pollock_3")
 
-  weightKg               Decimal? @map("weight_kg") @db.Decimal(5, 2)
-  heightCm               Decimal? @map("height_cm") @db.Decimal(5, 2)
+  weightKg Decimal? @map("weight_kg") @db.Decimal(5, 2)
+  heightCm Decimal? @map("height_cm") @db.Decimal(5, 2)
 
-  circumferences         Json     @default("{}")
-  skinfolds              Json     @default("{}")
-  bia                    Json     @default("{}")
+  circumferences Json @default("{}")
+  skinfolds      Json @default("{}")
+  bia            Json @default("{}")
 
   bodyMassIndex          Decimal? @map("body_mass_index") @db.Decimal(4, 2)
   bodyFatPctCalc         Decimal? @map("body_fat_pct_calc") @db.Decimal(5, 2)
@@ -568,10 +568,10 @@ model Anthropometry {
   basalMetabolismHarris  Decimal? @map("basal_metabolism_harris") @db.Decimal(7, 1)
   basalMetabolismFao     Decimal? @map("basal_metabolism_fao") @db.Decimal(7, 1)
 
-  omsZScores             Json?    @map("oms_z_scores")
+  omsZScores Json? @map("oms_z_scores")
 
-  notes                  String?
-  createdAt              DateTime @default(now()) @map("created_at")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -592,28 +592,28 @@ model Anthropometry {
 // AvailabilityRule: regras semanais (seg-sex 8h-18h, etc.)
 
 model BookingPage {
-  id                       String   @id @default(uuid()) @db.Uuid
-  organizationId           String   @map("organization_id") @db.Uuid
-  professionalUserId       String   @map("professional_user_id") @db.Uuid
-  slug                     String   @unique // /c/:slug — pública
-  displayName              String   @map("display_name")
-  bio                      String?
-  photoUrl                 String?  @map("photo_url")
-  crn                      String?  // CRN-3/12345
-  crnUf                    String?  @map("crn_uf") @db.Char(2)
-  specialties              String[] // tags livres
-  bufferBeforeMinutes      Int      @default(15) @map("buffer_before_minutes")
-  bufferAfterMinutes       Int      @default(15) @map("buffer_after_minutes")
-  minNoticeHours           Int      @default(4) @map("min_notice_hours")
-  maxAdvanceDays           Int      @default(60) @map("max_advance_days")
-  isPublished              Boolean  @default(false) @map("is_published")
-  acceptsNewPatients       Boolean  @default(true) @map("accepts_new_patients")
-  timezone                 String   @default("America/Sao_Paulo")
-  createdAt                DateTime @default(now()) @map("created_at")
-  updatedAt                DateTime @updatedAt @map("updated_at")
+  id                  String   @id @default(uuid()) @db.Uuid
+  organizationId      String   @map("organization_id") @db.Uuid
+  professionalUserId  String   @map("professional_user_id") @db.Uuid
+  slug                String   @unique // /c/:slug — pública
+  displayName         String   @map("display_name")
+  bio                 String?
+  photoUrl            String?  @map("photo_url")
+  crn                 String? // CRN-3/12345
+  crnUf               String?  @map("crn_uf") @db.Char(2)
+  specialties         String[] // tags livres
+  bufferBeforeMinutes Int      @default(15) @map("buffer_before_minutes")
+  bufferAfterMinutes  Int      @default(15) @map("buffer_after_minutes")
+  minNoticeHours      Int      @default(4) @map("min_notice_hours")
+  maxAdvanceDays      Int      @default(60) @map("max_advance_days")
+  isPublished         Boolean  @default(false) @map("is_published")
+  acceptsNewPatients  Boolean  @default(true) @map("accepts_new_patients")
+  timezone            String   @default("America/Sao_Paulo")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
-  serviceOfferings ServiceOffering[]
-  appointments     Appointment[]
+  serviceOfferings  ServiceOffering[]
+  appointments      Appointment[]
   availabilityRules AvailabilityRule[]
 
   @@index([organizationId, professionalUserId])
@@ -634,7 +634,7 @@ model ServiceOffering {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  bookingPage  BookingPage  @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
+  bookingPage  BookingPage   @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
   appointments Appointment[]
 
   @@index([organizationId, isActive])
@@ -642,49 +642,49 @@ model ServiceOffering {
 }
 
 model Appointment {
-  id                   String            @id @default(uuid()) @db.Uuid
-  organizationId       String            @map("organization_id") @db.Uuid
-  bookingPageId        String?           @map("booking_page_id") @db.Uuid // null = agendamento direto (não public booking)
-  professionalUserId   String            @map("professional_user_id") @db.Uuid
-  patientId            String?           @map("patient_id") @db.Uuid // null = paciente externo (criado depois)
-  serviceOfferingId    String?           @map("service_offering_id") @db.Uuid
+  id                 String  @id @default(uuid()) @db.Uuid
+  organizationId     String  @map("organization_id") @db.Uuid
+  bookingPageId      String? @map("booking_page_id") @db.Uuid // null = agendamento direto (não public booking)
+  professionalUserId String  @map("professional_user_id") @db.Uuid
+  patientId          String? @map("patient_id") @db.Uuid // null = paciente externo (criado depois)
+  serviceOfferingId  String? @map("service_offering_id") @db.Uuid
 
   // Time
-  startsAt             DateTime          @map("starts_at")
-  endsAt               DateTime          @map("ends_at")
-  timezone             String // tz do nutri no momento da criação (snapshot)
+  startsAt DateTime @map("starts_at")
+  endsAt   DateTime @map("ends_at")
+  timezone String // tz do nutri no momento da criação (snapshot)
 
   // External patient info (caso patientId seja null — booking público)
-  externalPatientName  String?           @map("external_patient_name")
-  externalPatientEmail String?           @map("external_patient_email")
-  externalPatientPhone String?           @map("external_patient_phone")
+  externalPatientName  String? @map("external_patient_name")
+  externalPatientEmail String? @map("external_patient_email")
+  externalPatientPhone String? @map("external_patient_phone")
 
   // Status
-  status               AppointmentStatus @default(SCHEDULED)
-  cancellationReason   String?           @map("cancellation_reason")
-  cancelledByUserId    String?           @map("cancelled_by_user_id") @db.Uuid
-  cancelledAt          DateTime?         @map("cancelled_at")
-  completedAt          DateTime?         @map("completed_at")
+  status             AppointmentStatus @default(SCHEDULED)
+  cancellationReason String?           @map("cancellation_reason")
+  cancelledByUserId  String?           @map("cancelled_by_user_id") @db.Uuid
+  cancelledAt        DateTime?         @map("cancelled_at")
+  completedAt        DateTime?         @map("completed_at")
 
   // Modality
-  modality             String            @default("in_person") // 'in_person' | 'video' | 'phone'
-  meetingUrl           String?           @map("meeting_url") // Google Meet auto-gerado (S15)
-  meetingNotes         String?           @map("meeting_notes")
+  modality     String  @default("in_person") // 'in_person' | 'video' | 'phone'
+  meetingUrl   String? @map("meeting_url") // Google Meet auto-gerado (S15)
+  meetingNotes String? @map("meeting_notes")
 
   // Source
-  source               String            @default("manual") // 'manual' | 'public_booking' | 'imported'
-  idempotencyKey       String?           @unique @map("idempotency_key") // anti-duplicate (booking público)
+  source         String  @default("manual") // 'manual' | 'public_booking' | 'imported'
+  idempotencyKey String? @unique @map("idempotency_key") // anti-duplicate (booking público)
 
   // External sync
-  googleCalendarEventId String?          @map("google_calendar_event_id")
+  googleCalendarEventId String? @map("google_calendar_event_id")
 
-  notes                String?
+  notes String?
 
-  createdAt            DateTime          @default(now()) @map("created_at")
-  updatedAt            DateTime          @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  bookingPage     BookingPage?     @relation(fields: [bookingPageId], references: [id], onDelete: SetNull)
-  serviceOffering ServiceOffering? @relation(fields: [serviceOfferingId], references: [id], onDelete: SetNull)
+  bookingPage     BookingPage?             @relation(fields: [bookingPageId], references: [id], onDelete: SetNull)
+  serviceOffering ServiceOffering?         @relation(fields: [serviceOfferingId], references: [id], onDelete: SetNull)
   statusEvents    AppointmentStatusEvent[]
   payments        PatientPayment[]
 
@@ -706,14 +706,14 @@ enum AppointmentStatus {
 
 // Append-only audit das mudanças de status (CFN 599/2018 requer histórico)
 model AppointmentStatusEvent {
-  id              String            @id @default(uuid()) @db.Uuid
-  appointmentId   String            @map("appointment_id") @db.Uuid
+  id              String             @id @default(uuid()) @db.Uuid
+  appointmentId   String             @map("appointment_id") @db.Uuid
   fromStatus      AppointmentStatus? @map("from_status")
-  toStatus        AppointmentStatus @map("to_status")
-  changedByUserId String?           @map("changed_by_user_id") @db.Uuid
+  toStatus        AppointmentStatus  @map("to_status")
+  changedByUserId String?            @map("changed_by_user_id") @db.Uuid
   reason          String?
-  metadata        Json              @default("{}")
-  createdAt       DateTime          @default(now()) @map("created_at")
+  metadata        Json               @default("{}")
+  createdAt       DateTime           @default(now()) @map("created_at")
 
   appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
@@ -722,22 +722,22 @@ model AppointmentStatusEvent {
 }
 
 model ExternalCalendarConnection {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  provider        String // 'google' | 'apple' | 'outlook'
-  accountEmail    String   @map("account_email")
+  id                    String    @id @default(uuid()) @db.Uuid
+  organizationId        String    @map("organization_id") @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  provider              String // 'google' | 'apple' | 'outlook'
+  accountEmail          String    @map("account_email")
   // Tokens criptografados via envelope encryption (Vault DEK por org)
-  encryptedAccessToken  Bytes  @map("encrypted_access_token")
-  encryptedRefreshToken Bytes? @map("encrypted_refresh_token")
+  encryptedAccessToken  Bytes     @map("encrypted_access_token")
+  encryptedRefreshToken Bytes?    @map("encrypted_refresh_token")
   tokenExpiresAt        DateTime? @map("token_expires_at")
   scopes                String[]
-  syncEnabled           Boolean  @default(true) @map("sync_enabled")
+  syncEnabled           Boolean   @default(true) @map("sync_enabled")
   lastSyncAt            DateTime? @map("last_sync_at")
-  syncStatus            String   @default("pending") // 'pending' | 'syncing' | 'ok' | 'error'
-  syncErrorMessage      String?  @map("sync_error_message")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  syncStatus            String    @default("pending") // 'pending' | 'syncing' | 'ok' | 'error'
+  syncErrorMessage      String?   @map("sync_error_message")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   busyBlocks CalendarBusyBlock[]
 
@@ -769,17 +769,17 @@ model CalendarBusyBlock {
 }
 
 model AvailabilityRule {
-  id              String   @id @default(uuid()) @db.Uuid
-  bookingPageId   String   @map("booking_page_id") @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
+  id             String    @id @default(uuid()) @db.Uuid
+  bookingPageId  String    @map("booking_page_id") @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
   // Recurrence rule: dia da semana + janela
-  dayOfWeek       Int      @map("day_of_week") // 0=domingo, 1=seg, ... 6=sábado
-  startTime       String   @map("start_time") // 'HH:mm' (no tz da BookingPage)
-  endTime         String   @map("end_time")
-  validFrom       DateTime? @map("valid_from") @db.Date
-  validUntil      DateTime? @map("valid_until") @db.Date
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  dayOfWeek      Int       @map("day_of_week") // 0=domingo, 1=seg, ... 6=sábado
+  startTime      String    @map("start_time") // 'HH:mm' (no tz da BookingPage)
+  endTime        String    @map("end_time")
+  validFrom      DateTime? @map("valid_from") @db.Date
+  validUntil     DateTime? @map("valid_until") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   bookingPage BookingPage @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
 
@@ -794,40 +794,40 @@ model AvailabilityRule {
 // Lock 15 — Food versionado
 
 model Food {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String?  @map("organization_id") @db.Uuid
-  source          FoodSource @default(CUSTOM)
-  externalId      String?  @map("external_id")
-  name            String
-  description     String?
-  brand           String?
-  category        String?
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String?    @map("organization_id") @db.Uuid
+  source         FoodSource @default(CUSTOM)
+  externalId     String?    @map("external_id")
+  name           String
+  description    String?
+  brand          String?
+  category       String?
 
-  kcalPer100g     Decimal? @map("kcal_per_100g") @db.Decimal(7, 2)
-  proteinG        Decimal? @map("protein_g") @db.Decimal(6, 2)
-  carbG           Decimal? @map("carb_g") @db.Decimal(6, 2)
-  fatG            Decimal? @map("fat_g") @db.Decimal(6, 2)
-  fiberG          Decimal? @map("fiber_g") @db.Decimal(6, 2)
-  sodiumMg        Decimal? @map("sodium_mg") @db.Decimal(7, 2)
-  micronutrients  Json     @default("{}")
+  kcalPer100g    Decimal? @map("kcal_per_100g") @db.Decimal(7, 2)
+  proteinG       Decimal? @map("protein_g") @db.Decimal(6, 2)
+  carbG          Decimal? @map("carb_g") @db.Decimal(6, 2)
+  fatG           Decimal? @map("fat_g") @db.Decimal(6, 2)
+  fiberG         Decimal? @map("fiber_g") @db.Decimal(6, 2)
+  sodiumMg       Decimal? @map("sodium_mg") @db.Decimal(7, 2)
+  micronutrients Json     @default("{}")
 
-  version             Int      @default(1)
-  isActive            Boolean  @default(true) @map("is_active")
-  supersededById      String?  @map("superseded_by_id") @db.Uuid
-  supersededAt        DateTime? @map("superseded_at")
+  version        Int       @default(1)
+  isActive       Boolean   @default(true) @map("is_active")
+  supersededById String?   @map("superseded_by_id") @db.Uuid
+  supersededAt   DateTime? @map("superseded_at")
 
   conversionFactor Decimal? @map("conversion_factor") @db.Decimal(4, 3)
   cookingIndex     Decimal? @map("cooking_index") @db.Decimal(4, 3)
 
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  supersededBy    Food?    @relation("FoodVersion", fields: [supersededById], references: [id])
-  versions        Food[]   @relation("FoodVersion")
-  prices          FoodPrice[]
-  foodAllergens   FoodAllergen[]
+  supersededBy      Food?              @relation("FoodVersion", fields: [supersededById], references: [id])
+  versions          Food[]             @relation("FoodVersion")
+  prices            FoodPrice[]
+  foodAllergens     FoodAllergen[]
   recipeIngredients RecipeIngredient[]
-  mealItems       MealItem[]
+  mealItems         MealItem[]
 
   @@index([source, externalId])
   @@index([name])
@@ -857,21 +857,21 @@ model FoodAllergen {
 }
 
 model FoodPrice {
-  id              String   @id @default(uuid()) @db.Uuid
-  foodId          String   @map("food_id") @db.Uuid
-  organizationId  String?  @map("organization_id") @db.Uuid
-  professionalUserId String? @map("professional_user_id") @db.Uuid
-  unit            PriceUnit
-  unitGrams       Decimal? @map("unit_grams") @db.Decimal(10, 3)
-  priceCents      Int      @map("price_cents")
-  currency        String   @default("BRL")
-  source          String   @default("MANUAL")
-  region          String?
-  validFrom       DateTime @default(now()) @map("valid_from")
-  validUntil      DateTime? @map("valid_until")
-  notes           String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid()) @db.Uuid
+  foodId             String    @map("food_id") @db.Uuid
+  organizationId     String?   @map("organization_id") @db.Uuid
+  professionalUserId String?   @map("professional_user_id") @db.Uuid
+  unit               PriceUnit
+  unitGrams          Decimal?  @map("unit_grams") @db.Decimal(10, 3)
+  priceCents         Int       @map("price_cents")
+  currency           String    @default("BRL")
+  source             String    @default("MANUAL")
+  region             String?
+  validFrom          DateTime  @default(now()) @map("valid_from")
+  validUntil         DateTime? @map("valid_until")
+  notes              String?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
 
@@ -889,30 +889,30 @@ enum PriceUnit {
 }
 
 model Recipe {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  id              String  @id @default(uuid()) @db.Uuid
+  organizationId  String  @map("organization_id") @db.Uuid
+  createdByUserId String  @map("created_by_user_id") @db.Uuid
   name            String
   description     String?
-  servings        Int      @default(1)
-  prepTimeMinutes Int?     @map("prep_time_minutes")
+  servings        Int     @default(1)
+  prepTimeMinutes Int?    @map("prep_time_minutes")
 
-  version         Int      @default(1)
-  isActive        Boolean  @default(true) @map("is_active")
-  supersededById  String?  @map("superseded_by_id") @db.Uuid
-  supersededAt    DateTime? @map("superseded_at")
+  version        Int       @default(1)
+  isActive       Boolean   @default(true) @map("is_active")
+  supersededById String?   @map("superseded_by_id") @db.Uuid
+  supersededAt   DateTime? @map("superseded_at")
 
-  totalKcal       Decimal? @map("total_kcal") @db.Decimal(8, 2)
-  totalProteinG   Decimal? @map("total_protein_g") @db.Decimal(7, 2)
-  totalCarbG      Decimal? @map("total_carb_g") @db.Decimal(7, 2)
-  totalFatG       Decimal? @map("total_fat_g") @db.Decimal(7, 2)
+  totalKcal     Decimal? @map("total_kcal") @db.Decimal(8, 2)
+  totalProteinG Decimal? @map("total_protein_g") @db.Decimal(7, 2)
+  totalCarbG    Decimal? @map("total_carb_g") @db.Decimal(7, 2)
+  totalFatG     Decimal? @map("total_fat_g") @db.Decimal(7, 2)
 
-  notes           String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  supersededBy Recipe? @relation("RecipeVersion", fields: [supersededById], references: [id])
-  versions     Recipe[] @relation("RecipeVersion")
+  supersededBy Recipe?            @relation("RecipeVersion", fields: [supersededById], references: [id])
+  versions     Recipe[]           @relation("RecipeVersion")
   ingredients  RecipeIngredient[]
 
   @@index([organizationId, isActive])
@@ -921,13 +921,13 @@ model Recipe {
 }
 
 model RecipeIngredient {
-  id          String   @id @default(uuid()) @db.Uuid
-  recipeId    String   @map("recipe_id") @db.Uuid
-  foodId      String   @map("food_id") @db.Uuid
-  foodVersion Int      @map("food_version")
-  quantityG   Decimal  @map("quantity_g") @db.Decimal(8, 2)
+  id          String  @id @default(uuid()) @db.Uuid
+  recipeId    String  @map("recipe_id") @db.Uuid
+  foodId      String  @map("food_id") @db.Uuid
+  foodVersion Int     @map("food_version")
+  quantityG   Decimal @map("quantity_g") @db.Decimal(8, 2)
   notes       String?
-  sortOrder   Int      @default(0) @map("sort_order")
+  sortOrder   Int     @default(0) @map("sort_order")
 
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   food   Food   @relation(fields: [foodId], references: [id], onDelete: Restrict)
@@ -944,37 +944,37 @@ model RecipeIngredient {
 // se a Food sofrer correção depois)
 
 model MealPlan {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
+  id                 String @id @default(uuid()) @db.Uuid
+  organizationId     String @map("organization_id") @db.Uuid
+  patientId          String @map("patient_id") @db.Uuid
   prescribedByUserId String @map("prescribed_by_user_id") @db.Uuid
 
-  name            String // ex: "Plano semanal março 2026"
-  startDate       DateTime? @map("start_date") @db.Date
-  endDate         DateTime? @map("end_date") @db.Date
-  status          MealPlanStatus @default(DRAFT)
+  name      String // ex: "Plano semanal março 2026"
+  startDate DateTime?      @map("start_date") @db.Date
+  endDate   DateTime?      @map("end_date") @db.Date
+  status    MealPlanStatus @default(DRAFT)
 
   // Metas (capturadas do paciente no momento da prescrição)
-  targetKcal      Decimal? @map("target_kcal") @db.Decimal(7, 1)
-  targetProteinG  Decimal? @map("target_protein_g") @db.Decimal(7, 2)
-  targetCarbG     Decimal? @map("target_carb_g") @db.Decimal(7, 2)
-  targetFatG      Decimal? @map("target_fat_g") @db.Decimal(7, 2)
+  targetKcal     Decimal? @map("target_kcal") @db.Decimal(7, 1)
+  targetProteinG Decimal? @map("target_protein_g") @db.Decimal(7, 2)
+  targetCarbG    Decimal? @map("target_carb_g") @db.Decimal(7, 2)
+  targetFatG     Decimal? @map("target_fat_g") @db.Decimal(7, 2)
 
   // Custo total estimado (calculado dos MealItems via FoodPrice)
-  totalCostCents  Int?     @map("total_cost_cents")
+  totalCostCents   Int?      @map("total_cost_cents")
   costCalculatedAt DateTime? @map("cost_calculated_at")
 
   // Versionamento (Lock 15)
-  version         Int      @default(1)
-  supersededById  String?  @map("superseded_by_id") @db.Uuid
+  version        Int     @default(1)
+  supersededById String? @map("superseded_by_id") @db.Uuid
 
-  notes           String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  patient      Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  supersededBy MealPlan?  @relation("MealPlanVersion", fields: [supersededById], references: [id])
-  versions     MealPlan[] @relation("MealPlanVersion")
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  supersededBy MealPlan?     @relation("MealPlanVersion", fields: [supersededById], references: [id])
+  versions     MealPlan[]    @relation("MealPlanVersion")
   days         MealPlanDay[]
 
   @@index([organizationId, patientId, status])
@@ -992,12 +992,12 @@ enum MealPlanStatus {
 
 // Um plano pode ter múltiplos dias (ex: 7 dias da semana com cardápios distintos)
 model MealPlanDay {
-  id          String   @id @default(uuid()) @db.Uuid
-  mealPlanId  String   @map("meal_plan_id") @db.Uuid
-  dayLabel    String   @map("day_label") // ex: "Segunda", "Dia 1", "Padrão"
-  sortOrder   Int      @default(0) @map("sort_order")
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  mealPlanId String   @map("meal_plan_id") @db.Uuid
+  dayLabel   String   @map("day_label") // ex: "Segunda", "Dia 1", "Padrão"
+  sortOrder  Int      @default(0) @map("sort_order")
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
 
   mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
   meals    Meal[]
@@ -1008,12 +1008,12 @@ model MealPlanDay {
 
 // Refeições do dia (Café, Almoço, Jantar, etc.)
 model Meal {
-  id              String   @id @default(uuid()) @db.Uuid
-  mealPlanDayId   String   @map("meal_plan_day_id") @db.Uuid
-  name            String // ex: "Café da manhã", "Lanche manhã"
-  scheduledTime   String?  @map("scheduled_time") // 'HH:mm' opcional
-  sortOrder       Int      @default(0) @map("sort_order")
-  notes           String?
+  id            String  @id @default(uuid()) @db.Uuid
+  mealPlanDayId String  @map("meal_plan_day_id") @db.Uuid
+  name          String // ex: "Café da manhã", "Lanche manhã"
+  scheduledTime String? @map("scheduled_time") // 'HH:mm' opcional
+  sortOrder     Int     @default(0) @map("sort_order")
+  notes         String?
 
   mealPlanDay MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
   items       MealItem[]
@@ -1025,19 +1025,19 @@ model Meal {
 // Item individual de uma refeição (alimento + quantidade)
 // Lock 15 — foodId + foodVersion congelado snapshot
 model MealItem {
-  id              String   @id @default(uuid()) @db.Uuid
-  mealId          String   @map("meal_id") @db.Uuid
-  foodId          String   @map("food_id") @db.Uuid
-  foodVersion     Int      @map("food_version") // Lock 15 - snapshot da versão
-  quantityG       Decimal  @map("quantity_g") @db.Decimal(8, 2)
+  id               String  @id @default(uuid()) @db.Uuid
+  mealId           String  @map("meal_id") @db.Uuid
+  foodId           String  @map("food_id") @db.Uuid
+  foodVersion      Int     @map("food_version") // Lock 15 - snapshot da versão
+  quantityG        Decimal @map("quantity_g") @db.Decimal(8, 2)
   preparationNotes String? @map("preparation_notes") // ex: "cozido", "cru"
-  sortOrder       Int      @default(0) @map("sort_order")
+  sortOrder        Int     @default(0) @map("sort_order")
 
   // Calculados ao salvar (denormalizado para listagens rápidas)
-  kcal            Decimal? @db.Decimal(7, 2)
-  proteinG        Decimal? @map("protein_g") @db.Decimal(6, 2)
-  carbG           Decimal? @map("carb_g") @db.Decimal(6, 2)
-  fatG            Decimal? @map("fat_g") @db.Decimal(6, 2)
+  kcal     Decimal? @db.Decimal(7, 2)
+  proteinG Decimal? @map("protein_g") @db.Decimal(6, 2)
+  carbG    Decimal? @map("carb_g") @db.Decimal(6, 2)
+  fatG     Decimal? @map("fat_g") @db.Decimal(6, 2)
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
   // Relation pra mostrar nome/source no UI. NÃO usar `food.kcal/protein/etc`
@@ -1081,12 +1081,12 @@ model MealPlanTemplate {
 // Lock 15 — versionado: documento congela hash do conteúdo + signature
 
 model Cid10Code {
-  id          String   @id @default(uuid()) @db.Uuid
-  code        String   @unique // "E66.0", "E10.9", "K59.0"
-  description String // "Obesidade devida a excesso de calorias"
-  category    String? // capítulo ("Doenças endócrinas", "Aparelho digestivo")
-  isCommonInNutrition Boolean @default(false) @map("is_common_in_nutrition")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id                  String   @id @default(uuid()) @db.Uuid
+  code                String   @unique // "E66.0", "E10.9", "K59.0"
+  description         String // "Obesidade devida a excesso de calorias"
+  category            String? // capítulo ("Doenças endócrinas", "Aparelho digestivo")
+  isCommonInNutrition Boolean  @default(false) @map("is_common_in_nutrition")
+  createdAt           DateTime @default(now()) @map("created_at")
 
   documents ClinicalDocumentCid[]
 
@@ -1096,63 +1096,63 @@ model Cid10Code {
 }
 
 model DocumentTemplate {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  id              String               @id @default(uuid()) @db.Uuid
+  organizationId  String               @map("organization_id") @db.Uuid
+  createdByUserId String               @map("created_by_user_id") @db.Uuid
   documentType    ClinicalDocumentType @map("document_type")
   name            String // ex: "Atestado padrão consulta"
   // Conteúdo com placeholders: {{patient.fullName}}, {{nutri.crn}}, {{date}}
-  bodyMarkdown    String   @map("body_markdown")
-  isShared        Boolean  @default(false) @map("is_shared") // visível para toda org
-  usageCount      Int      @default(0) @map("usage_count")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  bodyMarkdown    String               @map("body_markdown")
+  isShared        Boolean              @default(false) @map("is_shared") // visível para toda org
+  usageCount      Int                  @default(0) @map("usage_count")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
 
   @@index([organizationId, documentType])
   @@map("document_templates")
 }
 
 model ClinicalDocument {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
-  issuedByUserId  String   @map("issued_by_user_id") @db.Uuid // CRN do emissor
-  documentType    ClinicalDocumentType @map("document_type")
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  patientId      String               @map("patient_id") @db.Uuid
+  issuedByUserId String               @map("issued_by_user_id") @db.Uuid // CRN do emissor
+  documentType   ClinicalDocumentType @map("document_type")
 
-  title           String // ex: "Atestado — 15/03/2026"
+  title        String // ex: "Atestado — 15/03/2026"
   // Conteúdo final renderizado (markdown pronto, placeholders já resolvidos)
-  bodyMarkdown    String   @map("body_markdown")
+  bodyMarkdown String @map("body_markdown")
 
   // Snapshot dados emissor (CFN/CRN deve aparecer no PDF — Lei CFN)
-  issuerName      String   @map("issuer_name")
-  issuerCrn       String?  @map("issuer_crn") // ex: "12345"
-  issuerCrnUf     String?  @map("issuer_crn_uf") @db.Char(2)
+  issuerName  String  @map("issuer_name")
+  issuerCrn   String? @map("issuer_crn") // ex: "12345"
+  issuerCrnUf String? @map("issuer_crn_uf") @db.Char(2)
 
   // Snapshot dados paciente (mesmo se anonimizado depois)
-  patientNameSnapshot String @map("patient_name_snapshot")
+  patientNameSnapshot String  @map("patient_name_snapshot")
   patientCpfSnapshot  String? @map("patient_cpf_snapshot") @db.VarChar(14)
 
   // Para receitas/encaminhamentos: validade
-  validUntil      DateTime? @map("valid_until") @db.Date
+  validUntil DateTime? @map("valid_until") @db.Date
 
   // PDF gerado: storage path + hash imutável
-  pdfStorageKey   String?  @map("pdf_storage_key") // bucket Supabase Storage
-  pdfHash         String?  @map("pdf_hash") // SHA-256 hex do PDF — Lock 15
-  pdfGeneratedAt  DateTime? @map("pdf_generated_at")
+  pdfStorageKey  String?   @map("pdf_storage_key") // bucket Supabase Storage
+  pdfHash        String?   @map("pdf_hash") // SHA-256 hex do PDF — Lock 15
+  pdfGeneratedAt DateTime? @map("pdf_generated_at")
 
   // Vínculo opcional a outras entidades
-  mealPlanId      String?  @map("meal_plan_id") @db.Uuid // se documentType=PLANO_ALIMENTAR
-  appointmentId   String?  @map("appointment_id") @db.Uuid // origem (consulta)
+  mealPlanId    String? @map("meal_plan_id") @db.Uuid // se documentType=PLANO_ALIMENTAR
+  appointmentId String? @map("appointment_id") @db.Uuid // origem (consulta)
 
-  status          ClinicalDocumentStatus @default(DRAFT)
-  issuedAt        DateTime? @map("issued_at") // quando assinado
-  revokedAt       DateTime? @map("revoked_at")
-  revokedReason   String?  @map("revoked_reason")
+  status        ClinicalDocumentStatus @default(DRAFT)
+  issuedAt      DateTime?              @map("issued_at") // quando assinado
+  revokedAt     DateTime?              @map("revoked_at")
+  revokedReason String?                @map("revoked_reason")
 
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient   Patient               @relation(fields: [patientId], references: [id], onDelete: Cascade)
   cidCodes  ClinicalDocumentCid[]
   signature DigitalSignature?
 
@@ -1178,9 +1178,9 @@ enum ClinicalDocumentStatus {
 
 // CIDs anexados ao documento (M:N)
 model ClinicalDocumentCid {
-  id          String   @id @default(uuid()) @db.Uuid
-  documentId  String   @map("document_id") @db.Uuid
-  cidId       String   @map("cid_id") @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  documentId String @map("document_id") @db.Uuid
+  cidId      String @map("cid_id") @db.Uuid
 
   document ClinicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   cid      Cid10Code        @relation(fields: [cidId], references: [id], onDelete: Restrict)
@@ -1193,19 +1193,19 @@ model ClinicalDocumentCid {
 // Assinatura digital — MOCK no MVP (ICP-Brasil real Fase 7)
 // Registra: hash do PDF + timestamp + nome+CRN do signatário + chave pública mock
 model DigitalSignature {
-  id              String   @id @default(uuid()) @db.Uuid
-  documentId      String   @unique @map("document_id") @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  documentId String @unique @map("document_id") @db.Uuid
 
   // Mock signature: SHA-256(pdfHash + issuedAt + crn + secret)
-  signatureValue  String   @map("signature_value") // hex
-  signedAt        DateTime @map("signed_at")
-  signerName      String   @map("signer_name")
-  signerCrn       String?  @map("signer_crn")
-  signerCrnUf     String?  @map("signer_crn_uf") @db.Char(2)
+  signatureValue String   @map("signature_value") // hex
+  signedAt       DateTime @map("signed_at")
+  signerName     String   @map("signer_name")
+  signerCrn      String?  @map("signer_crn")
+  signerCrnUf    String?  @map("signer_crn_uf") @db.Char(2)
 
   // Para futuro ICP-Brasil: armazenar cert + chain
-  algorithm       String   @default("SHA256-MOCK") // depois: "SHA256-RSA"
-  certThumbprint  String?  @map("cert_thumbprint")
+  algorithm      String  @default("SHA256-MOCK") // depois: "SHA256-RSA"
+  certThumbprint String? @map("cert_thumbprint")
 
   document ClinicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
@@ -1221,22 +1221,22 @@ model DigitalSignature {
 // Lock 7 — passwordless: token bearer único, anti-double-accept
 
 model PatientInvite {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  patientId       String   @map("patient_id") @db.Uuid
-  sentByUserId    String   @map("sent_by_user_id") @db.Uuid
+  id               String    @id @default(uuid()) @db.Uuid
+  organizationId   String    @map("organization_id") @db.Uuid
+  patientId        String    @map("patient_id") @db.Uuid
+  sentByUserId     String    @map("sent_by_user_id") @db.Uuid
   // Token único — hashado em DB (SHA-256) para evitar leak via SQL injection
-  tokenHash       String   @unique @map("token_hash") // sha256 hex
-  email           String // snapshot do email no momento do convite
-  expiresAt       DateTime @map("expires_at")
-  acceptedAt      DateTime? @map("accepted_at")
-  acceptedByUserId String? @map("accepted_by_user_id") @db.Uuid // auth.users.id criado/encontrado
+  tokenHash        String    @unique @map("token_hash") // sha256 hex
+  email            String // snapshot do email no momento do convite
+  expiresAt        DateTime  @map("expires_at")
+  acceptedAt       DateTime? @map("accepted_at")
+  acceptedByUserId String?   @map("accepted_by_user_id") @db.Uuid // auth.users.id criado/encontrado
   // Para auditoria de tentativas
-  attemptCount    Int      @default(0) @map("attempt_count")
-  revokedAt       DateTime? @map("revoked_at")
-  revokedReason   String?  @map("revoked_reason")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  attemptCount     Int       @default(0) @map("attempt_count")
+  revokedAt        DateTime? @map("revoked_at")
+  revokedReason    String?   @map("revoked_reason")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -1254,25 +1254,25 @@ model PatientInvite {
 // Anti-cheat MVP: rate limit (1 check-in/dia/user); backdating limitado a 24h.
 
 model UserHealthCheckin {
-  id              String   @id @default(uuid()) @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
   // checkinDate = data calendário do check-in (sem hora, no tz do usuário)
   // Único por user — UNIQUE constraint na (userId, checkinDate)
-  checkinDate     DateTime @map("checkin_date") @db.Date
+  checkinDate DateTime @map("checkin_date") @db.Date
 
   // Métricas (todas opcionais para flex)
-  mood            Int? // 1..5
-  energyLevel     Int?     @map("energy_level") // 1..5
-  hungerLevel     Int?     @map("hunger_level") // 1..5
-  waterMl         Int?     @map("water_ml")
-  weightKg        Decimal? @map("weight_kg") @db.Decimal(5, 2)
-  followedPlan    Boolean? @map("followed_plan") // seguiu o plano alimentar?
-  notes           String?  @db.VarChar(500)
+  mood         Int? // 1..5
+  energyLevel  Int?     @map("energy_level") // 1..5
+  hungerLevel  Int?     @map("hunger_level") // 1..5
+  waterMl      Int?     @map("water_ml")
+  weightKg     Decimal? @map("weight_kg") @db.Decimal(5, 2)
+  followedPlan Boolean? @map("followed_plan") // seguiu o plano alimentar?
+  notes        String?  @db.VarChar(500)
 
   // Metadados
-  source          String   @default("patient_app") // 'patient_app' | 'nutri_manual'
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  source    String   @default("patient_app") // 'patient_app' | 'nutri_manual'
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([userId, checkinDate])
   @@index([userId, checkinDate(sort: Desc)])
@@ -1280,12 +1280,12 @@ model UserHealthCheckin {
 }
 
 model UserHealthStreak {
-  userId            String   @id @map("user_id") @db.Uuid // 1:1 com User
-  currentStreak     Int      @default(0) @map("current_streak")
-  longestStreak     Int      @default(0) @map("longest_streak")
-  lastCheckinDate   DateTime? @map("last_checkin_date") @db.Date
-  totalCheckins     Int      @default(0) @map("total_checkins")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  userId          String    @id @map("user_id") @db.Uuid // 1:1 com User
+  currentStreak   Int       @default(0) @map("current_streak")
+  longestStreak   Int       @default(0) @map("longest_streak")
+  lastCheckinDate DateTime? @map("last_checkin_date") @db.Date
+  totalCheckins   Int       @default(0) @map("total_checkins")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   @@map("user_health_streaks")
 }
@@ -1298,28 +1298,28 @@ model UserHealthStreak {
 // Modelo permite múltiplos pagamentos por appointment (parcial, reembolso, etc.)
 
 model PatientPayment {
-  id                  String   @id @default(uuid()) @db.Uuid
-  organizationId      String   @map("organization_id") @db.Uuid
-  patientId           String   @map("patient_id") @db.Uuid
-  recordedByUserId    String   @map("recorded_by_user_id") @db.Uuid
-  appointmentId       String?  @map("appointment_id") @db.Uuid
+  id               String  @id @default(uuid()) @db.Uuid
+  organizationId   String  @map("organization_id") @db.Uuid
+  patientId        String  @map("patient_id") @db.Uuid
+  recordedByUserId String  @map("recorded_by_user_id") @db.Uuid
+  appointmentId    String? @map("appointment_id") @db.Uuid
 
-  amountCents         Int      @map("amount_cents") // R$ 100,00 = 10000
-  currency            String   @default("BRL")
-  status              PatientPaymentStatus @default(EXTERNAL_RECORDED)
+  amountCents Int                  @map("amount_cents") // R$ 100,00 = 10000
+  currency    String               @default("BRL")
+  status      PatientPaymentStatus @default(EXTERNAL_RECORDED)
 
   // Para EXTERNAL_RECORDED (Lock 14 + v11.2 Diff 5)
   externalPaymentMethod ExternalPaymentMethod? @map("external_payment_method")
-  externalReference   String?  @map("external_reference") // ID Asaas pessoal nutri, etc.
-  paidAt              DateTime? @map("paid_at")
-  paymentDate         DateTime @map("payment_date") @db.Date
+  externalReference     String?                @map("external_reference") // ID Asaas pessoal nutri, etc.
+  paidAt                DateTime?              @map("paid_at")
+  paymentDate           DateTime               @map("payment_date") @db.Date
 
-  description         String?
+  description       String?
   // Vínculo com recibo gerado
-  receiptDocumentId   String?  @map("receipt_document_id") @db.Uuid
+  receiptDocumentId String? @map("receipt_document_id") @db.Uuid
 
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
@@ -1332,9 +1332,9 @@ model PatientPayment {
 
 enum PatientPaymentStatus {
   EXTERNAL_RECORDED // MVP — cobrança externa nutri, plataforma só registra
-  PENDING           // Futuro Asaas: aguardando pagamento
-  PAID              // Futuro Asaas: confirmado
-  REFUNDED          // Estornado
+  PENDING // Futuro Asaas: aguardando pagamento
+  PAID // Futuro Asaas: confirmado
+  REFUNDED // Estornado
   CANCELLED
 }
 
@@ -1353,16 +1353,16 @@ enum ExternalPaymentMethod {
 // User-scoped cross-tenant (Lock 6).
 
 model HealthDataPoint {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  metricType  String   @map("metric_type") // 'steps' | 'sleep_hours' | 'hr_resting' | 'spo2' | etc.
-  value       Decimal  @db.Decimal(10, 2)
-  unit        String? // 'count' | 'h' | 'bpm' | '%' | etc.
-  recordedAt  DateTime @map("recorded_at")
-  source      String // 'manual' | 'google_fit' | 'apple_health' | 'garmin'
-  externalId  String? @map("external_id") // dedup key from source
-  metadata    Json   @default("{}") // raw payload from source
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  metricType String   @map("metric_type") // 'steps' | 'sleep_hours' | 'hr_resting' | 'spo2' | etc.
+  value      Decimal  @db.Decimal(10, 2)
+  unit       String? // 'count' | 'h' | 'bpm' | '%' | etc.
+  recordedAt DateTime @map("recorded_at")
+  source     String // 'manual' | 'google_fit' | 'apple_health' | 'garmin'
+  externalId String?  @map("external_id") // dedup key from source
+  metadata   Json     @default("{}") // raw payload from source
+  createdAt  DateTime @default(now()) @map("created_at")
 
   @@unique([userId, source, externalId])
   @@index([userId, metricType, recordedAt(sort: Desc)])
@@ -1376,24 +1376,24 @@ model HealthDataPoint {
 // Processamento sync no MVP (worker async em S5+ se volume justificar)
 
 model DataImport {
-  id              String   @id @default(uuid()) @db.Uuid
-  organizationId  String   @map("organization_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  source          String // 'dietbox' | 'webdiet' | 'custom_csv'
-  entityType      String   @map("entity_type") @default("patient") // 'patient' | 'appointment' | etc.
-  originalFileName String  @map("original_file_name")
-  storagePath     String?  @map("storage_path") // Supabase Storage
-  fileSizeBytes   Int      @map("file_size_bytes")
-  encoding        String   @default("utf-8")
-  status          ImportStatus @default(PENDING)
-  columnMapping   Json     @default("{}") @map("column_mapping") // {csv_col: schema_field}
-  totalRows       Int      @default(0) @map("total_rows")
-  processedRows   Int      @default(0) @map("processed_rows")
-  errorRows       Int      @default(0) @map("error_rows")
-  errors          Json     @default("[]") // Array<{row, error, raw}>
-  startedAt       DateTime? @map("started_at")
-  completedAt     DateTime? @map("completed_at")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id               String       @id @default(uuid()) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  userId           String       @map("user_id") @db.Uuid
+  source           String // 'dietbox' | 'webdiet' | 'custom_csv'
+  entityType       String       @default("patient") @map("entity_type") // 'patient' | 'appointment' | etc.
+  originalFileName String       @map("original_file_name")
+  storagePath      String?      @map("storage_path") // Supabase Storage
+  fileSizeBytes    Int          @map("file_size_bytes")
+  encoding         String       @default("utf-8")
+  status           ImportStatus @default(PENDING)
+  columnMapping    Json         @default("{}") @map("column_mapping") // {csv_col: schema_field}
+  totalRows        Int          @default(0) @map("total_rows")
+  processedRows    Int          @default(0) @map("processed_rows")
+  errorRows        Int          @default(0) @map("error_rows")
+  errors           Json         @default("[]") // Array<{row, error, raw}>
+  startedAt        DateTime?    @map("started_at")
+  completedAt      DateTime?    @map("completed_at")
+  createdAt        DateTime     @default(now()) @map("created_at")
 
   @@index([organizationId, status, createdAt(sort: Desc)])
   @@map("data_imports")
@@ -1424,6 +1424,25 @@ model ImportTemplate {
 
   @@index([organizationId, source, entityType])
   @@map("import_templates")
+}
+
+// =====================================================================
+// FEEDBACK (S21 — beta UX privado)
+// =====================================================================
+
+model NpsFeedback {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid // global User.id
+  score          Int // 0..10
+  comment        String?  @db.Text
+  context        String?  @db.VarChar(120) // ex.: "/app/patients/new", "dashboard"
+  userAgent      String?  @map("user_agent") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("nps_feedback")
 }
 
 // =====================================================================
