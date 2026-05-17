@@ -35,35 +35,49 @@ export default async function AppLayout({
 
       <main className="flex-1">{children}</main>
 
-      <nav className="sticky bottom-0 border-t border-slate-200 bg-white px-2 py-2">
-        <div className="mx-auto flex max-w-3xl justify-around text-xs">
+      <nav className="sticky bottom-0 border-t border-slate-200 bg-white px-1 py-2">
+        <div className="mx-auto flex max-w-3xl justify-around text-[10px]">
           <Link
             href="/app"
-            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">🏠</span>
             <span>Início</span>
           </Link>
           <Link
             href="/app/checkin"
-            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">✅</span>
             <span>Check-in</span>
           </Link>
           <Link
             href="/app/meu-plano"
-            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">🍽️</span>
             <span>Plano</span>
           </Link>
           <Link
+            href="/app/consultas"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+          >
+            <span className="text-xl">📅</span>
+            <span>Consultas</span>
+          </Link>
+          <Link
             href="/app/documentos"
-            className="flex flex-col items-center gap-1 rounded-md px-3 py-1 text-slate-600 hover:bg-slate-100"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
           >
             <span className="text-xl">📄</span>
             <span>Docs</span>
+          </Link>
+          <Link
+            href="/app/pagamentos"
+            className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+          >
+            <span className="text-xl">💰</span>
+            <span>Pagto</span>
           </Link>
         </div>
       </nav>
