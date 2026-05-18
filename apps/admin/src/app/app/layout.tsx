@@ -6,6 +6,7 @@ import {
   FileSearch,
   Users,
   ShieldAlert,
+  MessageSquare,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
@@ -77,6 +78,9 @@ export default async function AdminAppLayout({
           </NavLink>
           <NavLink href="/app/users" Icon={Users}>
             Usuários
+          </NavLink>
+          <NavLink href="/app/nps" Icon={MessageSquare}>
+            NPS beta
           </NavLink>
           <NavLink href="/app/audit" Icon={FileSearch}>
             Audit log
