@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ChevronLeft, Target, Wallet, Utensils } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewMealPlanForm } from "./NewMealPlanForm";
 
@@ -62,73 +63,105 @@ export default async function PatientMealPlansPage({ params }: Props) {
   if (!data) notFound();
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-brand-primary hover:underline"
+          className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
         >
-          ← {data.patient.fullName}
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          {data.patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-text-primary">
-          Planos alimentares
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          {data.plans.length} plano(s) registrado(s)
-        </p>
+        <header className="mt-3">
+          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+            Nutrição
+          </p>
+          <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
+            Planos alimentares
+          </h1>
+          <p className="mt-1 text-caption text-text-secondary tabular-nums">
+            {data.plans.length} plano{data.plans.length === 1 ? "" : "s"}{" "}
+            registrado{data.plans.length === 1 ? "" : "s"}
+          </p>
+        </header>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             {data.plans.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border-default bg-white p-12 text-center">
-                <p className="text-text-secondary">
-                  Nenhum plano alimentar criado.
+              <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-12 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-bg-subtle text-text-muted">
+                  <Utensils className="h-5 w-5" strokeWidth={1.75} />
+                </div>
+                <p className="mt-3 text-h3 font-semibold text-text-primary">
+                  Nenhum plano ainda
+                </p>
+                <p className="mt-1 text-caption text-text-secondary">
+                  Crie o primeiro plano alimentar para{" "}
+                  {data.patient.fullName.split(" ")[0]} usando o formulário ao
+                  lado.
                 </p>
               </div>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-2.5">
                 {data.plans.map((p) => (
                   <li
                     key={p.id}
-                    className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                    className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:[box-shadow:var(--shadow-sm)]"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Link
-                          href={`/app/patients/${id}/meal-plans/${p.id}`}
-                          className="text-base font-semibold text-brand-primary hover:underline"
-                        >
-                          {p.name}
-                        </Link>
-                        <div className="mt-1 text-xs text-text-secondary">
-                          {p.targetKcal && (
-                            <span className="mr-3">
-                              🎯 {p.targetKcal.toString()} kcal/dia
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary">
+                          <Utensils className="h-5 w-5" strokeWidth={1.75} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/app/patients/${id}/meal-plans/${p.id}`}
+                            className="text-body font-semibold text-text-primary transition-colors hover:text-brand-primary"
+                          >
+                            {p.name}
+                          </Link>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-tiny text-text-muted">
+                            {p.targetKcal && (
+                              <span className="inline-flex items-center gap-1 tabular-nums">
+                                <Target
+                                  className="h-3 w-3"
+                                  strokeWidth={1.75}
+                                />
+                                {p.targetKcal.toString()} kcal/dia
+                              </span>
+                            )}
+                            {p.totalCostCents != null &&
+                              p.totalCostCents > 0 && (
+                                <span className="inline-flex items-center gap-1 tabular-nums">
+                                  <Wallet
+                                    className="h-3 w-3"
+                                    strokeWidth={1.75}
+                                  />
+                                  R${" "}
+                                  {(p.totalCostCents / 100)
+                                    .toFixed(2)
+                                    .replace(".", ",")}{" "}
+                                  estimado
+                                </span>
+                              )}
+                            <span className="tabular-nums">
+                              · Atualizado{" "}
+                              {new Date(p.updatedAt).toLocaleDateString(
+                                "pt-BR",
+                              )}
                             </span>
-                          )}
-                          {p.totalCostCents != null && (
-                            <span className="mr-3">
-                              💰 R${" "}
-                              {(p.totalCostCents / 100)
-                                .toFixed(2)
-                                .replace(".", ",")}{" "}
-                              estimado
-                            </span>
-                          )}
-                          <span>
-                            Atualizado{" "}
-                            {new Date(p.updatedAt).toLocaleDateString("pt-BR")}
-                          </span>
+                          </div>
                         </div>
                       </div>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          p.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800"
+                        className={
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset " +
+                          (p.status === "ACTIVE"
+                            ? "bg-success-bg text-success ring-success-border"
                             : p.status === "DRAFT"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-bg-muted text-text-secondary"
-                        }`}
+                              ? "bg-warning-bg text-warning ring-warning-border"
+                              : "bg-bg-subtle text-text-secondary ring-border-subtle")
+                        }
                       >
                         {p.status}
                       </span>
