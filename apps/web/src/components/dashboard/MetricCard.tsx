@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type LucideIcon,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-} from "lucide-react";
-import { useMemo } from "react";
+import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
 import CountUp from "react-countup";
 
 interface Props {
@@ -20,8 +15,14 @@ interface Props {
   prefix?: string;
   /** Casas decimais — útil pra moeda. */
   decimals?: number;
-  /** Ícone contextual à direita (revelado em hover). */
-  Icon: LucideIcon;
+  /**
+   * Ícone contextual à direita (revelado em hover).
+   *
+   * Receba como ReactNode (JSX) porque MetricCard é Client Component:
+   * passar a função do componente (`Icon={Users}`) viola
+   * server→client serialization no React 19. Use `icon={<Users />}`.
+   */
+  icon: ReactNode;
   /** Variação vs período anterior (em %). Positivo = up, negativo = down. */
   delta?: number | null;
   /** Texto descritivo abaixo do delta. */
@@ -49,7 +50,7 @@ export function MetricCard({
   suffix,
   prefix,
   decimals = 0,
-  Icon,
+  icon,
   delta,
   deltaLabel = "vs mês anterior",
   sub,
@@ -70,9 +71,9 @@ export function MetricCard({
         <p className="text-caption font-medium text-text-secondary">{label}</p>
         <div
           aria-hidden
-          className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-primary-bg text-brand-primary opacity-0 transition-opacity duration-fast group-hover:opacity-100"
+          className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-primary-bg text-brand-primary opacity-0 transition-opacity duration-fast group-hover:opacity-100 [&_svg]:h-4 [&_svg]:w-4"
         >
-          <Icon className="h-4 w-4" strokeWidth={1.75} />
+          {icon}
         </div>
       </div>
 
@@ -151,12 +152,13 @@ export function NavCard({
   href,
   title,
   description,
-  Icon,
+  icon,
 }: {
   href: string;
   title: string;
   description: string;
-  Icon: LucideIcon;
+  /** ReactNode (JSX) — passe `<Users />`, não `Users`. */
+  icon: ReactNode;
 }) {
   return (
     <Link
@@ -164,8 +166,8 @@ export function NavCard({
       className="group block rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)] transition-all duration-base [transition-timing-function:var(--ease-out-expo)] hover:-translate-y-0.5 hover:border-brand-primary/40 hover:[box-shadow:var(--shadow-sm)]"
     >
       <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
-          <Icon className="h-5 w-5" strokeWidth={1.75} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white [&_svg]:h-5 [&_svg]:w-5">
+          {icon}
         </div>
         <ArrowRight
           className="h-4 w-4 text-text-subtle opacity-0 transition-all duration-fast group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-brand-primary"
