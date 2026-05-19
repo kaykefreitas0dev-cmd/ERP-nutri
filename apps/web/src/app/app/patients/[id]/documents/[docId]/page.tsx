@@ -1,5 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import {
+  ChevronLeft,
+  FileText,
+  TriangleAlert,
+  ShieldCheck,
+  Stethoscope,
+  Clock,
+  History,
+  User,
+} from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { DocumentActions } from "./DocumentActions";
 
@@ -19,9 +29,9 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLE: Record<string, string> = {
-  DRAFT: "bg-amber-100 text-amber-800",
-  ISSUED: "bg-green-100 text-green-800",
-  REVOKED: "bg-red-100 text-red-800",
+  DRAFT: "bg-warning-bg text-warning ring-warning-border",
+  ISSUED: "bg-success-bg text-success ring-success-border",
+  REVOKED: "bg-danger-bg text-danger ring-danger-border",
 };
 
 export default async function ViewDocumentPage({ params }: Props) {
@@ -87,34 +97,40 @@ export default async function ViewDocumentPage({ params }: Props) {
   const { doc, patient } = data;
 
   return (
-    <main className="bg-transparent p-6">
+    <main className="p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
         <Link
           href={`/app/patients/${id}/documents`}
-          className="text-sm text-brand-primary hover:underline"
+          className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
         >
-          ← Documentos de {patient.fullName}
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Documentos de {patient.fullName}
         </Link>
 
-        <header className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <header className="mt-3 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-text-primary truncate">
+            <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+              {TYPE_LABELS[doc.documentType] ?? doc.documentType}
+            </p>
+            <div className="mt-0.5 flex flex-wrap items-center gap-3">
+              <h1 className="truncate text-h1 font-semibold tracking-tight text-text-primary">
                 {doc.title}
               </h1>
               <span
-                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  STATUS_STYLE[doc.status] ?? "bg-bg-muted text-text-secondary"
-                }`}
+                className={
+                  "shrink-0 rounded-full px-2.5 py-1 text-tiny font-medium ring-1 ring-inset " +
+                  (STATUS_STYLE[doc.status] ??
+                    "bg-bg-subtle text-text-secondary ring-border-subtle")
+                }
               >
                 {doc.status}
               </span>
             </div>
-            <p className="mt-1 text-sm text-text-secondary">
-              📄 {TYPE_LABELS[doc.documentType] ?? doc.documentType} • Emissor:{" "}
+            <p className="mt-1 inline-flex items-center gap-1.5 text-caption text-text-secondary">
+              <Stethoscope className="h-3.5 w-3.5" strokeWidth={1.75} />
               {doc.issuerName}
               {doc.issuerCrn &&
-                ` (CRN-${doc.issuerCrnUf ?? "—"}: ${doc.issuerCrn})`}
+                ` · CRN-${doc.issuerCrnUf ?? "—"} ${doc.issuerCrn}`}
             </p>
           </div>
 
@@ -123,92 +139,110 @@ export default async function ViewDocumentPage({ params }: Props) {
 
         {/* Banner status */}
         {doc.status === "REVOKED" && (
-          <div className="mt-4 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-            <strong>Documento revogado</strong>{" "}
-            {doc.revokedAt &&
-              `em ${new Date(doc.revokedAt).toLocaleDateString("pt-BR")}`}
-            {doc.revokedReason && (
-              <p className="mt-1">
-                <strong>Motivo:</strong> {doc.revokedReason}
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-danger-border bg-danger-bg p-3 text-caption text-danger">
+            <TriangleAlert
+              className="mt-0.5 h-4 w-4 shrink-0"
+              strokeWidth={1.75}
+            />
+            <div>
+              <p className="font-semibold">
+                Documento revogado
+                {doc.revokedAt &&
+                  ` em ${new Date(doc.revokedAt).toLocaleDateString("pt-BR")}`}
               </p>
-            )}
+              {doc.revokedReason && (
+                <p className="mt-1">
+                  <span className="font-medium">Motivo:</span>{" "}
+                  {doc.revokedReason}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
         {doc.status === "DRAFT" && (
-          <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-            <strong>Rascunho</strong> — não vale legalmente. Clique em{" "}
-            <em>Assinar e emitir</em> para gerar o PDF assinado.
+          <div className="mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-caption text-warning">
+            <TriangleAlert
+              className="mt-0.5 h-4 w-4 shrink-0"
+              strokeWidth={1.75}
+            />
+            <div>
+              <p className="font-semibold">Rascunho</p>
+              <p className="mt-0.5">
+                Não vale legalmente. Clique em{" "}
+                <span className="font-medium">Assinar e emitir</span> para gerar
+                o PDF assinado.
+              </p>
+            </div>
           </div>
         )}
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Coluna 1: metadados + assinatura */}
           <aside className="space-y-4">
-            <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Paciente (snapshot)
-              </h2>
-              <p className="mt-2 text-sm font-medium">
+            <Section title="Paciente (snapshot)" Icon={User}>
+              <p className="text-body font-medium text-text-primary">
                 {doc.patientNameSnapshot}
               </p>
               {doc.patientCpfSnapshot && (
-                <p className="text-xs text-text-secondary">
+                <p className="mt-1 text-caption text-text-secondary tabular-nums">
                   CPF: {doc.patientCpfSnapshot}
                 </p>
               )}
-            </section>
+            </Section>
 
             {doc.cidCodes.length > 0 && (
-              <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  CID-10
-                </h2>
-                <ul className="mt-2 space-y-1 text-xs">
+              <Section title="CID-10" Icon={Stethoscope}>
+                <ul className="space-y-1.5">
                   {doc.cidCodes.map((c) => (
-                    <li key={c.id}>
-                      <strong className="text-brand-primary">
+                    <li key={c.id} className="text-caption">
+                      <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-tiny font-medium text-brand-primary">
                         {c.cid.code}
-                      </strong>{" "}
-                      {c.cid.description}
+                      </code>{" "}
+                      <span className="text-text-secondary">
+                        {c.cid.description}
+                      </span>
                     </li>
                   ))}
                 </ul>
-              </section>
+              </Section>
             )}
 
             {doc.validUntil && (
-              <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Validade
-                </h2>
-                <p className="mt-2 text-sm">
+              <Section title="Validade" Icon={Clock}>
+                <p className="text-body font-medium tabular-nums">
                   {new Date(doc.validUntil).toLocaleDateString("pt-BR")}
                 </p>
-              </section>
+              </Section>
             )}
 
             {doc.signature && (
-              <section className="rounded-lg border border-green-200 bg-green-50 p-4 shadow-sm">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-green-800">
+              <section className="rounded-lg border border-success-border bg-success-bg p-4">
+                <h2 className="flex items-center gap-1.5 text-tiny font-semibold uppercase tracking-wider text-success">
+                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
                   Assinatura digital (Mock)
                 </h2>
-                <p className="mt-1 text-xs text-green-700">
+                <p className="mt-2 text-caption text-success">
                   Assinado em{" "}
-                  {new Date(doc.signature.signedAt).toLocaleString("pt-BR")}
+                  <span className="tabular-nums">
+                    {new Date(doc.signature.signedAt).toLocaleString("pt-BR")}
+                  </span>
                 </p>
-                <p className="mt-1 text-xs text-green-700">
-                  Algoritmo: {doc.signature.algorithm}
+                <p className="text-caption text-success">
+                  Algoritmo:{" "}
+                  <code className="font-mono text-tiny">
+                    {doc.signature.algorithm}
+                  </code>
                 </p>
-                <p className="mt-2 break-all font-mono text-[10px] text-green-700">
-                  {doc.signature.signatureValue.slice(0, 32)}...
+                <p className="mt-2 break-all font-mono text-[10px] text-success/80">
+                  {doc.signature.signatureValue.slice(0, 32)}…
                 </p>
                 {doc.pdfHash && (
                   <>
-                    <h3 className="mt-3 text-xs font-semibold uppercase tracking-wider text-green-800">
+                    <h3 className="mt-3 text-tiny font-semibold uppercase tracking-wider text-success">
                       Hash do PDF (SHA-256)
                     </h3>
-                    <p className="mt-1 break-all font-mono text-[10px] text-green-700">
+                    <p className="mt-1 break-all font-mono text-[10px] text-success/80">
                       {doc.pdfHash}
                     </p>
                   </>
@@ -216,41 +250,70 @@ export default async function ViewDocumentPage({ params }: Props) {
               </section>
             )}
 
-            <section className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                Histórico
-              </h2>
-              <ul className="mt-2 space-y-1 text-xs text-text-secondary">
-                <li>
-                  Criado em {new Date(doc.createdAt).toLocaleString("pt-BR")}
+            <Section title="Histórico" Icon={History}>
+              <ul className="space-y-1 text-caption text-text-secondary">
+                <li className="tabular-nums">
+                  Criado{" "}
+                  {new Date(doc.createdAt).toLocaleString("pt-BR", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
                 </li>
                 {doc.issuedAt && (
-                  <li>
-                    Emitido em {new Date(doc.issuedAt).toLocaleString("pt-BR")}
+                  <li className="tabular-nums">
+                    Emitido{" "}
+                    {new Date(doc.issuedAt).toLocaleString("pt-BR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
                   </li>
                 )}
                 {doc.revokedAt && (
-                  <li className="text-red-600">
-                    Revogado em{" "}
-                    {new Date(doc.revokedAt).toLocaleString("pt-BR")}
+                  <li className="tabular-nums text-danger">
+                    Revogado{" "}
+                    {new Date(doc.revokedAt).toLocaleString("pt-BR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
                   </li>
                 )}
               </ul>
-            </section>
+            </Section>
           </aside>
 
           {/* Coluna 2-3: corpo do documento */}
-          <article className="lg:col-span-2 rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <article className="lg:col-span-2 rounded-lg border border-border-subtle bg-bg-surface p-6 [box-shadow:var(--shadow-xs)]">
+            <h2 className="flex items-center gap-1.5 text-tiny font-semibold uppercase tracking-wider text-text-muted">
+              <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
               Corpo do documento
             </h2>
-            <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
+            <div className="mt-4 whitespace-pre-wrap text-body leading-relaxed text-text-primary">
               {renderMarkdown(doc.bodyMarkdown)}
             </div>
           </article>
         </div>
       </div>
     </main>
+  );
+}
+
+function Section({
+  title,
+  Icon,
+  children,
+}: {
+  title: string;
+  Icon: typeof User;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]">
+      <h2 className="flex items-center gap-1.5 text-tiny font-semibold uppercase tracking-wider text-text-muted">
+        <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+        {title}
+      </h2>
+      <div className="mt-2">{children}</div>
+    </section>
   );
 }
 
