@@ -184,28 +184,28 @@ export default async function AppDashboard() {
           <MetricCard
             label="Pacientes ativos"
             value={data.counts.activePatients}
-            Icon={Users}
+            icon={<Users strokeWidth={1.75} />}
             href="/app/patients"
             sub={data.counts.activePatients === 1 ? "1 ativo" : "total ativos"}
           />
           <MetricCard
             label="Consultas hoje"
             value={data.counts.apptsToday}
-            Icon={Calendar}
+            icon={<Calendar strokeWidth={1.75} />}
             href="/app/agenda"
             sub="agendadas hoje"
           />
           <MetricCard
             label="Consultas semana"
             value={data.counts.apptsThisWeek}
-            Icon={CalendarDays}
+            icon={<CalendarDays strokeWidth={1.75} />}
             href="/app/agenda"
             sub={`${totalAppts >= data.counts.apptsThisWeek ? "" : "+ extras"}`}
           />
           <MetricCard
             label="Planos ativos"
             value={data.counts.mealPlansActive}
-            Icon={Utensils}
+            icon={<Utensils strokeWidth={1.75} />}
             href="/app/patients"
             sub="em andamento"
           />
@@ -214,14 +214,14 @@ export default async function AppDashboard() {
             prefix="R$"
             value={data.counts.paymentsThisMonth.totalCents / 100}
             decimals={2}
-            Icon={Wallet}
+            icon={<Wallet strokeWidth={1.75} />}
             href="/app/financeiro"
             sub={`${data.counts.paymentsThisMonth.count} pagamento${data.counts.paymentsThisMonth.count !== 1 ? "s" : ""}`}
           />
           <MetricCard
             label="Docs do mês"
             value={data.counts.docsThisMonth}
-            Icon={FileText}
+            icon={<FileText strokeWidth={1.75} />}
             href="/app/patients"
             sub="emitidos no mês"
           />
@@ -244,37 +244,37 @@ export default async function AppDashboard() {
               href="/app/patients"
               title="Pacientes"
               description="Cadastro, anamnese, planos, check-ins, documentos."
-              Icon={Users}
+              icon={<Users strokeWidth={1.75} />}
             />
             <NavCard
               href="/app/agenda"
               title="Agenda"
               description="Consultas, check-in, conclusão com recibo."
-              Icon={Calendar}
+              icon={<Calendar strokeWidth={1.75} />}
             />
             <NavCard
               href="/app/financeiro"
               title="Financeiro"
               description="Pagamentos registrados, faturamento por mês."
-              Icon={Wallet}
+              icon={<Wallet strokeWidth={1.75} />}
             />
             <NavCard
               href="/app/alimentos"
               title="Alimentos & Receitas"
               description="Biblioteca TACO/POF + receitas próprias."
-              Icon={Salad}
+              icon={<Salad strokeWidth={1.75} />}
             />
             <NavCard
               href="/app/imports"
               title="Importar pacientes"
               description="Migrar de Dietbox, Webdiet ou CSV genérico."
-              Icon={Download}
+              icon={<Download strokeWidth={1.75} />}
             />
             <NavCard
               href="/app/settings"
               title="Configurações"
               description="Branding, nome no email, dados da org."
-              Icon={Settings}
+              icon={<Settings strokeWidth={1.75} />}
             />
           </div>
         </section>
