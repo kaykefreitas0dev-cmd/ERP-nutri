@@ -9,6 +9,7 @@
  *   • appointment.scheduled   — nova consulta criada para paciente vinculado
  *   • appointment.rescheduled — data/hora/modalidade alterados pelo profissional
  *   • appointment.confirmed   — status SCHEDULED → CONFIRMED
+ *   • appointment.completed   — status → COMPLETED (checar documentos/recibo)
  *   • appointment.cancelled   — status → CANCELLED
  */
 
@@ -76,6 +77,19 @@ export async function sendAppointmentConfirmedEmail(
     subject: `Consulta confirmada — ${formatDateTime(params.startsAt, params.timezone)}`,
     html: renderConfirmedHtml(params),
     text: renderConfirmedText(params),
+  });
+}
+
+// ─── completed ───────────────────────────────────────────────────────────────
+
+export async function sendAppointmentCompletedEmail(
+  params: AppointmentEmailBase,
+): Promise<AppointmentNotificationResult> {
+  return sendNotification({
+    ...params,
+    subject: `Consulta concluída — verifique seus documentos no app`,
+    html: renderCompletedHtml(params),
+    text: renderCompletedText(params),
   });
 }
 
@@ -274,6 +288,32 @@ function renderConfirmedHtml(p: AppointmentEmailBase): string {
   return baseLayout(body, footer);
 }
 
+function renderCompletedHtml(p: AppointmentEmailBase): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#0f766e;">
+      Consulta concluída ✅
+    </h1>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Olá, <strong style="color:#0f172a;">${escapeHtml(firstName)}</strong>!
+    </p>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Sua consulta com <strong>${escapeHtml(p.organizationName)}</strong> foi registrada como concluída.
+    </p>
+    ${apptInfoBlock(p)}
+    <p style="margin:16px 0 8px;font-size:14px;line-height:1.6;color:#475569;">
+      Acesse o app para:
+    </p>
+    <ul style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.8;color:#475569;">
+      <li>Ver documentos clínicos enviados pelo seu profissional</li>
+      <li>Baixar o recibo da consulta</li>
+      <li>Conferir seu plano alimentar atualizado</li>
+      <li>Fazer o check-in do dia</li>
+    </ul>`;
+  const footer = `Confirmação de consulta concluída com ${escapeHtml(p.organizationName)}.`;
+  return baseLayout(body, footer);
+}
+
 function renderCancelledHtml(p: CancelledParams): string {
   const firstName = p.patientFullName.split(" ")[0]!;
   const reasonBlock = p.reason
@@ -352,6 +392,22 @@ Sua consulta com ${p.organizationName} foi confirmada.
 ${apptInfoText(p)}
 
 Até lá!
+
+—
+NutriCore · acompanhamento nutricional digital`;
+}
+
+function renderCompletedText(p: AppointmentEmailBase): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  return `Consulta concluída — ${p.organizationName}
+
+Olá, ${firstName}!
+
+Sua consulta com ${p.organizationName} foi registrada como concluída.
+
+${apptInfoText(p)}
+
+Acesse o app para ver seus documentos clínicos, baixar o recibo e conferir seu plano alimentar.
 
 —
 NutriCore · acompanhamento nutricional digital`;
