@@ -65,7 +65,10 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #44 | `5e3be5a` | Fix — server→client icon prop serialization MetricCard/NavCard                |
 | #45 | `6912a99` | Agenda — week calendar view com hourly time grid + overlap lanes              |
 | #46 | `e4ce37d` | Meal plan — dnd-kit drag-and-drop reorder meals + items                       |
-| #47 | (pending) | Dashboard — Sparkline trend charts em MetricCards                             |
+| #47 | `85e93fc` | Dashboard — Sparkline trend charts em MetricCards                             |
+| #48 | `8d56383` | Patients — TanStack Table + Virtual, cursor pagination, instant search filter |
+| #49 | `a906662` | CI — axe-core a11y tests + Playwright workflow + Lighthouse budgets           |
+| #50 | `9cc2b8b` | Agenda — edit appointment modal (date/time, duration, modality, notes)        |
 
 ---
 
@@ -79,9 +82,10 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 
 ### Tech work disponível (não bloqueado)
 
-- [ ] TanStack Table com virtualização para lista de pacientes (take:50 → cursor paginado)
-- [ ] axe-core a11y automatizado em CI
-- [ ] Lighthouse CI performance budgets formalizados
+- [x] TanStack Table com virtualização para lista de pacientes — cursor paginado + instant search (PR #48)
+- [x] axe-core a11y automatizado em CI + Playwright deployment workflow (PR #49)
+- [x] Lighthouse CI performance budgets formalizados (PR #49)
+- [x] Edição de consulta na agenda — modal reschedule (PR #50)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -106,3 +110,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-18 — S6→S21 entregues (PRs #8-#32); 14 migrations; design system completo
 - 2026-05-19 — UI Polish phases 1-7 (PRs #33-#43); Agenda week view; Meal plan dnd-kit; Dashboard sparklines
 - 2026-05-20 — PR #44-#47 merged; SPRINT_STATE atualizado para S22
+- 2026-05-20 (tarde) — PR #48-#50 merged: TanStack Table + Virtual, axe-core a11y CI, agenda edit modal
