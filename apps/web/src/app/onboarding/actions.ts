@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@nutricore/db";
@@ -100,7 +99,9 @@ export async function completeOnboardingAction(
     professionalType:
       formData.get("professionalType") ?? collected.professionalType,
     crn: formData.get("crn") ?? collected.crn ?? "",
-    acceptedTerms: formData.get("acceptedTerms") === "on" || collected.acceptedTerms === true,
+    acceptedTerms:
+      formData.get("acceptedTerms") === "on" ||
+      collected.acceptedTerms === true,
   };
 
   const parsed = CompleteSchema.safeParse(merged);

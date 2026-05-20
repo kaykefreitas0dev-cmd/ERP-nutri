@@ -35,10 +35,6 @@ export function OnboardingWizard({
   const [data, setData] = useState<Record<string, unknown>>(initialData);
   const [error, setError] = useState<string | null>(null);
 
-  function updateField<T>(key: string, value: T) {
-    setData((prev) => ({ ...prev, [key]: value }));
-  }
-
   async function handleNext(stepData: Record<string, unknown>) {
     setError(null);
     startTransition(async () => {
