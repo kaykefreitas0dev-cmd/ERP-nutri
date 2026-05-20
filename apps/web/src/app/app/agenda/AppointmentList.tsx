@@ -64,14 +64,39 @@ const MODALITY: Record<string, { Icon: LucideIcon; label: string }> = {
   phone: { Icon: Phone, label: "Telefone" },
 };
 
+type OverlayType = "CANCEL" | "NO_SHOW";
+
+interface OverlayAction {
+  type: OverlayType;
+  appointmentId: string;
+}
+
+const OVERLAY_CONFIG: Record<
+  OverlayType,
+  { title: string; placeholder: string; confirmTone: "danger" | "warning" }
+> = {
+  CANCEL: {
+    title: "Cancelar consulta?",
+    placeholder: "Motivo (opcional)",
+    confirmTone: "danger",
+  },
+  NO_SHOW: {
+    title: "Marcar como No-show?",
+    placeholder: "Observação (opcional)",
+    confirmTone: "danger",
+  },
+};
+
 export function AppointmentList({ appointments }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [payingAppt, setPayingAppt] = useState<Appointment | null>(null);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState<string>("");
+  const [overlayAction, setOverlayAction] = useState<OverlayAction | null>(
+    null,
+  );
+  const [overlayReason, setOverlayReason] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -103,19 +128,22 @@ export function AppointmentList({ appointments }: Props) {
     });
   }
 
-  function startCancel(appointmentId: string) {
-    setCancellingId(appointmentId);
-    setCancelReason("");
+  function startOverlay(type: OverlayType, appointmentId: string) {
+    setOverlayAction({ type, appointmentId });
+    setOverlayReason("");
   }
 
-  function confirmCancel(appointmentId: string) {
-    setCancellingId(null);
-    updateStatus(appointmentId, "CANCELLED", cancelReason);
+  function confirmOverlay() {
+    if (!overlayAction) return;
+    const { type, appointmentId } = overlayAction;
+    setOverlayAction(null);
+    const toStatus = type === "CANCEL" ? "CANCELLED" : "NO_SHOW";
+    updateStatus(appointmentId, toStatus, overlayReason);
   }
 
-  function abortCancel() {
-    setCancellingId(null);
-    setCancelReason("");
+  function abortOverlay() {
+    setOverlayAction(null);
+    setOverlayReason("");
   }
 
   if (appointments.length === 0) {
@@ -236,37 +264,39 @@ export function AppointmentList({ appointments }: Props) {
                   </div>
                 </div>
 
-                {/* Cancel reason inline panel */}
-                {cancellingId === apt.id && (
+                {/* Inline overlay: Cancel / No-show with optional reason */}
+                {overlayAction?.appointmentId === apt.id && (
                   <div className="absolute inset-x-0 bottom-0 top-0 z-10 flex items-center justify-between gap-3 rounded-lg border border-danger-border bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-sm)]">
                     <div className="min-w-0 flex-1">
                       <p className="text-caption font-medium text-danger">
-                        Cancelar consulta?
+                        {OVERLAY_CONFIG[overlayAction.type].title}
                       </p>
                       <input
                         type="text"
-                        value={cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        placeholder="Motivo (opcional)"
+                        value={overlayReason}
+                        onChange={(e) => setOverlayReason(e.target.value)}
+                        placeholder={
+                          OVERLAY_CONFIG[overlayAction.type].placeholder
+                        }
                         maxLength={200}
                         autoFocus
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") confirmCancel(apt.id);
-                          if (e.key === "Escape") abortCancel();
+                          if (e.key === "Enter") confirmOverlay();
+                          if (e.key === "Escape") abortOverlay();
                         }}
                         className="mt-1 w-full rounded-md border border-border-default bg-bg-surface px-2 py-1 text-caption text-text-primary placeholder:text-text-muted focus:border-danger focus:outline-none focus:[box-shadow:0_0_0_2px_rgb(239_68_68/0.2)]"
                       />
                     </div>
                     <div className="flex shrink-0 flex-col gap-1">
                       <ActionButton
-                        onClick={() => confirmCancel(apt.id)}
+                        onClick={confirmOverlay}
                         disabled={pending && updatingId === apt.id}
                         tone="danger"
                       >
                         Confirmar
                       </ActionButton>
                       <ActionButton
-                        onClick={abortCancel}
+                        onClick={abortOverlay}
                         disabled={false}
                         tone="ghost"
                       >
@@ -299,7 +329,7 @@ export function AppointmentList({ appointments }: Props) {
                         Confirmar
                       </ActionButton>
                       <ActionButton
-                        onClick={() => startCancel(apt.id)}
+                        onClick={() => startOverlay("CANCEL", apt.id)}
                         disabled={pending && updatingId === apt.id}
                         tone="ghost"
                       >
@@ -317,7 +347,7 @@ export function AppointmentList({ appointments }: Props) {
                         Check-in
                       </ActionButton>
                       <ActionButton
-                        onClick={() => updateStatus(apt.id, "NO_SHOW")}
+                        onClick={() => startOverlay("NO_SHOW", apt.id)}
                         disabled={pending && updatingId === apt.id}
                         tone="danger"
                       >
