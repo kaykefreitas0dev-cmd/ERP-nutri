@@ -546,64 +546,150 @@ export function MealPlanEditor({ days }: Props) {
         </div>
       )}
       <div className="space-y-6">
-        {localDays.map((day) => (
-          <section
-            key={day.id}
-            className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
-          >
-            <header className="flex items-center justify-between border-b border-border-subtle bg-bg-subtle px-5 py-3">
-              <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
-                <CalendarDays
-                  className="h-4 w-4 text-text-muted"
-                  strokeWidth={1.75}
-                />
-                {day.dayLabel}
-              </h2>
-              <div className="flex items-center gap-3">
-                <span className="text-tiny font-medium uppercase tracking-wider text-text-muted tabular-nums">
-                  {day.meals.length}{" "}
-                  {day.meals.length === 1 ? "refeição" : "refeições"}
-                </span>
-                {day.meals.length > 1 && (
-                  <span className="text-tiny text-text-muted">
-                    · arraste para reordenar
-                  </span>
-                )}
-              </div>
-            </header>
+        {localDays.map((day) => {
+          const dt = computeDayTotals(day);
+          const hasItems = dt.kcal > 0;
+          const totalMacroKcal = dt.protein * 4 + dt.carb * 4 + dt.fat * 9 || 1;
+          const pPct = Math.round((dt.protein * 4 * 100) / totalMacroKcal);
+          const cPct = Math.round((dt.carb * 4 * 100) / totalMacroKcal);
+          const fPct = 100 - pPct - cPct;
 
-            {/* Sortable meals within this day */}
-            <DndContext
-              sensors={mealSensors}
-              collisionDetection={closestCenter}
-              onDragEnd={(event) => handleMealDragEnd(day.id, event)}
+          return (
+            <section
+              key={day.id}
+              className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
             >
-              <SortableContext
-                items={day.meals.map((m) => m.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="divide-y divide-border-subtle">
-                  {day.meals.map((meal) => (
-                    <SortableMeal
-                      key={meal.id}
-                      meal={meal}
-                      pendingGlobal={pending}
-                      openMealId={openMealId}
-                      onToggleOpen={(id) =>
-                        setOpenMealId((prev) => (prev === id ? null : id))
-                      }
-                      onAddItem={handleAddItem}
-                      onRemoveItem={handleRemoveItem}
+              <header className="border-b border-border-subtle bg-bg-subtle px-5 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+                    <CalendarDays
+                      className="h-4 w-4 text-text-muted"
+                      strokeWidth={1.75}
                     />
-                  ))}
+                    {day.dayLabel}
+                  </h2>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {hasItems && (
+                      <>
+                        <span className="tabular-nums text-tiny font-medium text-text-primary">
+                          {dt.kcal.toFixed(0)} kcal
+                        </span>
+                        <MacroPill
+                          color="var(--color-macro-protein)"
+                          label="PTN"
+                          value={`${dt.protein.toFixed(0)}g`}
+                        />
+                        <MacroPill
+                          color="var(--color-macro-carb)"
+                          label="CHO"
+                          value={`${dt.carb.toFixed(0)}g`}
+                        />
+                        <MacroPill
+                          color="var(--color-macro-fat)"
+                          label="LIP"
+                          value={`${dt.fat.toFixed(0)}g`}
+                        />
+                        <span className="hidden text-tiny text-text-muted sm:inline">
+                          ·
+                        </span>
+                      </>
+                    )}
+                    <span className="text-tiny font-medium uppercase tracking-wider text-text-muted tabular-nums">
+                      {day.meals.length}{" "}
+                      {day.meals.length === 1 ? "refeição" : "refeições"}
+                    </span>
+                    {day.meals.length > 1 && (
+                      <span className="hidden text-tiny text-text-muted sm:inline">
+                        · arraste para reordenar
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </SortableContext>
-            </DndContext>
-          </section>
-        ))}
+
+                {/* Stacked macro bar */}
+                {hasItems && (
+                  <div className="mt-2 flex h-1 w-full overflow-hidden rounded-full bg-bg-subtle">
+                    <div
+                      style={{
+                        width: `${pPct}%`,
+                        backgroundColor: "var(--color-macro-protein)",
+                      }}
+                      title={`Proteína ${pPct}%`}
+                    />
+                    <div
+                      style={{
+                        width: `${cPct}%`,
+                        backgroundColor: "var(--color-macro-carb)",
+                      }}
+                      title={`Carboidrato ${cPct}%`}
+                    />
+                    <div
+                      style={{
+                        width: `${fPct}%`,
+                        backgroundColor: "var(--color-macro-fat)",
+                      }}
+                      title={`Lipídeo ${fPct}%`}
+                    />
+                  </div>
+                )}
+              </header>
+
+              {/* Sortable meals within this day */}
+              <DndContext
+                sensors={mealSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) => handleMealDragEnd(day.id, event)}
+              >
+                <SortableContext
+                  items={day.meals.map((m) => m.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="divide-y divide-border-subtle">
+                    {day.meals.map((meal) => (
+                      <SortableMeal
+                        key={meal.id}
+                        meal={meal}
+                        pendingGlobal={pending}
+                        openMealId={openMealId}
+                        onToggleOpen={(id) =>
+                          setOpenMealId((prev) => (prev === id ? null : id))
+                        }
+                        onAddItem={handleAddItem}
+                        onRemoveItem={handleRemoveItem}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </section>
+          );
+        })}
       </div>
     </div>
   );
+}
+
+// ── Day totals helper ─────────────────────────────────────────────────────────
+function computeDayTotals(day: DayView): {
+  kcal: number;
+  protein: number;
+  carb: number;
+  fat: number;
+} {
+  let kcal = 0,
+    protein = 0,
+    carb = 0,
+    fat = 0;
+  for (const meal of day.meals) {
+    for (const item of meal.items) {
+      if (item.kcal) kcal += parseFloat(item.kcal.toString());
+      if (item.proteinG) protein += parseFloat(item.proteinG.toString());
+      if (item.carbG) carb += parseFloat(item.carbG.toString());
+      if (item.fatG) fat += parseFloat(item.fatG.toString());
+    }
+  }
+  return { kcal, protein, carb, fat };
 }
 
 // ── MacroPill ────────────────────────────────────────────────────────────────
