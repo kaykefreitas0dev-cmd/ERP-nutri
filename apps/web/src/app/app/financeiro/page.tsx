@@ -204,8 +204,8 @@ export default async function FinanceiroPage({ searchParams }: Props) {
             Financeiro
           </h1>
           <p className="mt-1 text-caption text-text-secondary">
-            Pagamentos registrados (EXTERNAL_RECORDED no MVP — Asaas chega no
-            S22).
+            Consultas realizadas e pagamentos registrados no período
+            selecionado.
           </p>
         </header>
 
