@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Target, Wallet, Utensils } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewMealPlanForm } from "./NewMealPlanForm";
+import { DuplicateMealPlanButton } from "./DuplicateMealPlanButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Planos alimentares" };
@@ -106,7 +107,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
                 {data.plans.map((p) => (
                   <li
                     key={p.id}
-                    className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:[box-shadow:var(--shadow-sm)]"
+                    className="group rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:[box-shadow:var(--shadow-sm)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -166,6 +167,11 @@ export default async function PatientMealPlansPage({ params }: Props) {
                         {p.status}
                       </span>
                     </div>
+                    <DuplicateMealPlanButton
+                      planId={p.id}
+                      patientId={id}
+                      originalName={p.name}
+                    />
                   </li>
                 ))}
               </ul>

@@ -238,6 +238,136 @@ export async function updateMealPlanStatusAction(input: {
 }
 
 /**
+ * Duplica um plano alimentar inteiro (deep copy: days → meals → items).
+ * Novo plano começa como DRAFT com o nome fornecido.
+ * Snapshots de foodVersion + macros são preservados (Lock 15).
+ */
+export async function duplicateMealPlanAction(input: {
+  planId: string;
+  newName: string;
+  patientId: string;
+}): Promise<PlanActionResult> {
+  const name = input.newName.trim();
+  if (!name || name.length < 2 || name.length > 120) {
+    return { ok: false, message: "Nome inválido (2-120 caracteres)" };
+  }
+
+  try {
+    const result = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        // 1. Fetch source plan with full tree
+        const source = await tx.mealPlan.findFirst({
+          where: {
+            id: input.planId,
+            organizationId,
+            patientId: input.patientId,
+          },
+          include: {
+            days: {
+              orderBy: { sortOrder: "asc" },
+              include: {
+                meals: {
+                  orderBy: { sortOrder: "asc" },
+                  include: {
+                    items: { orderBy: { sortOrder: "asc" } },
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (!source) throw new Error("Plano não encontrado");
+
+        // 2. New plan (DRAFT)
+        const newPlan = await tx.mealPlan.create({
+          data: {
+            organizationId,
+            patientId: input.patientId,
+            prescribedByUserId: userId,
+            name,
+            status: "DRAFT",
+            startDate: source.startDate,
+            endDate: source.endDate,
+            targetKcal: source.targetKcal,
+          },
+        });
+
+        // 3. Deep copy days → meals → items
+        // Cast to any[] because Prisma's 4-level deep include type doesn't
+        // fully infer inside withTenantAction under Next.js build checker.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const day of source.days as any[]) {
+          const newDay = await tx.mealPlanDay.create({
+            data: {
+              mealPlanId: newPlan.id,
+              dayLabel: day.dayLabel as string,
+              sortOrder: day.sortOrder as number,
+              notes: day.notes as string | null,
+            },
+          });
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          for (const meal of day.meals as any[]) {
+            const newMeal = await tx.meal.create({
+              data: {
+                mealPlanDayId: newDay.id,
+                name: meal.name as string,
+                scheduledTime: meal.scheduledTime as string | null,
+                sortOrder: meal.sortOrder as number,
+                notes: meal.notes as string | null,
+              },
+            });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const items = meal.items as any[];
+            if (items.length > 0) {
+              await tx.mealItem.createMany({
+                data: items.map((item) => ({
+                  mealId: newMeal.id,
+                  foodId: item.foodId as string,
+                  foodVersion: item.foodVersion as number, // Lock 15 snapshot preserved
+                  quantityG: item.quantityG,
+                  preparationNotes: item.preparationNotes as string | null,
+                  sortOrder: item.sortOrder as number,
+                  kcal: item.kcal,
+                  proteinG: item.proteinG,
+                  carbG: item.carbG,
+                  fatG: item.fatG,
+                })),
+              });
+            }
+          }
+        }
+
+        // 4. Audit
+        await tx.$executeRaw`
+          SELECT audit.append_log(
+            ${organizationId}::uuid, ${userId}::uuid,
+            'nutritionist'::text, NULL::inet, NULL::text,
+            'meal_plan.duplicate'::text, 'MealPlan'::text,
+            ${newPlan.id}::text, ${input.patientId}::uuid,
+            ARRAY['name','sourceId']::text[],
+            ${JSON.stringify({ sourceId: input.planId })}::jsonb
+          )
+        `;
+
+        return newPlan;
+      },
+    );
+
+    revalidatePath(`/app/patients/${input.patientId}/meal-plans`);
+    return { ok: true, mealPlanId: result.id };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao duplicar",
+    };
+  }
+}
+
+/**
  * Persiste a nova ordem dos MealItems dentro de uma Meal.
  * Recebe os IDs na nova ordem; atualiza sortOrder = índice.
  */
