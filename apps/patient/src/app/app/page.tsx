@@ -18,7 +18,10 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Início — NutriCore" };
 
 function todayLocalISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  // Use pt-BR target timezone to avoid UTC date being off by 1 day near midnight
+  return new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
 }
 
 function greeting(): string {
