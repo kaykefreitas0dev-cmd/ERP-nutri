@@ -8,6 +8,7 @@ import {
   sendAppointmentScheduledEmail,
   sendAppointmentRescheduledEmail,
   sendAppointmentConfirmedEmail,
+  sendAppointmentCompletedEmail,
   sendAppointmentCancelledEmail,
 } from "@/lib/email/send-appointment-notification";
 
@@ -308,7 +309,7 @@ export async function updateAppointmentStatusAction(input: {
     endsAt: Date;
     modality: string;
     timezone: string;
-    toStatus: "CONFIRMED" | "CANCELLED";
+    toStatus: "CONFIRMED" | "COMPLETED" | "CANCELLED";
     reason?: string;
   }
   let notifyData: AppointmentNotifyData | null = null;
@@ -371,6 +372,7 @@ export async function updateAppointmentStatusAction(input: {
       // Capturar dados para email pós-transação
       if (
         (parsed.data.toStatus === "CONFIRMED" ||
+          parsed.data.toStatus === "COMPLETED" ||
           parsed.data.toStatus === "CANCELLED") &&
         current.patientId
       ) {
@@ -380,7 +382,10 @@ export async function updateAppointmentStatusAction(input: {
           endsAt: current.endsAt,
           modality: current.modality,
           timezone: current.timezone,
-          toStatus: parsed.data.toStatus as "CONFIRMED" | "CANCELLED",
+          toStatus: parsed.data.toStatus as
+            | "CONFIRMED"
+            | "COMPLETED"
+            | "CANCELLED",
           reason: parsed.data.reason,
         };
       }
@@ -413,6 +418,8 @@ export async function updateAppointmentStatusAction(input: {
 
           if (nd.toStatus === "CONFIRMED") {
             await sendAppointmentConfirmedEmail(base);
+          } else if (nd.toStatus === "COMPLETED") {
+            await sendAppointmentCompletedEmail(base);
           } else if (nd.toStatus === "CANCELLED") {
             await sendAppointmentCancelledEmail({ ...base, reason: nd.reason });
           }
