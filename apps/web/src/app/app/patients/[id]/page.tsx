@@ -13,6 +13,7 @@ import {
   Video,
   Phone,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -74,6 +75,14 @@ export default async function PatientDetailPage({ params }: Props) {
       modality: string;
       timezone: string;
     }>;
+    lastAnthropometry: {
+      measuredAt: Date;
+      weightKg: { toString: () => string } | null;
+      heightCm: { toString: () => string } | null;
+      bodyMassIndex: { toString: () => string } | null;
+      bodyFatPctCalc: { toString: () => string } | null;
+      basalMetabolismMifflin: { toString: () => string } | null;
+    } | null;
   } | null = null;
 
   try {
@@ -156,7 +165,25 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      return { ...p, upcomingAppointments: [...upcoming, ...past] };
+      // Última medição de antropometria
+      const lastAnthropometry = await tx.anthropometry.findFirst({
+        where: { patientId: p.id },
+        orderBy: { measuredAt: "desc" },
+        select: {
+          measuredAt: true,
+          weightKg: true,
+          heightCm: true,
+          bodyMassIndex: true,
+          bodyFatPctCalc: true,
+          basalMetabolismMifflin: true,
+        },
+      });
+
+      return {
+        ...p,
+        upcomingAppointments: [...upcoming, ...past],
+        lastAnthropometry: lastAnthropometry ?? null,
+      };
     });
   } catch (err) {
     if (err instanceof ActionTenantError && err.code === "NO_ORG") {
@@ -253,6 +280,13 @@ export default async function PatientDetailPage({ params }: Props) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/app/patients/${patient.id}/anthropometry`}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
+            >
+              <Activity className="h-4 w-4" strokeWidth={1.75} />
+              Antropometria
+            </Link>
             <Link
               href={`/app/patients/${patient.id}/meal-plans`}
               className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
@@ -402,6 +436,83 @@ export default async function PatientDetailPage({ params }: Props) {
                     <li key={c.id}>{c.conditionName}</li>
                   ))}
                 </ul>
+              )}
+            </Section>
+
+            {/* Última medição de antropometria */}
+            <Section title="Última medição">
+              {!patient.lastAnthropometry ? (
+                <div className="space-y-2">
+                  <p className="text-caption text-text-muted">
+                    Nenhuma medição registrada.
+                  </p>
+                  <Link
+                    href={`/app/patients/${patient.id}/anthropometry`}
+                    className="inline-flex items-center gap-1 text-tiny text-brand-primary hover:text-brand-primary-hover"
+                  >
+                    <Activity className="h-3 w-3" strokeWidth={1.75} />
+                    Registrar medição
+                    <ChevronRight className="h-3 w-3" strokeWidth={2} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-tiny text-text-muted tabular-nums">
+                    {new Date(
+                      patient.lastAnthropometry.measuredAt,
+                    ).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <dl className="space-y-1.5">
+                    {patient.lastAnthropometry.weightKg && (
+                      <AnthroRow
+                        label="Peso"
+                        value={`${parseFloat(patient.lastAnthropometry.weightKg.toString()).toFixed(1)} kg`}
+                      />
+                    )}
+                    {patient.lastAnthropometry.heightCm && (
+                      <AnthroRow
+                        label="Altura"
+                        value={`${parseFloat(patient.lastAnthropometry.heightCm.toString()).toFixed(0)} cm`}
+                      />
+                    )}
+                    {patient.lastAnthropometry.bodyMassIndex && (
+                      <AnthroRow
+                        label="IMC"
+                        value={
+                          <BmiDisplay
+                            bmi={parseFloat(
+                              patient.lastAnthropometry.bodyMassIndex.toString(),
+                            )}
+                          />
+                        }
+                      />
+                    )}
+                    {patient.lastAnthropometry.bodyFatPctCalc && (
+                      <AnthroRow
+                        label="%GC"
+                        value={`${parseFloat(patient.lastAnthropometry.bodyFatPctCalc.toString()).toFixed(1)}%`}
+                      />
+                    )}
+                    {patient.lastAnthropometry.basalMetabolismMifflin && (
+                      <AnthroRow
+                        label="GEB"
+                        value={`${Math.round(parseFloat(patient.lastAnthropometry.basalMetabolismMifflin.toString()))} kcal`}
+                      />
+                    )}
+                  </dl>
+                  <Link
+                    href={`/app/patients/${patient.id}/anthropometry`}
+                    className="mt-1 inline-flex items-center gap-1 text-tiny text-brand-primary hover:text-brand-primary-hover"
+                  >
+                    <Activity className="h-3 w-3" strokeWidth={1.75} />
+                    Ver histórico
+                    <ChevronRight className="h-3 w-3" strokeWidth={2} />
+                  </Link>
+                </div>
               )}
             </Section>
 
@@ -595,5 +706,44 @@ function DataRow({ label, value }: { label: string; value: string | null }) {
         {value || <span className="text-text-subtle">—</span>}
       </dd>
     </div>
+  );
+}
+
+function AnthroRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <dt className="text-tiny font-medium text-text-muted">{label}</dt>
+      <dd className="text-tiny font-semibold tabular-nums text-text-primary">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function BmiDisplay({ bmi }: { bmi: number }) {
+  const { label, cls } =
+    bmi < 18.5
+      ? { label: "Abaixo do peso", cls: "text-warning" }
+      : bmi < 25
+        ? { label: "Eutrófico", cls: "text-success" }
+        : bmi < 30
+          ? { label: "Sobrepeso", cls: "text-warning" }
+          : bmi < 35
+            ? { label: "Obesidade G1", cls: "text-danger" }
+            : bmi < 40
+              ? { label: "Obesidade G2", cls: "text-danger" }
+              : { label: "Obesidade G3", cls: "text-danger" };
+
+  return (
+    <span>
+      {bmi.toFixed(1)}{" "}
+      <span className={`text-[10px] font-medium ${cls}`}>{label}</span>
+    </span>
   );
 }
