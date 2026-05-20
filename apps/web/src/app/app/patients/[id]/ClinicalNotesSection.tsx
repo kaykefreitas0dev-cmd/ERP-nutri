@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { Lock, LockOpen } from "lucide-react";
 import {
   createClinicalNoteAction,
   listClinicalNotesAction,
@@ -83,8 +84,9 @@ export function ClinicalNotesSection({ patientId }: Props) {
           <h2 className="text-lg font-semibold text-text-primary">
             Prontuário (Anotações clínicas)
           </h2>
-          <p className="text-xs text-text-muted">
-            🔒 Conteúdo criptografado em repouso. Cada leitura é auditada.
+          <p className="inline-flex items-center gap-1 text-xs text-text-muted">
+            <Lock className="h-3 w-3 shrink-0" strokeWidth={2} />
+            Conteúdo criptografado em repouso. Cada leitura é auditada.
           </p>
         </div>
         {!showForm && (
@@ -209,11 +211,16 @@ export function ClinicalNotesSection({ patientId }: Props) {
                   disabled={decrypting === note.id}
                   className="text-xs font-medium text-brand-primary hover:underline disabled:opacity-50"
                 >
-                  {decrypting === note.id
-                    ? "Descriptografando…"
-                    : decryptedNotes[note.id]
-                      ? "Esconder"
-                      : "🔓 Ver conteúdo"}
+                  {decrypting === note.id ? (
+                    "Descriptografando…"
+                  ) : decryptedNotes[note.id] ? (
+                    "Esconder"
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <LockOpen className="h-3 w-3" strokeWidth={2} />
+                      Ver conteúdo
+                    </span>
+                  )}
                 </button>
               </div>
 
