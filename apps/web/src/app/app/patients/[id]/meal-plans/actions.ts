@@ -236,3 +236,58 @@ export async function updateMealPlanStatusAction(input: {
     return { ok: false, message: err instanceof Error ? err.message : "Erro" };
   }
 }
+
+/**
+ * Persiste a nova ordem dos MealItems dentro de uma Meal.
+ * Recebe os IDs na nova ordem; atualiza sortOrder = índice.
+ */
+export async function reorderMealItemsAction(input: {
+  mealId: string;
+  orderedIds: string[];
+}): Promise<PlanActionResult> {
+  try {
+    await withTenantAction(async ({ tx }) => {
+      await Promise.all(
+        input.orderedIds.map((id, index) =>
+          tx.mealItem.update({
+            where: { id },
+            data: { sortOrder: index },
+          }),
+        ),
+      );
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
+  }
+}
+
+/**
+ * Persiste a nova ordem das Meals dentro de um MealPlanDay.
+ */
+export async function reorderMealsAction(input: {
+  mealPlanDayId: string;
+  orderedIds: string[];
+}): Promise<PlanActionResult> {
+  try {
+    await withTenantAction(async ({ tx }) => {
+      await Promise.all(
+        input.orderedIds.map((id, index) =>
+          tx.meal.update({
+            where: { id },
+            data: { sortOrder: index },
+          }),
+        ),
+      );
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
+  }
+}
