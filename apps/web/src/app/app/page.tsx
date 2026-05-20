@@ -14,6 +14,7 @@ import {
   Video,
   Phone,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
@@ -62,6 +63,13 @@ export default async function AppDashboard() {
       docs30d: number[];
     };
     agendaHoje: AgendaAppt[];
+    /** Active patients with app access who haven't checked in in 7+ days. */
+    inactivePatients: Array<{
+      id: string;
+      fullName: string;
+      /** Days since last check-in, or null if they've never checked in. */
+      daysSince: number | null;
+    }>;
   } | null = null;
 
   try {
@@ -101,6 +109,9 @@ export default async function AppDashboard() {
       });
       if (!membership) throw new ActionTenantError("Sem org", "NO_ORG");
 
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
       const [
         activePatients,
         apptsToday,
@@ -112,6 +123,7 @@ export default async function AppDashboard() {
         payments30dRaw,
         docs30dRaw,
         agendaHojeRaw,
+        inactivePatientsResult,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -190,6 +202,58 @@ export default async function AppDashboard() {
             patient: { select: { fullName: true } },
           },
         }),
+        // Inactive patients: two sequential sub-queries in one IIFE
+        // (Patient → UserHealthStreak via userId key, no Prisma relation)
+        (async () => {
+          const patientsWithApp = await tx.patient.findMany({
+            where: { status: "ACTIVE", userId: { not: null } },
+            select: { id: true, fullName: true, userId: true },
+            take: 200,
+          });
+          if (patientsWithApp.length === 0) return [];
+
+          const userIds = patientsWithApp.map(
+            (p: { userId: string | null }) => p.userId as string,
+          );
+          const streaks = await tx.userHealthStreak.findMany({
+            where: { userId: { in: userIds } },
+            select: { userId: true, lastCheckinDate: true },
+          });
+          const streakMap = new Map<string, Date | null>(
+            streaks.map(
+              (s: { userId: string; lastCheckinDate: Date | null }) =>
+                [s.userId, s.lastCheckinDate] as [string, Date | null],
+            ),
+          );
+
+          return patientsWithApp
+            .filter(
+              (p: { id: string; fullName: string; userId: string | null }) => {
+                const last = streakMap.get(p.userId as string) ?? null;
+                return !last || last < sevenDaysAgo;
+              },
+            )
+            .sort(
+              (a: { userId: string | null }, b: { userId: string | null }) => {
+                const da = streakMap.get(a.userId as string) ?? null;
+                const db = streakMap.get(b.userId as string) ?? null;
+                if (!da && !db) return 0;
+                if (!da) return -1; // never checked in → top of list
+                if (!db) return 1;
+                return da.getTime() - db.getTime();
+              },
+            )
+            .slice(0, 6)
+            .map(
+              (p: { id: string; fullName: string; userId: string | null }) => {
+                const last = streakMap.get(p.userId as string) ?? null;
+                const daysSince = last
+                  ? Math.floor((now.getTime() - last.getTime()) / 86_400_000)
+                  : null;
+                return { id: p.id, fullName: p.fullName, daysSince };
+              },
+            );
+        })(),
       ]);
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
@@ -246,6 +310,7 @@ export default async function AppDashboard() {
             docs30dRaw.map((d: { createdAt: Date }) => d.createdAt),
           ),
         },
+        inactivePatients: inactivePatientsResult,
         agendaHoje: agendaHojeRaw.map(
           (a: {
             id: string;
@@ -540,6 +605,91 @@ export default async function AppDashboard() {
             </ul>
           )}
         </section>
+
+        {/* Pacientes para acompanhar — sem check-in em 7+ dias */}
+        {data.inactivePatients.length > 0 && (
+          <section aria-label="Pacientes para acompanhar" className="mt-10">
+            <div className="mb-4 flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-h2 font-semibold text-text-primary">
+                  Para acompanhar
+                </h2>
+                <span className="rounded-full bg-warning-bg px-2 py-0.5 text-tiny font-medium text-warning ring-1 ring-inset ring-warning-border">
+                  {data.inactivePatients.length}
+                </span>
+              </div>
+              <Link
+                href="/app/patients"
+                className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
+              >
+                Ver todos os pacientes
+                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+            </div>
+            <p className="mb-3 text-tiny text-text-muted">
+              Pacientes com acesso ao app que não registraram check-in nos
+              últimos 7 dias.
+            </p>
+
+            <ul className="space-y-2">
+              {data.inactivePatients.map((patient) => {
+                const daysLabel =
+                  patient.daysSince === null
+                    ? "nunca fez check-in"
+                    : patient.daysSince === 0
+                      ? "último check-in: hoje"
+                      : patient.daysSince === 1
+                        ? "há 1 dia sem check-in"
+                        : `há ${patient.daysSince} dias sem check-in`;
+
+                const isVeryInactive =
+                  patient.daysSince === null || patient.daysSince >= 14;
+
+                return (
+                  <li key={patient.id}>
+                    <Link
+                      href={`/app/patients/${patient.id}`}
+                      className="flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]"
+                    >
+                      {/* Alert icon */}
+                      <AlertTriangle
+                        className="h-4 w-4 shrink-0"
+                        strokeWidth={1.75}
+                        style={{
+                          color: isVeryInactive
+                            ? "var(--color-danger)"
+                            : "var(--color-warning)",
+                        }}
+                      />
+
+                      {/* Patient name */}
+                      <span className="min-w-0 flex-1 truncate text-body font-medium text-text-primary">
+                        {patient.fullName}
+                      </span>
+
+                      {/* Days badge */}
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset tabular-nums",
+                          isVeryInactive
+                            ? "bg-danger-bg text-danger ring-danger-border"
+                            : "bg-warning-bg text-warning ring-warning-border",
+                        ].join(" ")}
+                      >
+                        {daysLabel}
+                      </span>
+
+                      <ChevronRight
+                        className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                        strokeWidth={2}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* Nav cards — seções principais */}
         <section aria-label="Atalhos" className="mt-10">
