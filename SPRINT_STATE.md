@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #87-#92)
+last_updated: 2026-05-20 (autônomo cont. — PRs #93-#94)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -111,6 +111,11 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #90 | `b46775a` | Fix(web) — design token sweep: checkins page (StatCards, table) + PatientForm (all labels/inputs)            |
 | #91 | `5973380` | Fix(web) — design token sweep: NpsWidget, WelcomeTour, ImportWizard, OrgSettingsForm, NewMealPlanForm        |
 | #92 | `d9ca782` | Fix(patient) — design token sweep: SignOutButton + CheckinForm + AnthropometryForm (shadow-xs, text-tiny)    |
+| #93 | `6baf4f2` | Chore — SPRINT_STATE.md atualizado (PRs #87-#92: token sweep completo)                                       |
+| #94 | `d35fdd6` | Fix(web/patient) — token sweep FINAL: OrgSettings labels, CompleteWithPaymentModal label,                    |
+|     |           | ImportWizard heading text-xl→text-h2, NpsWidget rose/amber/emerald→danger/warning/success tokens,            |
+|     |           | ClinicalNotesSection labels+inputs, CheckinForm success heading text-lg→text-h3,                             |
+|     |           | checkin/page streak badge text-sm→text-body, WelcomeTour Próximo btn text-xs→text-tiny                       |
 
 ---
 
@@ -162,6 +167,7 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Fix(web) — design token sweep: checkins page StatCards + history table; PatientForm labels/inputs/error alert (PR #90)
 - [x] Fix(web) — design token sweep: NpsWidget, WelcomeTour, ImportWizard, OrgSettingsForm, NewMealPlanForm — bg-white, shadow-sm, text-xs, text-sm, red/green/emerald hardcoded → tokens (PR #91)
 - [x] Fix(patient/web) — design token sweep: SignOutButton, CheckinForm (shadow-xs, mood/scale buttons), AnthropometryForm (legends, labels, inputs) (PR #92)
+- [x] Fix(web/patient) — token sweep FINAL: OrgSettings 3 labels, CompleteWithPaymentModal payment label, ImportWizard completion heading, NpsWidget zone colors→design tokens (danger/warning/success), ClinicalNotesSection all text-xs/text-sm, CheckinForm success heading, checkin/page streak badge, WelcomeTour nav btn (PR #94). Zero remaining bg-white/text-xs/text-sm/shadow-sm/hardcoded color violations in app component paths.
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -195,4 +201,5 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #73-#77 merged: SPRINT_STATE update, email COMPLETED, notif nutri invite-accept, patient polish, lembrete D-1 QStash
 - 2026-05-20 (autônomo, cont.) — PR #78-#81 merged: SPRINT_STATE update, dashboard agenda widget, patient detail consultas section, patient tz fix
 - 2026-05-20 (autônomo, cont.) — PR #82-#86 merged: SPRINT_STATE update, patient NavBar active state, documentos token sweep, agenda+financeiro tokens, CompleteWithPaymentModal+alimentos tokens
-- 2026-05-20 (autônomo, cont.) — PR #87-#92 merged: SPRINT_STATE update, design token sweep completo (patient detail actions, DocumentActions, NewDocumentForm, checkins page, PatientForm, NpsWidget, WelcomeTour, ImportWizard, OrgSettingsForm, NewMealPlanForm, SignOutButton, CheckinForm, AnthropometryForm)
+- 2026-05-20 (autônomo, cont.) — PR #87-#92 merged: SPRINT_STATE update, design token sweep completo
+- 2026-05-20 (autônomo, cont.) — PR #93-#94 merged: SPRINT_STATE update, token sweep FINAL (zero bg-white/text-xs/text-sm/shadow-sm/hardcoded colors remaining in app components) (patient detail actions, DocumentActions, NewDocumentForm, checkins page, PatientForm, NpsWidget, WelcomeTour, ImportWizard, OrgSettingsForm, NewMealPlanForm, SignOutButton, CheckinForm, AnthropometryForm)
