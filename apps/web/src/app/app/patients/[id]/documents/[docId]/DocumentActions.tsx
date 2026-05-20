@@ -15,10 +15,15 @@ export function DocumentActions({ documentId, status }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [showRevoke, setShowRevoke] = useState(false);
   const [reason, setReason] = useState("");
+  const [confirmingIssue, setConfirmingIssue] = useState(false);
 
   function handleIssue() {
-    if (!confirm("Assinar e emitir? Documento ficará imutável após esta ação."))
-      return;
+    setError(null);
+    setConfirmingIssue(true);
+  }
+
+  function confirmIssue() {
+    setConfirmingIssue(false);
     setError(null);
     startTransition(async () => {
       const r = await issueDocumentAction(documentId);
@@ -59,7 +64,7 @@ export function DocumentActions({ documentId, status }: Props) {
           📥 {status === "DRAFT" ? "Visualizar PDF" : "Baixar PDF"}
         </a>
 
-        {status === "DRAFT" && (
+        {status === "DRAFT" && !confirmingIssue && (
           <button
             type="button"
             onClick={handleIssue}
@@ -80,6 +85,31 @@ export function DocumentActions({ documentId, status }: Props) {
           </button>
         )}
       </div>
+
+      {confirmingIssue && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3">
+          <p className="text-xs font-medium text-amber-800">
+            Assinar e emitir? O documento ficará imutável após esta ação.
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={confirmIssue}
+              disabled={pending}
+              className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+            >
+              Confirmar emissão
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingIssue(false)}
+              className="rounded-md border border-border-default bg-white px-3 py-1 text-xs"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="text-xs text-red-700">
