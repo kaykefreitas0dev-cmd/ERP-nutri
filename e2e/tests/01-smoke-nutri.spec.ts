@@ -103,6 +103,56 @@ test.describe("Nutri smoke flow (single session)", () => {
     // Mostra ao menos "Total no período" KPI
     await expect(page.getByText(/total no período/i)).toBeVisible();
   });
+
+  test("8. Agenda — day view carrega e formulário visível", async () => {
+    await page.goto("/app/agenda");
+    // Heading da página de agenda
+    await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible({
+      timeout: 8_000,
+    });
+    // Formulário "Nova consulta" deve estar visível (day view padrão)
+    await expect(
+      page.getByRole("heading", { name: /nova consulta/i }),
+    ).toBeVisible();
+    // Campo de data e hora existe
+    await expect(page.getByLabel(/data e hora/i)).toBeVisible();
+  });
+
+  test("9. Agenda — criar consulta para o paciente do teste", async () => {
+    // Navega para agenda com deep-link para o paciente criado no step 3
+    const patientId = patientUrl.split("/").at(-1)!;
+    await page.goto(`/app/agenda?patientId=${patientId}`);
+
+    // O chip com o primeiro nome do paciente deve aparecer no formulário
+    const firstName = PATIENT_NAME.split(" ")[0]!;
+    await expect(
+      page.getByText(firstName, { exact: false }).first(),
+    ).toBeVisible({
+      timeout: 8_000,
+    });
+
+    // Preenche duração e faz submit
+    await page.getByLabel(/duração/i).selectOption("30");
+    await page.getByRole("button", { name: /agendar consulta/i }).click();
+
+    // Após agendar, o paciente aparece na lista de consultas (pode levar um refresh)
+    await page.waitForTimeout(1_500);
+    await expect(page.getByText(PATIENT_NAME, { exact: false })).toBeVisible({
+      timeout: 8_000,
+    });
+  });
+
+  test("10. Agenda — lista mostra botão Confirmar na consulta criada", async () => {
+    await page.goto("/app/agenda");
+    // A consulta do step 9 deve estar visível com status SCHEDULED
+    await expect(page.getByText(PATIENT_NAME, { exact: false })).toBeVisible({
+      timeout: 8_000,
+    });
+    // Botão "Confirmar" (status SCHEDULED) deve estar presente
+    await expect(
+      page.getByRole("button", { name: /^confirmar$/i }).first(),
+    ).toBeVisible();
+  });
 });
 
 // CPF válido aleatório (módulo 11)
