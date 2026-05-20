@@ -353,6 +353,13 @@ export function AppointmentList({ appointments }: Props) {
                       >
                         No-show
                       </ActionButton>
+                      <ActionButton
+                        onClick={() => startOverlay("CANCEL", apt.id)}
+                        disabled={pending && updatingId === apt.id}
+                        tone="ghost"
+                      >
+                        Cancelar
+                      </ActionButton>
                     </>
                   )}
                   {(apt.status === "CHECKED_IN" ||
