@@ -293,36 +293,42 @@ export async function duplicateMealPlanAction(input: {
         });
 
         // 3. Deep copy days → meals → items
-        for (const day of source.days) {
+        // Cast to any[] because Prisma's 4-level deep include type doesn't
+        // fully infer inside withTenantAction under Next.js build checker.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const day of source.days as any[]) {
           const newDay = await tx.mealPlanDay.create({
             data: {
               mealPlanId: newPlan.id,
-              dayLabel: day.dayLabel,
-              sortOrder: day.sortOrder,
-              notes: day.notes,
+              dayLabel: day.dayLabel as string,
+              sortOrder: day.sortOrder as number,
+              notes: day.notes as string | null,
             },
           });
 
-          for (const meal of day.meals) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          for (const meal of day.meals as any[]) {
             const newMeal = await tx.meal.create({
               data: {
                 mealPlanDayId: newDay.id,
-                name: meal.name,
-                scheduledTime: meal.scheduledTime,
-                sortOrder: meal.sortOrder,
-                notes: meal.notes,
+                name: meal.name as string,
+                scheduledTime: meal.scheduledTime as string | null,
+                sortOrder: meal.sortOrder as number,
+                notes: meal.notes as string | null,
               },
             });
 
-            if (meal.items.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const items = meal.items as any[];
+            if (items.length > 0) {
               await tx.mealItem.createMany({
-                data: meal.items.map((item) => ({
+                data: items.map((item) => ({
                   mealId: newMeal.id,
-                  foodId: item.foodId,
-                  foodVersion: item.foodVersion, // Lock 15 snapshot preserved
+                  foodId: item.foodId as string,
+                  foodVersion: item.foodVersion as number, // Lock 15 snapshot preserved
                   quantityG: item.quantityG,
-                  preparationNotes: item.preparationNotes,
-                  sortOrder: item.sortOrder,
+                  preparationNotes: item.preparationNotes as string | null,
+                  sortOrder: item.sortOrder as number,
                   kcal: item.kcal,
                   proteinG: item.proteinG,
                   carbG: item.carbG,
