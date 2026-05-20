@@ -111,16 +111,16 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="complete-appt-title"
-        className="w-full max-w-md rounded-lg bg-white shadow-xl"
+        className="w-full max-w-md rounded-lg bg-bg-surface [box-shadow:var(--shadow-xl)]"
       >
         <header className="border-b border-border-subtle px-5 py-3">
           <h2
             id="complete-appt-title"
-            className="text-lg font-semibold text-text-primary"
+            className="text-h3 font-semibold text-text-primary"
           >
             Concluir consulta
           </h2>
-          <p className="mt-0.5 text-xs text-text-secondary">
+          <p className="mt-0.5 text-tiny text-text-secondary">
             {patientName} ·{" "}
             {new Date(appointment.startsAt).toLocaleString("pt-BR", {
               day: "2-digit",
@@ -137,7 +137,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
           <div>
             <label
               htmlFor="amount"
-              className="block text-xs font-medium text-text-secondary"
+              className="block text-tiny font-medium text-text-secondary"
             >
               Valor cobrado (R$) *
             </label>
@@ -167,10 +167,10 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
                     key={m.value}
                     type="button"
                     onClick={() => setMethod(m.value)}
-                    className={`flex flex-col items-center rounded-md border p-2 text-xs transition ${
+                    className={`flex flex-col items-center rounded-md border p-2 text-tiny transition-colors duration-fast ${
                       method === m.value
                         ? "border-brand-primary bg-brand-primary-bg ring-1 ring-brand-primary"
-                        : "border-border-default bg-white hover:border-border-strong"
+                        : "border-border-default bg-bg-surface hover:border-border-strong hover:bg-bg-subtle"
                     }`}
                   >
                     <ItemIcon className="h-5 w-5" strokeWidth={1.75} />
@@ -185,7 +185,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
           <div>
             <label
               htmlFor="paymentDate"
-              className="block text-xs font-medium text-text-secondary"
+              className="block text-tiny font-medium text-text-secondary"
             >
               Data do pagamento *
             </label>
@@ -195,7 +195,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               value={paymentDate}
               onChange={(e) => setPaymentDate(e.target.value)}
               max={todayLocalISO()}
-              className="mt-1 block w-44 rounded-md border border-border-default px-3 py-2 text-sm"
+              className="mt-1 block w-44 rounded-md border border-border-default px-3 py-2 text-body"
             />
           </div>
 
@@ -203,7 +203,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
           <div>
             <label
               htmlFor="description"
-              className="block text-xs font-medium text-text-secondary"
+              className="block text-tiny font-medium text-text-secondary"
             >
               Descrição do serviço
             </label>
@@ -213,7 +213,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               maxLength={300}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
             />
           </div>
 
@@ -221,7 +221,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
           <div>
             <label
               htmlFor="reference"
-              className="block text-xs font-medium text-text-secondary"
+              className="block text-tiny font-medium text-text-secondary"
             >
               Referência externa (opcional)
             </label>
@@ -232,13 +232,13 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="ID Asaas, link comprovante, etc."
-              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
             />
           </div>
 
           {/* Gerar recibo */}
           <div className="rounded-md border border-border-subtle bg-bg-subtle p-3">
-            <label className="flex items-start gap-2 text-sm">
+            <label className="flex items-start gap-2 text-body">
               <input
                 type="checkbox"
                 checked={generateReceipt}
@@ -247,7 +247,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
               />
               <span>
                 <strong>Gerar recibo simples (PDF)</strong>
-                <span className="mt-1 flex items-start gap-1.5 text-xs text-text-secondary">
+                <span className="mt-1 flex items-start gap-1.5 text-tiny text-text-secondary">
                   <TriangleAlert
                     className="mt-0.5 h-3 w-3 shrink-0"
                     strokeWidth={2}
@@ -262,7 +262,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
           </div>
 
           {error && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-body text-danger">
               {error}
             </p>
           )}
@@ -271,14 +271,14 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-border-default bg-white px-4 py-2 text-sm hover:bg-bg-subtle"
+              className="rounded-md border border-border-default bg-bg-surface px-4 py-2 text-body transition-colors hover:bg-bg-subtle"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-md bg-success px-5 py-2 text-body font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {pending ? "Salvando..." : "Concluir + registrar pagamento"}
             </button>

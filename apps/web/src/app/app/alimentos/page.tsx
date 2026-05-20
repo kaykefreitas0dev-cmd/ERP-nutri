@@ -103,12 +103,12 @@ export default async function FoodsPage({ searchParams }: Props) {
             name="q"
             defaultValue={q ?? ""}
             placeholder="Buscar alimento..."
-            className="flex-1 min-w-[200px] rounded-md border border-border-default bg-white px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="flex-1 min-w-[200px] rounded-md border border-border-default bg-bg-surface px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
           <select
             name="category"
             defaultValue={category ?? ""}
-            className="rounded-md border border-border-default bg-white px-3 py-2 text-sm"
+            className="rounded-md border border-border-default bg-bg-surface px-3 py-2 text-body"
           >
             <option value="">Todas categorias</option>
             {data.categories.map((c) => (
@@ -120,7 +120,7 @@ export default async function FoodsPage({ searchParams }: Props) {
           <select
             name="source"
             defaultValue={source ?? ""}
-            className="rounded-md border border-border-default bg-white px-3 py-2 text-sm"
+            className="rounded-md border border-border-default bg-bg-surface px-3 py-2 text-body"
           >
             <option value="">Todas fontes</option>
             <option value="TACO">TACO</option>
@@ -130,40 +130,40 @@ export default async function FoodsPage({ searchParams }: Props) {
           </select>
           <button
             type="submit"
-            className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
+            className="rounded-md bg-brand-primary px-4 py-2 text-body font-medium text-white hover:bg-brand-primary-hover"
           >
             Filtrar
           </button>
         </form>
 
         {data.foods.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border-default bg-white p-12 text-center">
+          <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-12 text-center">
             <p className="text-text-secondary">Nenhum alimento encontrado.</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-border-subtle bg-white shadow-sm">
+          <div className="overflow-hidden rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
             <table className="min-w-full divide-y divide-border-subtle">
               <thead className="bg-bg-subtle">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-left text-tiny font-medium uppercase tracking-wider text-text-muted">
                     Alimento
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-left text-tiny font-medium uppercase tracking-wider text-text-muted">
                     Categoria
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-right text-tiny font-medium uppercase tracking-wider text-text-muted">
                     kcal/100g
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-right text-tiny font-medium uppercase tracking-wider text-text-muted">
                     PTN
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-right text-tiny font-medium uppercase tracking-wider text-text-muted">
                     CHO
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-right text-tiny font-medium uppercase tracking-wider text-text-muted">
                     LIP
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-3 text-center text-tiny font-medium uppercase tracking-wider text-text-muted">
                     Fonte
                   </th>
                 </tr>
@@ -171,31 +171,31 @@ export default async function FoodsPage({ searchParams }: Props) {
               <tbody className="divide-y divide-border-subtle">
                 {data.foods.map((f) => (
                   <tr key={f.id} className="hover:bg-bg-subtle">
-                    <td className="px-4 py-2 text-sm font-medium text-text-primary">
+                    <td className="px-4 py-2 text-body font-medium text-text-primary">
                       {f.name}
                     </td>
-                    <td className="px-4 py-2 text-xs text-text-muted">
+                    <td className="px-4 py-2 text-tiny text-text-muted">
                       {f.category ?? "—"}
                     </td>
-                    <td className="px-4 py-2 text-right text-sm tabular-nums">
+                    <td className="px-4 py-2 text-right text-body tabular-nums">
                       {f.kcalPer100g?.toString() ?? "—"}
                     </td>
-                    <td className="px-4 py-2 text-right text-sm tabular-nums">
+                    <td className="px-4 py-2 text-right text-body tabular-nums">
                       {f.proteinG?.toString() ?? "—"}
                     </td>
-                    <td className="px-4 py-2 text-right text-sm tabular-nums">
+                    <td className="px-4 py-2 text-right text-body tabular-nums">
                       {f.carbG?.toString() ?? "—"}
                     </td>
-                    <td className="px-4 py-2 text-right text-sm tabular-nums">
+                    <td className="px-4 py-2 text-right text-body tabular-nums">
                       {f.fatG?.toString() ?? "—"}
                     </td>
                     <td className="px-4 py-2 text-center">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        className={`rounded-full px-2 py-0.5 text-tiny font-medium ${
                           f.source === "TACO"
-                            ? "bg-brand-100 text-brand-primary-hover"
+                            ? "bg-brand-primary-bg text-brand-primary"
                             : f.source === "POF"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-info-bg text-info"
                               : "bg-bg-muted text-text-secondary"
                         }`}
                       >
@@ -209,7 +209,7 @@ export default async function FoodsPage({ searchParams }: Props) {
           </div>
         )}
 
-        <p className="mt-4 text-xs text-text-muted">
+        <p className="mt-4 text-tiny text-text-muted">
           💡 Valores nutricionais por 100g de alimento. PTN=Proteína,
           CHO=Carboidrato, LIP=Lipídio.
         </p>
