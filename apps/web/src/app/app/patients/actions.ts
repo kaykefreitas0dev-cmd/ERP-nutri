@@ -10,7 +10,9 @@ const CreatePatientSchema = z.object({
   email: z.string().email().toLowerCase().trim().optional().or(z.literal("")),
   phone: z.string().max(40).optional().or(z.literal("")),
   birthDate: z.string().optional().or(z.literal("")),
-  biologicalSex: z.enum(["female", "male", "intersex", "undisclosed"]).optional(),
+  biologicalSex: z
+    .enum(["female", "male", "intersex", "undisclosed"])
+    .optional(),
   cpf: z.string().max(14).optional().or(z.literal("")),
   city: z.string().max(120).optional().or(z.literal("")),
   state: z.string().length(2).optional().or(z.literal("")),
@@ -28,7 +30,9 @@ function emptyToUndef(v: unknown): unknown {
   return v === "" ? undefined : v;
 }
 
-export async function createPatientAction(formData: FormData): Promise<ActionResult> {
+export async function createPatientAction(
+  formData: FormData,
+): Promise<ActionResult> {
   const raw = {
     fullName: formData.get("fullName"),
     preferredName: emptyToUndef(formData.get("preferredName")),
@@ -58,28 +62,29 @@ export async function createPatientAction(formData: FormData): Promise<ActionRes
   const data = parsed.data;
 
   try {
-    const result = await withTenantAction(async ({ tx, organizationId, userId }) => {
-      const created = await tx.patient.create({
-        data: {
-          organizationId,
-          primaryNutritionistId: userId,
-          fullName: data.fullName,
-          preferredName: data.preferredName || null,
-          email: data.email || null,
-          phone: data.phone || null,
-          birthDate: data.birthDate ? new Date(data.birthDate) : null,
-          biologicalSex: data.biologicalSex || null,
-          cpf: data.cpf || null,
-          city: data.city || null,
-          state: data.state || null,
-          occupation: data.occupation || null,
-          notes: data.notes || null,
-          status: "ACTIVE",
-        },
-      });
+    const result = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        const created = await tx.patient.create({
+          data: {
+            organizationId,
+            primaryNutritionistId: userId,
+            fullName: data.fullName,
+            preferredName: data.preferredName || null,
+            email: data.email || null,
+            phone: data.phone || null,
+            birthDate: data.birthDate ? new Date(data.birthDate) : null,
+            biologicalSex: data.biologicalSex || null,
+            cpf: data.cpf || null,
+            city: data.city || null,
+            state: data.state || null,
+            occupation: data.occupation || null,
+            notes: data.notes || null,
+            status: "ACTIVE",
+          },
+        });
 
-      // Audit log
-      await tx.$executeRaw`
+        // Audit log
+        await tx.$executeRaw`
         SELECT audit.append_log(
           ${organizationId}::uuid,
           ${userId}::uuid,
@@ -95,8 +100,9 @@ export async function createPatientAction(formData: FormData): Promise<ActionRes
         )
       `;
 
-      return created;
-    });
+        return created;
+      },
+    );
 
     revalidatePath("/app/patients");
     return { ok: true, patientId: result.id };
@@ -113,7 +119,9 @@ const UpdatePatientSchema = CreatePatientSchema.partial().extend({
   patientId: z.string().uuid(),
 });
 
-export async function updatePatientAction(formData: FormData): Promise<ActionResult> {
+export async function updatePatientAction(
+  formData: FormData,
+): Promise<ActionResult> {
   const patientId = formData.get("patientId");
   if (!patientId || typeof patientId !== "string") {
     return { ok: false, message: "patientId obrigatório" };
@@ -148,7 +156,9 @@ export async function updatePatientAction(formData: FormData): Promise<ActionRes
           preferredName: parsed.data.preferredName || null,
           email: parsed.data.email || null,
           phone: parsed.data.phone || null,
-          birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
+          birthDate: parsed.data.birthDate
+            ? new Date(parsed.data.birthDate)
+            : null,
           biologicalSex: parsed.data.biologicalSex || null,
           cpf: parsed.data.cpf || null,
           city: parsed.data.city || null,
@@ -187,7 +197,84 @@ export async function updatePatientAction(formData: FormData): Promise<ActionRes
   }
 }
 
-export async function archivePatientAction(patientId: string): Promise<ActionResult> {
+export interface PatientRow {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  status: string;
+  updatedAt: Date;
+}
+
+export interface FetchPatientsResult {
+  ok: boolean;
+  patients?: PatientRow[];
+  nextCursor?: string | null;
+  message?: string;
+}
+
+const PAGE_SIZE = 100;
+
+export async function fetchPatientsPage(input: {
+  status?: string;
+  q?: string;
+  cursor?: string | null;
+}): Promise<FetchPatientsResult> {
+  try {
+    const result = await withTenantAction(async ({ tx }) => {
+      const filterStatus = (input.status ?? "ACTIVE") as
+        | "ACTIVE"
+        | "ARCHIVED"
+        | "ANONYMIZED";
+      const cursorClause = input.cursor
+        ? { cursor: { id: input.cursor }, skip: 1 }
+        : {};
+
+      const patients = await tx.patient.findMany({
+        where: {
+          status: filterStatus,
+          ...(input.q
+            ? {
+                OR: [
+                  { fullName: { contains: input.q, mode: "insensitive" } },
+                  { email: { contains: input.q, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: { updatedAt: "desc" },
+        take: PAGE_SIZE + 1, // +1 to detect next page
+        ...cursorClause,
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          status: true,
+          updatedAt: true,
+        },
+      });
+
+      let nextCursor: string | null = null;
+      if (patients.length > PAGE_SIZE) {
+        patients.pop();
+        nextCursor = patients[patients.length - 1]?.id ?? null;
+      }
+
+      return { patients, nextCursor };
+    });
+
+    return { ok: true, ...result };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return { ok: false, message: "Erro ao buscar pacientes" };
+  }
+}
+
+export async function archivePatientAction(
+  patientId: string,
+): Promise<ActionResult> {
   if (!patientId) return { ok: false, message: "patientId obrigatório" };
 
   try {
