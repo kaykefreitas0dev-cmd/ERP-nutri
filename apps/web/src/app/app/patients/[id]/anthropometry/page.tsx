@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, LineChart, Activity } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { AnthropometryForm } from "./AnthropometryForm";
+import { AnthropometryTrend } from "./AnthropometryTrend";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antropometria" };
@@ -96,6 +97,20 @@ export default async function AnthropometryPage({ params }: Props) {
             (Mifflin/Harris/FAO), %GC (Pollock).
           </p>
         </header>
+
+        {data.records.length >= 2 && (
+          <div className="mt-6">
+            <AnthropometryTrend
+              records={data.records.map((r) => ({
+                weightKg: r.weightKg?.toString() ?? null,
+                bodyMassIndex: r.bodyMassIndex?.toString() ?? null,
+                bodyFatPctCalc: r.bodyFatPctCalc?.toString() ?? null,
+                basalMetabolismMifflin:
+                  r.basalMetabolismMifflin?.toString() ?? null,
+              }))}
+            />
+          </div>
+        )}
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Form coluna 1-2 */}
