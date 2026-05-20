@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { CheckinMiniCharts } from "./CheckinMiniCharts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Check-ins do paciente" };
@@ -108,6 +109,21 @@ export default async function PatientCheckinsPage({ params }: Props) {
   const avgWater = avg(last30.map((c) => c.waterMl));
   const followedRate = last30.filter((c) => c.followedPlan === true).length;
   const totalWithPlan = last30.filter((c) => c.followedPlan !== null).length;
+
+  // Sparkline arrays — chronological (oldest first) from last 30
+  const chronLast30 = [...last30].reverse();
+  const moodSpark = chronLast30
+    .map((c) => c.mood)
+    .filter((v): v is number => v !== null);
+  const energySpark = chronLast30
+    .map((c) => c.energyLevel)
+    .filter((v): v is number => v !== null);
+  const waterSpark = chronLast30
+    .map((c) => c.waterMl)
+    .filter((v): v is number => v !== null);
+  const weightSpark = chronLast30
+    .map((c) => (c.weightKg ? parseFloat(c.weightKg.toString()) : null))
+    .filter((v): v is number => v !== null);
 
   return (
     <main className="bg-transparent p-6">
@@ -206,6 +222,14 @@ export default async function PatientCheckinsPage({ params }: Props) {
                 sub="últimos 60 dias"
               />
             </div>
+
+            {/* Gráficos de tendência */}
+            <CheckinMiniCharts
+              moodData={moodSpark}
+              energyData={energySpark}
+              waterData={waterSpark}
+              weightData={weightSpark}
+            />
 
             {/* Tabela detalhada */}
             <section className="mt-8 rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
