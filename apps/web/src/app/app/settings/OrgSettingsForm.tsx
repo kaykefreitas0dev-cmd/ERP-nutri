@@ -60,9 +60,9 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
           onChange={(e) => setLogoUrl(e.target.value)}
           placeholder="https://exemplo.com/logo.png"
           disabled={disabled}
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm disabled:bg-bg-subtle"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body disabled:bg-bg-subtle"
         />
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-tiny text-text-muted">
           Aceita URL pública de imagem (Imgur, Cloudinary, etc.).
         </p>
         {logoUrl && (
@@ -76,7 +76,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
                 ((e.target as HTMLImageElement).style.display = "none")
               }
             />
-            <span className="text-xs text-text-secondary">Preview</span>
+            <span className="text-tiny text-text-secondary">Preview</span>
           </div>
         )}
       </div>
@@ -103,10 +103,10 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
             onChange={(e) => setPrimaryColor(e.target.value)}
             disabled={disabled}
             pattern="^#[0-9A-Fa-f]{6}$"
-            className="block w-32 rounded-md border border-border-default px-3 py-2 font-mono text-sm uppercase disabled:bg-bg-subtle"
+            className="block w-32 rounded-md border border-border-default px-3 py-2 font-mono text-body uppercase disabled:bg-bg-subtle"
           />
         </div>
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-tiny text-text-muted">
           Aparece em PDFs (atestados, recibos) e botões CTA do email de convite.
         </p>
       </div>
@@ -127,9 +127,9 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
           minLength={2}
           maxLength={80}
           disabled={disabled}
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm disabled:bg-bg-subtle"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body disabled:bg-bg-subtle"
         />
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-tiny text-text-muted">
           Como aparece em &ldquo;De:&rdquo; nos emails de convite. Ex:
           &ldquo;Clínica X&rdquo; vira &ldquo;Clínica X
           &lt;onboarding@resend.dev&gt;&rdquo;.
@@ -137,13 +137,13 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       </div>
 
       {error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-tiny text-danger">
           {error}
         </p>
       )}
 
       {saved && (
-        <p className="flex items-center gap-1.5 text-xs font-medium text-green-700">
+        <p className="flex items-center gap-1.5 text-tiny font-medium text-success">
           <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
           Salvo!
         </p>
@@ -152,7 +152,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <button
         type="submit"
         disabled={disabled || pending}
-        className="rounded-md bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+        className="rounded-md bg-brand-primary px-5 py-2 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
       >
         {pending ? "Salvando..." : "Salvar branding"}
       </button>

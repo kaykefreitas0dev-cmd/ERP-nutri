@@ -24,15 +24,15 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm">
-      <h2 className="text-base font-semibold text-text-primary">
+    <div className="rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
+      <h2 className="text-h3 font-semibold text-text-primary">
         Novo plano alimentar
       </h2>
 
       {error && (
         <div
           role="alert"
-          className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-800"
+          className="mt-3 rounded-md bg-danger-bg p-3 text-body text-danger"
         >
           {error}
         </div>
@@ -40,7 +40,7 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
 
       <form action={handleSubmit} className="mt-4 space-y-3">
         <div>
-          <label htmlFor="name" className="block text-xs font-medium">
+          <label htmlFor="name" className="block text-tiny font-medium">
             Nome do plano *
           </label>
           <input
@@ -49,12 +49,12 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
             type="text"
             required
             placeholder="Ex: Plano semanal março"
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
           />
         </div>
 
         <div>
-          <label htmlFor="targetKcal" className="block text-xs font-medium">
+          <label htmlFor="targetKcal" className="block text-tiny font-medium">
             Meta kcal/dia (opcional)
           </label>
           <input
@@ -64,31 +64,31 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
             min="600"
             max="6000"
             placeholder="Ex: 2000"
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label htmlFor="startDate" className="block text-xs font-medium">
+            <label htmlFor="startDate" className="block text-tiny font-medium">
               Início
             </label>
             <input
               id="startDate"
               name="startDate"
               type="date"
-              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
             />
           </div>
           <div>
-            <label htmlFor="endDate" className="block text-xs font-medium">
+            <label htmlFor="endDate" className="block text-tiny font-medium">
               Fim
             </label>
             <input
               id="endDate"
               name="endDate"
               type="date"
-              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
             />
           </div>
         </div>
@@ -96,12 +96,12 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+          className="w-full rounded-md bg-brand-primary px-4 py-2 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Criando…" : "Criar plano"}
         </button>
 
-        <p className="inline-flex items-start gap-1 text-xs text-text-muted">
+        <p className="inline-flex items-start gap-1 text-tiny text-text-muted">
           <Sparkles className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
           Cria com 1 dia padrão e 6 refeições (café, lanches, almoço, jantar,
           ceia). Personalize depois.

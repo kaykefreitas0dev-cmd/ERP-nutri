@@ -118,12 +118,12 @@ export function WelcomeTour() {
   return (
     <section
       aria-labelledby="welcome-tour-title"
-      className="mb-6 overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-primary-bg to-white shadow-sm"
+      className="mb-6 overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-primary-bg to-white [box-shadow:var(--shadow-xs)]"
     >
       <div className="flex items-start justify-between gap-3 px-5 pt-4">
         <div className="flex items-center gap-2 text-brand-primary">
           <Sparkles className="h-4 w-4" strokeWidth={2} />
-          <p className="text-xs font-semibold uppercase tracking-wide">
+          <p className="text-tiny font-semibold uppercase tracking-wide">
             Bem-vinda ao NutriCore
           </p>
         </div>
@@ -139,17 +139,17 @@ export function WelcomeTour() {
 
       <div className="grid gap-4 px-5 pb-5 pt-3 md:grid-cols-[1fr_auto] md:items-center">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-primary">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-primary-bg text-brand-primary">
             <Icon className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
             <h2
               id="welcome-tour-title"
-              className="text-base font-semibold text-text-primary"
+              className="text-h3 font-semibold text-text-primary"
             >
               {current.title}
             </h2>
-            <p className="mt-1 text-sm text-text-secondary">
+            <p className="mt-1 text-body text-text-secondary">
               {current.description}
             </p>
           </div>
@@ -158,7 +158,7 @@ export function WelcomeTour() {
         <div className="flex items-center gap-2 md:justify-end">
           <Link
             href={current.href}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-body font-medium text-white transition hover:bg-brand-primary-hover"
           >
             {current.cta}
           </Link>
@@ -194,7 +194,7 @@ export function WelcomeTour() {
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={isFirst}
-            className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-text-secondary transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:text-text-subtle disabled:hover:bg-transparent"
+            className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-tiny font-medium text-text-secondary transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:text-text-subtle disabled:hover:bg-transparent"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
             Anterior
@@ -203,7 +203,7 @@ export function WelcomeTour() {
             <button
               type="button"
               onClick={dismiss}
-              className="inline-flex h-8 items-center gap-1 rounded-md bg-text-primary px-3 text-xs font-medium text-white transition hover:bg-text-primary"
+              className="inline-flex h-8 items-center gap-1 rounded-md bg-text-primary px-3 text-tiny font-medium text-white transition hover:bg-text-primary"
             >
               Concluir
             </button>
