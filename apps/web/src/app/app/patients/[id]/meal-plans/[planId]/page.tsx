@@ -227,7 +227,11 @@ export default async function MealPlanEditorPage({ params }: Props) {
         </header>
 
         <div className="mt-6">
+          {/* key changes on item add/remove → remounts editor to sync local dnd state */}
           <MealPlanEditor
+            key={data.plan.days
+              .flatMap((d) => d.meals.map((m) => `${m.id}:${m.items.length}`))
+              .join(",")}
             patientId={id}
             planId={planId}
             days={data.plan.days}
