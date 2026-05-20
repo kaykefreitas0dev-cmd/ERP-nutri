@@ -153,6 +153,57 @@ test.describe("Nutri smoke flow (single session)", () => {
       page.getByRole("button", { name: /^confirmar$/i }).first(),
     ).toBeVisible();
   });
+
+  test("11. Agenda — confirmar consulta muda status para CONFIRMED", async () => {
+    await page.goto("/app/agenda");
+    await expect(page.getByText(PATIENT_NAME, { exact: false })).toBeVisible({
+      timeout: 8_000,
+    });
+    // Clica "Confirmar" no card da consulta SCHEDULED
+    await page
+      .getByRole("button", { name: /^confirmar$/i })
+      .first()
+      .click();
+    // Aguarda transição — badge deve mudar para "Confirmado"
+    await expect(page.getByText("Confirmado").first()).toBeVisible({
+      timeout: 10_000,
+    });
+    // Botão Check-in deve aparecer (CONFIRMED status)
+    await expect(
+      page.getByRole("button", { name: /check-in/i }).first(),
+    ).toBeVisible();
+  });
+
+  test("12. Agenda — consulta CONFIRMED tem botão Cancelar", async () => {
+    // Após o step 11 a consulta está CONFIRMED — verifica que Cancelar existe
+    await expect(
+      page.getByRole("button", { name: /^cancelar$/i }).first(),
+    ).toBeVisible();
+  });
+
+  test("13. Agenda — cancelar consulta CONFIRMED via overlay", async () => {
+    // Clica no botão "Cancelar" para abrir o overlay inline
+    await page
+      .getByRole("button", { name: /^cancelar$/i })
+      .first()
+      .click();
+    // Overlay "Cancelar consulta?" aparece
+    await expect(page.getByText(/cancelar consulta\?/i)).toBeVisible({
+      timeout: 5_000,
+    });
+    // Preenche motivo (opcional)
+    const reasonInput = page.getByPlaceholder(/motivo \(opcional\)/i);
+    await reasonInput.fill("Teste E2E — cancelamento automático");
+    // Confirma via botão "Confirmar" no overlay
+    await page
+      .getByRole("button", { name: /^confirmar$/i })
+      .first()
+      .click();
+    // Badge "Cancelada" deve aparecer
+    await expect(page.getByText("Cancelada").first()).toBeVisible({
+      timeout: 10_000,
+    });
+  });
 });
 
 // CPF válido aleatório (módulo 11)
