@@ -163,6 +163,54 @@ export default async function AgendaPage({ searchParams }: Props) {
     ? data.appointments.filter((a) => a.status !== "CANCELLED").length
     : null;
 
+  // Day-view breakdown pills
+  const dayBreakdown = !isWeekView
+    ? (() => {
+        const counts: Record<string, number> = {};
+        for (const a of data.appointments) {
+          counts[a.status] = (counts[a.status] ?? 0) + 1;
+        }
+        const pills: { label: string; count: number; color: string }[] = [];
+        if (counts["SCHEDULED"])
+          pills.push({
+            label: "agendada",
+            count: counts["SCHEDULED"],
+            color: "text-info",
+          });
+        if (counts["CONFIRMED"])
+          pills.push({
+            label: "confirmada",
+            count: counts["CONFIRMED"],
+            color: "text-brand-primary",
+          });
+        if (counts["CHECKED_IN"])
+          pills.push({
+            label: "check-in",
+            count: counts["CHECKED_IN"],
+            color: "text-info",
+          });
+        if (counts["COMPLETED"])
+          pills.push({
+            label: "realizada",
+            count: counts["COMPLETED"],
+            color: "text-success",
+          });
+        if (counts["NO_SHOW"])
+          pills.push({
+            label: "no-show",
+            count: counts["NO_SHOW"],
+            color: "text-danger",
+          });
+        if (counts["CANCELLED"])
+          pills.push({
+            label: "cancelada",
+            count: counts["CANCELLED"],
+            color: "text-text-muted",
+          });
+        return pills;
+      })()
+    : null;
+
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
@@ -183,13 +231,28 @@ export default async function AgendaPage({ searchParams }: Props) {
                   </span>{" "}
                   {activeThisWeek === 1 ? "consulta" : "consultas"} esta semana
                 </>
+              ) : data.appointments.length === 0 ? (
+                "Nenhuma consulta"
               ) : (
                 <>
                   <span className="font-medium text-text-primary tabular-nums">
                     {data.appointments.length}
                   </span>{" "}
-                  {data.appointments.length === 1 ? "consulta" : "consultas"}{" "}
-                  agendada{data.appointments.length !== 1 ? "s" : ""}
+                  {data.appointments.length === 1 ? "consulta" : "consultas"}
+                  {dayBreakdown && dayBreakdown.length > 0 && (
+                    <span className="ml-1.5 inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      {dayBreakdown.map((p) => (
+                        <span
+                          key={p.label}
+                          className={`tabular-nums ${p.color}`}
+                        >
+                          {p.count}
+                          &thinsp;
+                          {p.count === 1 ? p.label : `${p.label}s`}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </>
               )}
             </p>
