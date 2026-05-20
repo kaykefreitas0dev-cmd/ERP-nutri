@@ -156,7 +156,7 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
 
           {/* Método */}
           <div>
-            <label className="block text-xs font-medium text-text-secondary">
+            <label className="block text-tiny font-medium text-text-secondary">
               Forma de pagamento *
             </label>
             <div className="mt-1 grid grid-cols-3 gap-1.5">

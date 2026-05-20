@@ -178,16 +178,16 @@ export function NpsWidget() {
                   const selected = score === n;
                   const tone =
                     n <= 6
-                      ? "border-rose-200 hover:border-rose-400 hover:text-rose-700"
+                      ? "border-danger-border hover:border-danger hover:text-danger"
                       : n <= 8
-                        ? "border-amber-200 hover:border-amber-400 hover:text-amber-700"
-                        : "border-emerald-200 hover:border-emerald-400 hover:text-emerald-700";
+                        ? "border-warning-border hover:border-warning hover:text-warning"
+                        : "border-success-border hover:border-success hover:text-success";
                   const selectedTone =
                     n <= 6
-                      ? "border-rose-500 bg-rose-500 text-white"
+                      ? "border-danger bg-danger text-white"
                       : n <= 8
-                        ? "border-amber-500 bg-amber-500 text-white"
-                        : "border-emerald-600 bg-emerald-600 text-white";
+                        ? "border-warning bg-warning text-white"
+                        : "border-success bg-success text-white";
                   return (
                     <button
                       key={n}

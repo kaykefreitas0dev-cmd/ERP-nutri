@@ -49,7 +49,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="logoUrl"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           URL do logo (opcional)
         </label>
@@ -84,7 +84,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="primaryColor"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           Cor primária (hex)
         </label>
@@ -114,7 +114,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
       <div>
         <label
           htmlFor="emailFromName"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           Nome no remetente do email
         </label>

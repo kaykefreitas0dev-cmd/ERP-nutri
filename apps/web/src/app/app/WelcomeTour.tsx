@@ -211,7 +211,7 @@ export function WelcomeTour() {
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-medium text-text-secondary transition hover:bg-bg-subtle"
+              className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-tiny font-medium text-text-secondary transition hover:bg-bg-subtle"
             >
               Próximo
               <ChevronRight className="h-3.5 w-3.5" />

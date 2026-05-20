@@ -311,7 +311,7 @@ export function ImportWizard() {
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-bg text-success">
         <CircleCheck className="h-10 w-10" strokeWidth={1.75} />
       </div>
-      <h2 className="text-xl font-semibold text-text-primary">
+      <h2 className="text-h2 font-semibold text-text-primary">
         Importação concluída!
       </h2>
       <p className="text-text-secondary">
