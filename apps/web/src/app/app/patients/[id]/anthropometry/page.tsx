@@ -5,6 +5,7 @@ import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { AnthropometryForm } from "./AnthropometryForm";
 import { AnthropometryTrend } from "./AnthropometryTrend";
 import { AnthropometryChart } from "./AnthropometryChart";
+import { DeleteAnthropometryButton } from "./DeleteAnthropometryButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antropometria" };
@@ -153,42 +154,52 @@ export default async function AnthropometryPage({ params }: Props) {
               </p>
             ) : (
               <ul className="space-y-2">
-                {data.records.map((r) => (
-                  <li
-                    key={r.id}
-                    className="rounded-md border border-border-subtle bg-bg-surface p-3 [box-shadow:var(--shadow-xs)]"
-                  >
-                    <div className="text-body font-semibold text-text-primary tabular-nums">
-                      {new Date(r.measuredAt).toLocaleDateString("pt-BR")}
-                    </div>
-                    <dl className="mt-2 space-y-1 text-tiny text-text-secondary">
-                      {r.weightKg && (
-                        <MeasurementRow
-                          label="Peso"
-                          value={`${r.weightKg.toString()} kg`}
-                        />
-                      )}
-                      {r.bodyMassIndex && (
-                        <MeasurementRow
-                          label="IMC"
-                          value={r.bodyMassIndex.toString()}
-                        />
-                      )}
-                      {r.bodyFatPctCalc && (
-                        <MeasurementRow
-                          label="%GC"
-                          value={`${r.bodyFatPctCalc.toString()}%`}
-                        />
-                      )}
-                      {r.basalMetabolismMifflin && (
-                        <MeasurementRow
-                          label="GEB"
-                          value={`${r.basalMetabolismMifflin.toString()} kcal`}
-                        />
-                      )}
-                    </dl>
-                  </li>
-                ))}
+                {data.records.map((r) => {
+                  const dateLabel = new Date(r.measuredAt).toLocaleDateString(
+                    "pt-BR",
+                  );
+                  return (
+                    <li
+                      key={r.id}
+                      className="group relative rounded-md border border-border-subtle bg-bg-surface p-3 [box-shadow:var(--shadow-xs)]"
+                    >
+                      <div className="pr-6 text-body font-semibold text-text-primary tabular-nums">
+                        {dateLabel}
+                      </div>
+                      <dl className="mt-2 space-y-1 text-tiny text-text-secondary">
+                        {r.weightKg && (
+                          <MeasurementRow
+                            label="Peso"
+                            value={`${r.weightKg.toString()} kg`}
+                          />
+                        )}
+                        {r.bodyMassIndex && (
+                          <MeasurementRow
+                            label="IMC"
+                            value={r.bodyMassIndex.toString()}
+                          />
+                        )}
+                        {r.bodyFatPctCalc && (
+                          <MeasurementRow
+                            label="%GC"
+                            value={`${r.bodyFatPctCalc.toString()}%`}
+                          />
+                        )}
+                        {r.basalMetabolismMifflin && (
+                          <MeasurementRow
+                            label="GEB"
+                            value={`${r.basalMetabolismMifflin.toString()} kcal`}
+                          />
+                        )}
+                      </dl>
+                      <DeleteAnthropometryButton
+                        recordId={r.id}
+                        patientId={id}
+                        dateLabel={dateLabel}
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </aside>
