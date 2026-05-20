@@ -60,7 +60,7 @@ export function DocumentActions({ documentId, status }: Props) {
           href={`/api/v1/documents/${documentId}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg-subtle"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-1.5 text-body font-medium hover:bg-bg-subtle"
         >
           <Download className="h-4 w-4" strokeWidth={1.75} />
           {status === "DRAFT" ? "Visualizar PDF" : "Baixar PDF"}
@@ -71,7 +71,7 @@ export function DocumentActions({ documentId, status }: Props) {
             type="button"
             onClick={handleIssue}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-1.5 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {pending ? (
               "Assinando…"
@@ -88,7 +88,7 @@ export function DocumentActions({ documentId, status }: Props) {
           <button
             type="button"
             onClick={() => setShowRevoke(true)}
-            className="rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+            className="rounded-md border border-danger bg-bg-surface px-3 py-1.5 text-body font-medium text-danger hover:bg-danger-bg"
           >
             Revogar
           </button>
@@ -96,8 +96,8 @@ export function DocumentActions({ documentId, status }: Props) {
       </div>
 
       {confirmingIssue && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3">
-          <p className="text-xs font-medium text-amber-800">
+        <div className="rounded-md border border-warning-border bg-warning-bg p-3">
+          <p className="text-tiny font-medium text-warning">
             Assinar e emitir? O documento ficará imutável após esta ação.
           </p>
           <div className="mt-2 flex gap-2">
@@ -105,14 +105,14 @@ export function DocumentActions({ documentId, status }: Props) {
               type="button"
               onClick={confirmIssue}
               disabled={pending}
-              className="rounded-md bg-brand-primary px-3 py-1 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+              className="rounded-md bg-brand-primary px-3 py-1 text-tiny font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
             >
               Confirmar emissão
             </button>
             <button
               type="button"
               onClick={() => setConfirmingIssue(false)}
-              className="rounded-md border border-border-default bg-white px-3 py-1 text-xs"
+              className="rounded-md border border-border-default bg-bg-surface px-3 py-1 text-tiny"
             >
               Cancelar
             </button>
@@ -121,16 +121,16 @@ export function DocumentActions({ documentId, status }: Props) {
       )}
 
       {error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-tiny text-danger">
           {error}
         </p>
       )}
 
       {showRevoke && (
-        <div className="rounded-md border border-red-300 bg-red-50 p-3">
+        <div className="rounded-md border border-danger-border bg-danger-bg p-3">
           <label
             htmlFor="revoke-reason"
-            className="block text-xs font-medium text-red-800"
+            className="block text-tiny font-medium text-danger"
           >
             Motivo da revogação *
           </label>
@@ -140,14 +140,14 @@ export function DocumentActions({ documentId, status }: Props) {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ex: dados incorretos"
-            className="mt-1 block w-64 rounded-md border border-red-300 px-2 py-1 text-sm"
+            className="mt-1 block w-64 rounded-md border border-danger px-2 py-1 text-body"
           />
           <div className="mt-2 flex gap-2">
             <button
               type="button"
               onClick={handleRevoke}
               disabled={pending}
-              className="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-md bg-danger px-3 py-1 text-tiny font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {pending ? "Revogando…" : "Confirmar revogação"}
             </button>
@@ -158,7 +158,7 @@ export function DocumentActions({ documentId, status }: Props) {
                 setReason("");
                 setError(null);
               }}
-              className="rounded-md border border-border-default bg-white px-3 py-1 text-xs"
+              className="rounded-md border border-border-default bg-bg-surface px-3 py-1 text-tiny"
             >
               Cancelar
             </button>
