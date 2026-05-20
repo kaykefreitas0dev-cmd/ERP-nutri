@@ -6,9 +6,10 @@
  * - Templates inline HTML sem dependências extras
  *
  * Eventos cobertos:
- *   • appointment.scheduled  — nova consulta criada para paciente vinculado
- *   • appointment.confirmed  — status SCHEDULED → CONFIRMED
- *   • appointment.cancelled  — status → CANCELLED
+ *   • appointment.scheduled   — nova consulta criada para paciente vinculado
+ *   • appointment.rescheduled — data/hora/modalidade alterados pelo profissional
+ *   • appointment.confirmed   — status SCHEDULED → CONFIRMED
+ *   • appointment.cancelled   — status → CANCELLED
  */
 
 import { Resend } from "resend";
@@ -49,6 +50,19 @@ export async function sendAppointmentScheduledEmail(
     subject: `Nova consulta agendada — ${formatDateTime(params.startsAt, params.timezone)}`,
     html: renderScheduledHtml(params),
     text: renderScheduledText(params),
+  });
+}
+
+// ─── rescheduled ─────────────────────────────────────────────────────────────
+
+export async function sendAppointmentRescheduledEmail(
+  params: AppointmentEmailBase,
+): Promise<AppointmentNotificationResult> {
+  return sendNotification({
+    ...params,
+    subject: `Consulta reagendada — ${formatDateTime(params.startsAt, params.timezone)}`,
+    html: renderRescheduledHtml(params),
+    text: renderRescheduledText(params),
   });
 }
 
@@ -200,6 +214,26 @@ function apptInfoBlock(p: AppointmentEmailBase): string {
     </table>`;
 }
 
+function renderRescheduledHtml(p: AppointmentEmailBase): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#d97706;">
+      Consulta reagendada 🗓️
+    </h1>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Olá, <strong style="color:#0f172a;">${escapeHtml(firstName)}</strong>!
+    </p>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Sua consulta com <strong>${escapeHtml(p.organizationName)}</strong> foi reagendada para uma nova data e horário.
+    </p>
+    ${apptInfoBlock(p)}
+    <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#64748b;">
+      Se tiver dúvidas, entre em contato com ${escapeHtml(p.organizationName)} ou acesse o app.
+    </p>`;
+  const footer = `Aviso de reagendamento de consulta com ${escapeHtml(p.organizationName)}.`;
+  return baseLayout(body, footer);
+}
+
 function renderScheduledHtml(p: AppointmentEmailBase): string {
   const firstName = p.patientFullName.split(" ")[0]!;
   const body = `
@@ -273,6 +307,22 @@ function apptInfoText(p: AppointmentEmailBase): string {
   return `Data e hora: ${formatDateTime(p.startsAt, tz)} – ${formatTime(p.endsAt, tz)}
 Modalidade: ${MODALITY_LABEL[p.modality] ?? p.modality}
 Profissional/Clínica: ${p.organizationName}`;
+}
+
+function renderRescheduledText(p: AppointmentEmailBase): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  return `Consulta reagendada — ${p.organizationName}
+
+Olá, ${firstName}!
+
+Sua consulta com ${p.organizationName} foi reagendada.
+
+${apptInfoText(p)}
+
+Se tiver dúvidas, entre em contato ou acesse o app.
+
+—
+NutriCore · acompanhamento nutricional digital`;
 }
 
 function renderScheduledText(p: AppointmentEmailBase): string {
