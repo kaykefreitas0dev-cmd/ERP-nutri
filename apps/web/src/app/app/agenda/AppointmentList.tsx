@@ -69,21 +69,40 @@ export function AppointmentList({ appointments }: Props) {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [payingAppt, setPayingAppt] = useState<Appointment | null>(null);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState<string>("");
 
   function updateStatus(
     appointmentId: string,
     toStatus: Parameters<typeof updateAppointmentStatusAction>[0]["toStatus"],
+    reason?: string,
   ) {
     setUpdatingId(appointmentId);
     startTransition(async () => {
       const result = await updateAppointmentStatusAction({
         appointmentId,
         toStatus,
+        reason: reason || undefined,
       });
       setUpdatingId(null);
       if (!result.ok) alert(result.message);
       else router.refresh();
     });
+  }
+
+  function startCancel(appointmentId: string) {
+    setCancellingId(appointmentId);
+    setCancelReason("");
+  }
+
+  function confirmCancel(appointmentId: string) {
+    setCancellingId(null);
+    updateStatus(appointmentId, "CANCELLED", cancelReason);
+  }
+
+  function abortCancel() {
+    setCancellingId(null);
+    setCancelReason("");
   }
 
   if (appointments.length === 0) {
@@ -121,7 +140,7 @@ export function AppointmentList({ appointments }: Props) {
           <li
             key={apt.id}
             className={
-              "rounded-lg border bg-bg-surface p-4 transition-all duration-fast " +
+              "relative rounded-lg border bg-bg-surface p-4 transition-all duration-fast " +
               (isCancelled
                 ? "border-border-subtle opacity-60"
                 : isCompleted
@@ -184,6 +203,46 @@ export function AppointmentList({ appointments }: Props) {
                 </div>
               </div>
 
+              {/* Cancel reason inline panel */}
+              {cancellingId === apt.id && (
+                <div className="absolute inset-x-0 bottom-0 top-0 z-10 flex items-center justify-between gap-3 rounded-lg border border-danger-border bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-sm)]">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-caption font-medium text-danger">
+                      Cancelar consulta?
+                    </p>
+                    <input
+                      type="text"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Motivo (opcional)"
+                      maxLength={200}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") confirmCancel(apt.id);
+                        if (e.key === "Escape") abortCancel();
+                      }}
+                      className="mt-1 w-full rounded-md border border-border-default bg-bg-surface px-2 py-1 text-caption text-text-primary placeholder:text-text-muted focus:border-danger focus:outline-none focus:[box-shadow:0_0_0_2px_rgb(239_68_68/0.2)]"
+                    />
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <ActionButton
+                      onClick={() => confirmCancel(apt.id)}
+                      disabled={pending && updatingId === apt.id}
+                      tone="danger"
+                    >
+                      Confirmar
+                    </ActionButton>
+                    <ActionButton
+                      onClick={abortCancel}
+                      disabled={false}
+                      tone="ghost"
+                    >
+                      Voltar
+                    </ActionButton>
+                  </div>
+                </div>
+              )}
+
               {/* Ações */}
               <div className="flex shrink-0 flex-col gap-1">
                 {/* Edit button — available for non-terminal statuses */}
@@ -207,7 +266,7 @@ export function AppointmentList({ appointments }: Props) {
                       Confirmar
                     </ActionButton>
                     <ActionButton
-                      onClick={() => updateStatus(apt.id, "CANCELLED")}
+                      onClick={() => startCancel(apt.id)}
                       disabled={pending && updatingId === apt.id}
                       tone="ghost"
                     >
