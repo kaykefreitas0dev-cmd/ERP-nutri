@@ -1,20 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  Plus,
-  Search,
-  Lock,
-  Archive,
-  Eye,
-  Calendar,
-  MoreHorizontal,
-  Users,
-  ArrowRight,
-} from "lucide-react";
+import { Plus, Search, Lock, Archive, Users, ArrowRight } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
-import { Avatar } from "@repo/ui/avatar";
-import { Badge } from "@repo/ui/badge";
-import { StatusDot } from "@repo/ui/status-dot";
+import { PatientsDataTable } from "./PatientsDataTable";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pacientes" };
@@ -25,55 +13,31 @@ interface Props {
 
 type PatientStatus = "ACTIVE" | "ARCHIVED" | "ANONYMIZED";
 
-interface PatientRow {
-  id: string;
-  fullName: string;
-  email: string | null;
-  phone: string | null;
-  status: string;
-  updatedAt: Date;
-}
-
-function statusInfo(status: string): {
-  variant: "success" | "neutral" | "warning";
-  dot: "active" | "inactive" | "warning";
-  label: string;
-} {
-  if (status === "ACTIVE")
-    return { variant: "success", dot: "active", label: "Ativo" };
-  if (status === "ARCHIVED")
-    return { variant: "neutral", dot: "inactive", label: "Arquivado" };
-  return { variant: "warning", dot: "warning", label: "Anonimizado" };
-}
-
-function timeSince(date: Date): string {
-  const now = Date.now();
-  const then = date.getTime();
-  const diffMs = now - then;
-  const days = Math.floor(diffMs / 86_400_000);
-  if (days === 0) return "hoje";
-  if (days === 1) return "ontem";
-  if (days < 7) return `${days}d atrás`;
-  if (days < 30) return `${Math.floor(days / 7)}sem atrás`;
-  if (days < 365) return `${Math.floor(days / 30)}mês atrás`;
-  return `${Math.floor(days / 365)}a atrás`;
-}
-
 export default async function PatientsListPage({ searchParams }: Props) {
   const { q, status } = await searchParams;
   const filterStatus = (status as PatientStatus) ?? "ACTIVE";
 
   let result: {
-    patients: PatientRow[];
+    patients: {
+      id: string;
+      fullName: string;
+      email: string | null;
+      phone: string | null;
+      status: string;
+      updatedAt: Date;
+    }[];
+    nextCursor: string | null;
     counts: { active: number; archived: number; anonymized: number };
   } = {
     patients: [],
+    nextCursor: null,
     counts: { active: 0, archived: 0, anonymized: 0 },
   };
 
   try {
     result = await withTenantAction(async ({ tx }) => {
-      const [patients, [active, archived, anonymized]] = await Promise.all([
+      const PAGE_SIZE = 100;
+      const [rawPatients, [active, archived, anonymized]] = await Promise.all([
         tx.patient.findMany({
           where: {
             status: filterStatus,
@@ -87,7 +51,7 @@ export default async function PatientsListPage({ searchParams }: Props) {
               : {}),
           },
           orderBy: { updatedAt: "desc" },
-          take: 50,
+          take: PAGE_SIZE + 1, // +1 to detect next page
           select: {
             id: true,
             fullName: true,
@@ -103,8 +67,16 @@ export default async function PatientsListPage({ searchParams }: Props) {
           tx.patient.count({ where: { status: "ANONYMIZED" } }),
         ]),
       ]);
+
+      let nextCursor: string | null = null;
+      if (rawPatients.length > PAGE_SIZE) {
+        rawPatients.pop();
+        nextCursor = rawPatients[rawPatients.length - 1]?.id ?? null;
+      }
+
       return {
-        patients,
+        patients: rawPatients,
+        nextCursor,
         counts: { active, archived, anonymized },
       };
     });
@@ -182,139 +154,19 @@ export default async function PatientsListPage({ searchParams }: Props) {
           )}
         </form>
 
-        {/* Empty state */}
+        {/* Empty state or table */}
         {result.patients.length === 0 ? (
           <EmptyState query={q} filterStatus={filterStatus} />
         ) : (
-          <PatientsTable patients={result.patients} />
+          <PatientsDataTable
+            initialPatients={result.patients}
+            initialCursor={result.nextCursor}
+            filterStatus={filterStatus}
+            query={q}
+          />
         )}
       </div>
     </main>
-  );
-}
-
-function PatientsTable({ patients }: { patients: PatientRow[] }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
-      <table className="min-w-full">
-        <thead className="border-b border-border-subtle bg-bg-subtle/50">
-          <tr>
-            <th className="px-5 py-2.5 text-left text-tiny font-semibold uppercase tracking-wider text-text-muted">
-              Paciente
-            </th>
-            <th className="px-5 py-2.5 text-left text-tiny font-semibold uppercase tracking-wider text-text-muted">
-              Contato
-            </th>
-            <th className="hidden px-5 py-2.5 text-left text-tiny font-semibold uppercase tracking-wider text-text-muted md:table-cell">
-              Status
-            </th>
-            <th className="hidden px-5 py-2.5 text-left text-tiny font-semibold uppercase tracking-wider text-text-muted md:table-cell">
-              Atualizado
-            </th>
-            <th className="px-5 py-2.5"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border-subtle">
-          {patients.map((p) => {
-            const info = statusInfo(p.status);
-            return (
-              <tr
-                key={p.id}
-                className="group cursor-pointer transition-colors duration-fast hover:bg-bg-subtle/40"
-              >
-                <td className="px-5 py-3">
-                  <Link
-                    href={`/app/patients/${p.id}`}
-                    className="flex items-center gap-3"
-                  >
-                    <Avatar name={p.fullName} size="sm" />
-                    <div className="min-w-0">
-                      <p className="flex items-center gap-1.5 truncate text-body font-medium text-text-primary group-hover:text-brand-primary">
-                        {p.status === "ANONYMIZED" && (
-                          <Lock
-                            className="h-3 w-3 shrink-0 text-text-muted"
-                            strokeWidth={2}
-                          />
-                        )}
-                        {p.status === "ARCHIVED" && (
-                          <Archive
-                            className="h-3 w-3 shrink-0 text-text-muted"
-                            strokeWidth={2}
-                          />
-                        )}
-                        {p.fullName}
-                      </p>
-                      <p className="md:hidden mt-0.5 text-tiny text-text-muted tabular-nums">
-                        {timeSince(p.updatedAt)}
-                      </p>
-                    </div>
-                  </Link>
-                </td>
-                <td className="px-5 py-3 text-caption text-text-secondary">
-                  {p.email ? <div className="truncate">{p.email}</div> : null}
-                  {p.phone ? (
-                    <div className="truncate text-tiny text-text-muted tabular-nums">
-                      {p.phone}
-                    </div>
-                  ) : null}
-                  {!p.email && !p.phone && (
-                    <span className="text-text-subtle">—</span>
-                  )}
-                </td>
-                <td className="hidden px-5 py-3 md:table-cell">
-                  <Badge
-                    variant={info.variant}
-                    leftIcon={
-                      <StatusDot
-                        status={info.dot}
-                        pulse={p.status === "ACTIVE"}
-                        size={1.5}
-                      />
-                    }
-                  >
-                    {info.label}
-                  </Badge>
-                </td>
-                <td className="hidden px-5 py-3 text-caption text-text-muted tabular-nums md:table-cell">
-                  {timeSince(p.updatedAt)}
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-fast group-hover:opacity-100">
-                    <Link
-                      href={`/app/patients/${p.id}`}
-                      aria-label="Ver prontuário"
-                      title="Ver prontuário"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-primary"
-                    >
-                      <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    </Link>
-                    <Link
-                      href="/app/agenda"
-                      aria-label="Agendar consulta"
-                      title="Agendar consulta"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-primary"
-                    >
-                      <Calendar className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    </Link>
-                    <button
-                      type="button"
-                      aria-label="Mais opções"
-                      title="Mais opções"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-primary"
-                    >
-                      <MoreHorizontal
-                        className="h-3.5 w-3.5"
-                        strokeWidth={1.75}
-                      />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
   );
 }
 
