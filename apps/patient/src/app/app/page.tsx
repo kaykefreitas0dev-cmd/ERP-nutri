@@ -1,5 +1,16 @@
 import Link from "next/link";
-import { CircleCheck, Flame, Hospital, Utensils, FileText } from "lucide-react";
+import {
+  CircleCheck,
+  Flame,
+  Hospital,
+  Utensils,
+  FileText,
+  Calendar,
+  MapPin,
+  Video,
+  Phone,
+  type LucideIcon,
+} from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -16,6 +27,34 @@ function greeting(): string {
   if (h < 12) return "Bom dia";
   if (h < 18) return "Boa tarde";
   return "Boa noite";
+}
+
+const PLAN_STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Ativo",
+  DRAFT: "Rascunho",
+  ARCHIVED: "Arquivado",
+};
+
+const MODALITY_INFO: Record<string, { Icon: LucideIcon; label: string }> = {
+  in_person: { Icon: MapPin, label: "Presencial" },
+  video: { Icon: Video, label: "Vídeo" },
+  phone: { Icon: Phone, label: "Telefone" },
+};
+
+function formatApptDate(date: Date): string {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffDays = Math.floor(diffMs / 86_400_000);
+
+  if (diffDays === 0) return "Hoje";
+  if (diffDays === 1) return "Amanhã";
+  if (diffDays > 1 && diffDays <= 6)
+    return date.toLocaleDateString("pt-BR", { weekday: "long" });
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
 }
 
 export default async function PatientHomePage({
@@ -75,6 +114,43 @@ export default async function PatientHomePage({
       },
     },
   });
+
+  // Próximas consultas — máx 3, janela de 30 dias
+  const patientIds = patients.map((p) => p.id);
+  const thirtyDaysOut = new Date(Date.now() + 30 * 86_400_000);
+  const upcomingAppointments = patientIds.length
+    ? await prisma.appointment.findMany({
+        where: {
+          patientId: { in: patientIds },
+          startsAt: { gte: new Date(), lte: thirtyDaysOut },
+          status: { in: ["SCHEDULED", "CONFIRMED", "CHECKED_IN"] },
+        },
+        orderBy: { startsAt: "asc" },
+        take: 3,
+        select: {
+          id: true,
+          startsAt: true,
+          endsAt: true,
+          status: true,
+          modality: true,
+          notes: true,
+          organizationId: true,
+        },
+      })
+    : [];
+
+  // Mapear orgId → nome para as consultas
+  const orgIds = Array.from(
+    new Set(upcomingAppointments.map((a) => a.organizationId)),
+  );
+  const apptOrgs =
+    orgIds.length > 0
+      ? await prisma.organization.findMany({
+          where: { id: { in: orgIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const orgMap = new Map(apptOrgs.map((o) => [o.id, o.name]));
 
   const isFirstTime = welcome === "1";
 
@@ -138,6 +214,94 @@ export default async function PatientHomePage({
           </Link>
         </div>
       </div>
+
+      {/* Próximas consultas */}
+      {upcomingAppointments.length > 0 && (
+        <section className="mt-5">
+          <h2 className="flex items-center gap-1.5 text-tiny font-semibold uppercase tracking-wider text-text-muted">
+            <Calendar className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Próximas consultas
+          </h2>
+          <ul className="mt-2 space-y-2">
+            {upcomingAppointments.map((a) => {
+              const start = new Date(a.startsAt);
+              const end = new Date(a.endsAt);
+              const mod = MODALITY_INFO[a.modality];
+              const isConfirmed = a.status === "CONFIRMED";
+              const isCheckedIn = a.status === "CHECKED_IN";
+              return (
+                <li
+                  key={a.id}
+                  className={
+                    "flex items-center gap-3 rounded-lg border px-4 py-3 [box-shadow:var(--shadow-xs)] " +
+                    (isCheckedIn
+                      ? "border-info-border bg-info-bg"
+                      : isConfirmed
+                        ? "border-brand-200 bg-brand-primary-bg"
+                        : "border-border-subtle bg-bg-surface")
+                  }
+                >
+                  {/* Date pill */}
+                  <div className="flex min-w-[52px] flex-col items-center rounded-md bg-bg-subtle px-2 py-1.5 text-center">
+                    <span className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+                      {start
+                        .toLocaleDateString("pt-BR", { month: "short" })
+                        .slice(0, 3)}
+                    </span>
+                    <span className="text-h2 font-bold tabular-nums leading-none text-text-primary">
+                      {start.getDate()}
+                    </span>
+                  </div>
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-body font-semibold tabular-nums text-text-primary">
+                      {formatApptDate(start)},{" "}
+                      {start.toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {" – "}
+                      {end.toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1 text-tiny text-text-secondary">
+                      {mod && (
+                        <>
+                          <mod.Icon
+                            className="h-3 w-3"
+                            strokeWidth={1.75}
+                            aria-hidden
+                          />
+                          {mod.label} ·{" "}
+                        </>
+                      )}
+                      {orgMap.get(a.organizationId) ?? "—"}
+                    </p>
+                    {isCheckedIn && (
+                      <p className="mt-0.5 text-tiny font-medium text-info">
+                        Em andamento
+                      </p>
+                    )}
+                    {isConfirmed && (
+                      <p className="mt-0.5 text-tiny font-medium text-brand-primary">
+                        Confirmada
+                      </p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <Link
+            href="/app/consultas"
+            className="mt-2 block text-right text-tiny font-medium text-brand-primary hover:underline"
+          >
+            Ver todas as consultas →
+          </Link>
+        </section>
+      )}
 
       {patients.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-border-default bg-bg-surface p-8 text-center">
@@ -212,7 +376,7 @@ export default async function PatientHomePage({
                                 : "bg-warning-bg text-warning ring-warning-border")
                             }
                           >
-                            {mp.status}
+                            {PLAN_STATUS_LABEL[mp.status] ?? mp.status}
                           </span>
                         </Link>
                       </li>
