@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sendInviteAcceptedEmail } from "@/lib/email/send-invite-accepted";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +113,37 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.redirect(new URL("/?error=accept_failed", url.origin));
   }
+
+  // Fire-and-forget: notificar nutricionista que paciente aceitou o convite
+  void (async () => {
+    try {
+      const [membership, patient] = await Promise.all([
+        prisma.membership.findFirst({
+          where: {
+            organizationId: invite.organizationId,
+            role: "org_owner",
+            status: "ACTIVE",
+          },
+          select: { user: { select: { email: true, fullName: true } } },
+        }),
+        prisma.patient.findUnique({
+          where: { id: invite.patientId },
+          select: { fullName: true, organization: { select: { name: true } } },
+        }),
+      ]);
+      if (membership?.user?.email && patient) {
+        await sendInviteAcceptedEmail({
+          to: membership.user.email,
+          nutriFullName: membership.user.fullName ?? undefined,
+          organizationName: patient.organization.name,
+          patientFullName: patient.fullName,
+          patientEmail: user.email!, // guarded by early return at line 35
+        });
+      }
+    } catch {
+      // Email failure nunca bloqueia o redirect
+    }
+  })();
 
   return NextResponse.redirect(new URL("/app?welcome=1", url.origin));
 }
