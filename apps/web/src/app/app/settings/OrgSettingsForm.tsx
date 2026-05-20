@@ -67,6 +67,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
         </p>
         {logoUrl && (
           <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-border-subtle bg-bg-subtle px-3 py-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- URL é fornecida pelo usuário em runtime; domínio desconhecido, next/image requer remotePatterns estáticos */}
             <img
               src={logoUrl}
               alt="Preview"
