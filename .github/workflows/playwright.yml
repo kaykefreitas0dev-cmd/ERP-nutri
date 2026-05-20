@@ -1,0 +1,83 @@
+name: Playwright E2E + A11y
+
+on:
+  # Trigger when Vercel finishes deploying a preview
+  deployment_status:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  e2e:
+    # Only run on successful Vercel preview deployments (not production)
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment != 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Playwright E2E + A11y tests
+        env:
+          # Use the Vercel preview URL from the deployment_status event
+          WEB_BASE_URL: ${{ github.event.deployment_status.target_url }}
+          # Optional: skip login-required tests if no test credentials set
+          SKIP_AUTH_TESTS: ${{ secrets.E2E_ADMIN_EMAIL == '' && 'true' || 'false' }}
+        run: pnpm exec playwright test
+        continue-on-error: true # Don't block merge on E2E failures (advisory only)
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: e2e/report/
+          retention-days: 7
+
+      - name: Post summary to PR
+        if: always() && github.event_name == 'deployment_status'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+
+            // Find associated PR (if any)
+            const sha = '${{ github.sha }}';
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: sha,
+            });
+
+            if (prs.length === 0) return; // No PR, skip comment
+
+            const prNumber = prs[0].number;
+            const status = '${{ job.status }}';
+            const icon = status === 'success' ? '✅' : '⚠️';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `${icon} **Playwright E2E + A11y** — ${status} | [Ver relatório](${runUrl})\n\n_Rodou contra preview: ${{ github.event.deployment_status.target_url }}_`,
+            });
