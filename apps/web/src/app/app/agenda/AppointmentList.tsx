@@ -8,6 +8,7 @@ import {
   Phone,
   CircleCheck,
   Calendar,
+  Pencil,
   type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
@@ -15,6 +16,7 @@ import { Avatar } from "@repo/ui/avatar";
 import { StatusDot } from "@repo/ui/status-dot";
 import { updateAppointmentStatusAction } from "./actions";
 import { CompleteWithPaymentModal } from "./CompleteWithPaymentModal";
+import { EditAppointmentModal } from "./EditAppointmentModal";
 
 interface Appointment {
   id: string;
@@ -66,6 +68,7 @@ export function AppointmentList({ appointments }: Props) {
   const [pending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [payingAppt, setPayingAppt] = useState<Appointment | null>(null);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
 
   function updateStatus(
     appointmentId: string,
@@ -183,6 +186,17 @@ export function AppointmentList({ appointments }: Props) {
 
               {/* Ações */}
               <div className="flex shrink-0 flex-col gap-1">
+                {/* Edit button — available for non-terminal statuses */}
+                {!isCompleted && !isCancelled && apt.status !== "NO_SHOW" && (
+                  <ActionButton
+                    onClick={() => setEditingAppt(apt)}
+                    disabled={pending && updatingId === apt.id}
+                    tone="ghost"
+                    icon={<Pencil className="h-3 w-3" strokeWidth={2} />}
+                  >
+                    Editar
+                  </ActionButton>
+                )}
                 {apt.status === "SCHEDULED" && (
                   <>
                     <ActionButton
@@ -258,6 +272,16 @@ export function AppointmentList({ appointments }: Props) {
         <CompleteWithPaymentModal
           appointment={payingAppt}
           onClose={() => setPayingAppt(null)}
+        />
+      )}
+
+      {editingAppt && (
+        <EditAppointmentModal
+          appointment={editingAppt}
+          onClose={() => {
+            setEditingAppt(null);
+            router.refresh();
+          }}
         />
       )}
     </ul>
