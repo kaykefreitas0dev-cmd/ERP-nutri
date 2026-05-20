@@ -63,8 +63,7 @@ export function OrgSettingsForm({ initial, disabled }: Props) {
           className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm disabled:bg-bg-subtle"
         />
         <p className="mt-1 text-xs text-text-muted">
-          Aceita HTTPS público (Imgur, Cloudinary, etc.). Upload direto na
-          plataforma chega em sprint pós-MVP.
+          Aceita URL pública de imagem (Imgur, Cloudinary, etc.).
         </p>
         {logoUrl && (
           <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-border-subtle bg-bg-subtle px-3 py-2">
