@@ -39,7 +39,9 @@ const METHODS: Array<{
 ];
 
 function todayLocalISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
 }
 
 export function CompleteWithPaymentModal({ appointment, onClose }: Props) {

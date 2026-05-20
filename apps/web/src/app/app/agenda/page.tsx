@@ -31,9 +31,13 @@ export default async function AgendaPage({ searchParams }: Props) {
   } = await searchParams;
   const isWeekView = view === "week";
 
-  const targetDate = date ? new Date(date + "T00:00:00") : new Date();
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const targetDateStr = targetDate.toISOString().slice(0, 10);
+  // Use Brazil timezone for "today" so the badge is correct after 21:00 UTC
+  const todayStr = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
+  // If explicit date from URL, use it directly; otherwise fall back to today
+  const targetDateStr = date ?? todayStr;
+  const targetDate = new Date(targetDateStr + "T12:00:00Z"); // noon UTC keeps date stable
   const isToday = targetDateStr === todayStr;
 
   const weekStart = getWeekStart(targetDate);
