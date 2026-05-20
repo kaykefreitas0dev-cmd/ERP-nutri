@@ -8,6 +8,8 @@ import { scheduleAppointmentAction } from "./actions";
 interface Props {
   patients: Array<{ id: string; fullName: string }>;
   defaultDate: Date;
+  /** Pre-select this patient ID (from ?patientId= query param) */
+  defaultPatientId?: string;
 }
 
 const inputBase =
@@ -15,7 +17,11 @@ const inputBase =
   "focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20 " +
   "transition-colors duration-fast";
 
-export function NewAppointmentForm({ patients, defaultDate }: Props) {
+export function NewAppointmentForm({
+  patients,
+  defaultDate,
+  defaultPatientId,
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +50,21 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
     });
   }
 
+  const preSelected =
+    defaultPatientId && patients.find((p) => p.id === defaultPatientId);
+
   return (
     <div className="rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
-      <h2 className="text-h3 font-semibold text-text-primary">Nova consulta</h2>
+      <div className="flex items-start justify-between gap-2">
+        <h2 className="text-h3 font-semibold text-text-primary">
+          Nova consulta
+        </h2>
+        {preSelected && (
+          <span className="inline-flex items-center rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary">
+            {preSelected.fullName.split(" ")[0]}
+          </span>
+        )}
+      </div>
 
       {error && (
         <div
@@ -145,7 +163,7 @@ export function NewAppointmentForm({ patients, defaultDate }: Props) {
               key="patientId"
               name="patientId"
               required={patientMode === "existing"}
-              defaultValue=""
+              defaultValue={defaultPatientId ?? ""}
               className={inputBase}
             >
               <option value="" disabled>
