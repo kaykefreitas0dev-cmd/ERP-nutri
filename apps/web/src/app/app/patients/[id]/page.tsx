@@ -8,6 +8,11 @@ import {
   Pencil,
   Lock,
   Archive,
+  Calendar,
+  MapPin,
+  Video,
+  Phone,
+  ChevronRight,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -61,6 +66,14 @@ export default async function PatientDetailPage({ params }: Props) {
       acceptedAt: Date | null;
       revokedAt: Date | null;
     }>;
+    upcomingAppointments: Array<{
+      id: string;
+      startsAt: Date;
+      endsAt: Date;
+      status: string;
+      modality: string;
+      timezone: string;
+    }>;
   } | null = null;
 
   try {
@@ -86,25 +99,64 @@ export default async function PatientDetailPage({ params }: Props) {
         },
       });
 
-      if (p) {
-        // Audit log: leitura de PHI
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid,
-            ${userId}::uuid,
-            'nutritionist'::text,
-            NULL::inet, NULL::text,
-            'patient.read'::text,
-            'Patient'::text,
-            ${p.id}::text,
-            ${p.id}::uuid,
-            ARRAY['fullName','email','phone','cpf']::text[],
-            '{}'::jsonb
-          )
-        `;
-      }
+      if (!p) return null;
 
-      return p;
+      // Audit log: leitura de PHI
+      await tx.$executeRaw`
+        SELECT audit.append_log(
+          ${organizationId}::uuid,
+          ${userId}::uuid,
+          'nutritionist'::text,
+          NULL::inet, NULL::text,
+          'patient.read'::text,
+          'Patient'::text,
+          ${p.id}::text,
+          ${p.id}::uuid,
+          ARRAY['fullName','email','phone','cpf']::text[],
+          '{}'::jsonb
+        )
+      `;
+
+      // Próximas consultas deste paciente (janela: agora + 90d), ou passadas recentes se vazio
+      const now = new Date();
+      const in90d = new Date(now.getTime() + 90 * 24 * 3_600_000);
+      const upcoming = await tx.appointment.findMany({
+        where: {
+          patientId: p.id,
+          startsAt: { gte: now, lte: in90d },
+          status: { notIn: ["CANCELLED", "NO_SHOW"] },
+        },
+        orderBy: { startsAt: "asc" },
+        take: 3,
+        select: {
+          id: true,
+          startsAt: true,
+          endsAt: true,
+          status: true,
+          modality: true,
+          timezone: true,
+        },
+      });
+
+      // Se sem futuras, mostrar as 3 mais recentes (qualquer status)
+      const past =
+        upcoming.length === 0
+          ? await tx.appointment.findMany({
+              where: { patientId: p.id, startsAt: { lt: now } },
+              orderBy: { startsAt: "desc" },
+              take: 3,
+              select: {
+                id: true,
+                startsAt: true,
+                endsAt: true,
+                status: true,
+                modality: true,
+                timezone: true,
+              },
+            })
+          : [];
+
+      return { ...p, upcomingAppointments: [...upcoming, ...past] };
     });
   } catch (err) {
     if (err instanceof ActionTenantError && err.code === "NO_ORG") {
@@ -351,6 +403,124 @@ export default async function PatientDetailPage({ params }: Props) {
                   ))}
                 </ul>
               )}
+            </Section>
+
+            {/* Consultas */}
+            <Section title="Consultas">
+              {patient.upcomingAppointments.length === 0 ? (
+                <p className="text-caption text-text-muted">
+                  Nenhuma consulta registrada.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {patient.upcomingAppointments.map((appt) => {
+                    const isPast = new Date(appt.startsAt) < new Date();
+                    const statusConfig: Record<
+                      string,
+                      { label: string; cls: string }
+                    > = {
+                      SCHEDULED: {
+                        label: "Agendado",
+                        cls: "bg-info-bg text-info ring-info-border",
+                      },
+                      CONFIRMED: {
+                        label: "Confirmado",
+                        cls: "bg-brand-primary-bg text-brand-primary ring-brand-primary/20",
+                      },
+                      CHECKED_IN: {
+                        label: "Check-in",
+                        cls: "bg-info-bg text-info ring-info-border",
+                      },
+                      COMPLETED: {
+                        label: "Realizada",
+                        cls: "bg-success-bg text-success ring-success-border",
+                      },
+                      CANCELLED: {
+                        label: "Cancelada",
+                        cls: "bg-bg-subtle text-text-muted ring-border-subtle",
+                      },
+                      NO_SHOW: {
+                        label: "No-show",
+                        cls: "bg-danger-bg text-danger ring-danger-border",
+                      },
+                    };
+                    const sc = statusConfig[appt.status] ?? {
+                      label: appt.status,
+                      cls: "bg-bg-subtle text-text-muted ring-border-subtle",
+                    };
+                    const ModalityIcon =
+                      appt.modality === "video"
+                        ? Video
+                        : appt.modality === "phone"
+                          ? Phone
+                          : MapPin;
+
+                    return (
+                      <li
+                        key={appt.id}
+                        className={[
+                          "rounded-md border p-2.5",
+                          isPast && appt.status !== "SCHEDULED"
+                            ? "border-border-subtle bg-bg-subtle opacity-75"
+                            : "border-border-subtle bg-bg-surface",
+                        ].join(" ")}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-tiny font-semibold tabular-nums text-text-primary">
+                              {new Date(appt.startsAt).toLocaleDateString(
+                                "pt-BR",
+                                {
+                                  weekday: "short",
+                                  day: "2-digit",
+                                  month: "short",
+                                  timeZone: appt.timezone,
+                                },
+                              )}{" "}
+                              ·{" "}
+                              {new Date(appt.startsAt).toLocaleTimeString(
+                                "pt-BR",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  timeZone: appt.timezone,
+                                },
+                              )}
+                            </p>
+                            <p className="mt-0.5 inline-flex items-center gap-1 text-tiny text-text-muted">
+                              <ModalityIcon
+                                className="h-3 w-3"
+                                strokeWidth={1.75}
+                              />
+                              {appt.modality === "video"
+                                ? "Videoconferência"
+                                : appt.modality === "phone"
+                                  ? "Telefone"
+                                  : "Presencial"}
+                            </p>
+                          </div>
+                          <span
+                            className={[
+                              "shrink-0 rounded-full px-1.5 py-0.5 text-tiny font-medium ring-1 ring-inset",
+                              sc.cls,
+                            ].join(" ")}
+                          >
+                            {sc.label}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <Link
+                href={`/app/agenda?patientId=${patient.id}`}
+                className="mt-3 inline-flex items-center gap-1 text-tiny text-brand-primary transition-colors hover:text-brand-primary-hover"
+              >
+                <Calendar className="h-3 w-3" strokeWidth={1.75} />
+                Agendar consulta
+                <ChevronRight className="h-3 w-3" strokeWidth={2} />
+              </Link>
             </Section>
 
             {patient.notes && (
