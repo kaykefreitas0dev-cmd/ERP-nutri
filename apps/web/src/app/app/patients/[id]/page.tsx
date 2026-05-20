@@ -14,6 +14,7 @@ import {
   Phone,
   ChevronRight,
   Activity,
+  Flame,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -82,6 +83,12 @@ export default async function PatientDetailPage({ params }: Props) {
       bodyMassIndex: { toString: () => string } | null;
       bodyFatPctCalc: { toString: () => string } | null;
       basalMetabolismMifflin: { toString: () => string } | null;
+    } | null;
+    checkinStreak: {
+      currentStreak: number;
+      longestStreak: number;
+      totalCheckins: number;
+      lastCheckinDate: Date | null;
     } | null;
   } | null = null;
 
@@ -165,24 +172,38 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      // Última medição de antropometria
-      const lastAnthropometry = await tx.anthropometry.findFirst({
-        where: { patientId: p.id },
-        orderBy: { measuredAt: "desc" },
-        select: {
-          measuredAt: true,
-          weightKg: true,
-          heightCm: true,
-          bodyMassIndex: true,
-          bodyFatPctCalc: true,
-          basalMetabolismMifflin: true,
-        },
-      });
+      // Última medição de antropometria + streak de check-ins (paralelo)
+      const [lastAnthropometry, checkinStreak] = await Promise.all([
+        tx.anthropometry.findFirst({
+          where: { patientId: p.id },
+          orderBy: { measuredAt: "desc" },
+          select: {
+            measuredAt: true,
+            weightKg: true,
+            heightCm: true,
+            bodyMassIndex: true,
+            bodyFatPctCalc: true,
+            basalMetabolismMifflin: true,
+          },
+        }),
+        p.userId
+          ? tx.userHealthStreak.findUnique({
+              where: { userId: p.userId },
+              select: {
+                currentStreak: true,
+                longestStreak: true,
+                totalCheckins: true,
+                lastCheckinDate: true,
+              },
+            })
+          : Promise.resolve(null),
+      ]);
 
       return {
         ...p,
         upcomingAppointments: [...upcoming, ...past],
         lastAnthropometry: lastAnthropometry ?? null,
+        checkinStreak: checkinStreak ?? null,
       };
     });
   } catch (err) {
@@ -369,6 +390,27 @@ export default async function PatientDetailPage({ params }: Props) {
                   return inv?.expiresAt ?? null;
                 })()}
               />
+
+              {/* Streak widget — visible only when patient has app access */}
+              {patient.checkinStreak && (
+                <div className="mt-3 flex items-center justify-between rounded-md border border-border-subtle bg-bg-subtle px-3 py-2">
+                  <div className="flex items-center gap-1.5 text-tiny text-text-secondary">
+                    <Flame
+                      className="h-3.5 w-3.5 shrink-0"
+                      strokeWidth={1.75}
+                      style={{ color: "var(--color-warning)" }}
+                    />
+                    <span className="font-semibold tabular-nums text-text-primary">
+                      {patient.checkinStreak.currentStreak}d
+                    </span>
+                    seguidos
+                  </div>
+                  <div className="text-tiny text-text-muted tabular-nums">
+                    {patient.checkinStreak.totalCheckins} check-ins · recorde{" "}
+                    {patient.checkinStreak.longestStreak}d
+                  </div>
+                </div>
+              )}
             </Section>
 
             <Section title="Contato">
