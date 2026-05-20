@@ -102,7 +102,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
         <p className="mt-3 text-lg font-semibold text-success">
           Check-in registrado!
         </p>
-        <p className="mt-2 flex items-center justify-center gap-1.5 text-sm text-success">
+        <p className="mt-2 flex items-center justify-center gap-1.5 text-body text-success">
           <Flame className="h-4 w-4" strokeWidth={1.75} />
           <strong className="tabular-nums">{success.streak}</strong> dia(s)
           consecutivos
@@ -110,7 +110,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
         <button
           type="button"
           onClick={() => setSuccess(null)}
-          className="mt-4 text-xs text-success underline-offset-2 hover:underline"
+          className="mt-4 text-tiny text-success underline-offset-2 hover:underline"
         >
           Editar resposta
         </button>
@@ -121,11 +121,11 @@ export function CheckinForm({ todayISO, initial }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-sm)]"
+      className="space-y-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]"
     >
       {/* Humor */}
       <div>
-        <label className="block text-sm font-medium text-text-primary">
+        <label className="block text-body font-medium text-text-primary">
           Como você está se sentindo hoje?
         </label>
         <div className="mt-2 flex justify-between gap-2">
@@ -167,7 +167,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
       <div>
         <label
           htmlFor="waterMl"
-          className="flex items-center gap-2 text-sm font-medium text-text-primary"
+          className="flex items-center gap-2 text-body font-medium text-text-primary"
         >
           <Droplets
             className="h-4 w-4"
@@ -188,7 +188,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
           placeholder="ex: 2000"
           className="mt-1 block w-full rounded-md border border-border-default bg-bg-surface px-3 py-2 text-base tabular-nums text-text-primary"
         />
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-tiny text-text-muted">
           Recomendado: 35ml por kg de peso/dia
         </p>
       </div>
@@ -197,7 +197,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
       <div>
         <label
           htmlFor="weight"
-          className="flex items-center gap-2 text-sm font-medium text-text-primary"
+          className="flex items-center gap-2 text-body font-medium text-text-primary"
         >
           <Scale className="h-4 w-4" strokeWidth={1.75} />
           Peso hoje (kg) — opcional
@@ -218,7 +218,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
 
       {/* Plano seguido */}
       <div>
-        <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
+        <label className="flex items-center gap-2 text-body font-medium text-text-primary">
           <UtensilsCrossed className="h-4 w-4" strokeWidth={1.75} />
           Você seguiu o plano alimentar hoje?
         </label>
@@ -226,7 +226,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
           <button
             type="button"
             onClick={() => setFollowedPlan(followedPlan === true ? null : true)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-body font-medium transition ${
               followedPlan === true
                 ? "border-success bg-success-bg text-success ring-2 ring-success"
                 : "border-border-default bg-bg-surface text-text-secondary hover:border-border-strong"
@@ -241,7 +241,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
             onClick={() =>
               setFollowedPlan(followedPlan === false ? null : false)
             }
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-body font-medium transition ${
               followedPlan === false
                 ? "border-warning bg-warning-bg text-warning ring-2 ring-warning"
                 : "border-border-default bg-bg-surface text-text-secondary hover:border-border-strong"
@@ -258,7 +258,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
       <div>
         <label
           htmlFor="notes"
-          className="block text-sm font-medium text-text-primary"
+          className="block text-body font-medium text-text-primary"
         >
           Observações (opcional)
         </label>
@@ -269,15 +269,15 @@ export function CheckinForm({ todayISO, initial }: Props) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Algo importante sobre seu dia, treino, sono..."
-          className="mt-1 block w-full rounded-md border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary"
+          className="mt-1 block w-full rounded-md border border-border-default bg-bg-surface px-3 py-2 text-body text-text-primary"
         />
-        <p className="mt-1 text-xs text-text-muted tabular-nums">
+        <p className="mt-1 text-tiny text-text-muted tabular-nums">
           {notes.length} / 500
         </p>
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body text-danger">
           {error}
         </p>
       )}
@@ -308,7 +308,7 @@ function ScaleSelector({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-text-primary">
+      <label className="block text-body font-medium text-text-primary">
         {label}
       </label>
       <div className="mt-2 flex justify-between gap-1">
@@ -317,7 +317,7 @@ function ScaleSelector({
             key={v}
             type="button"
             onClick={() => onChange(value === v ? null : v)}
-            className={`flex-1 rounded-md border py-2 text-xs font-medium transition ${
+            className={`flex-1 rounded-md border py-2 text-tiny font-medium transition ${
               value === v
                 ? "border-brand-primary bg-brand-primary-bg text-brand-primary ring-1 ring-brand-primary"
                 : "border-border-default bg-bg-surface text-text-secondary hover:border-border-strong"
