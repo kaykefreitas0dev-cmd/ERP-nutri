@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Download, FileSignature } from "lucide-react";
 import { issueDocumentAction, revokeDocumentAction } from "../actions";
 
 interface Props {
@@ -59,9 +60,10 @@ export function DocumentActions({ documentId, status }: Props) {
           href={`/api/v1/documents/${documentId}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-border-default bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg-subtle"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-sm font-medium hover:bg-bg-subtle"
         >
-          📥 {status === "DRAFT" ? "Visualizar PDF" : "Baixar PDF"}
+          <Download className="h-4 w-4" strokeWidth={1.75} />
+          {status === "DRAFT" ? "Visualizar PDF" : "Baixar PDF"}
         </a>
 
         {status === "DRAFT" && !confirmingIssue && (
@@ -69,9 +71,16 @@ export function DocumentActions({ documentId, status }: Props) {
             type="button"
             onClick={handleIssue}
             disabled={pending}
-            className="rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
-            {pending ? "Assinando…" : "✍️ Assinar e emitir"}
+            {pending ? (
+              "Assinando…"
+            ) : (
+              <>
+                <FileSignature className="h-4 w-4" strokeWidth={1.75} />
+                Assinar e emitir
+              </>
+            )}
           </button>
         )}
 
