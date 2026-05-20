@@ -25,7 +25,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
 
   if (status === "ANONYMIZED") {
     return (
-      <div className="flex items-center gap-1.5 rounded-md border border-border-default bg-bg-subtle px-3 py-2 text-xs text-text-secondary">
+      <div className="flex items-center gap-1.5 rounded-md border border-border-default bg-bg-subtle px-3 py-2 text-tiny text-text-secondary">
         <Lock className="h-3.5 w-3.5" strokeWidth={2} />
         Paciente anonimizado — dados não recuperáveis (LGPD)
       </div>
@@ -80,7 +80,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
       {!showAnonymize ? (
         <>
           {confirmingArchive ? (
-            <div className="flex items-center gap-2 rounded-md border border-border-default bg-bg-subtle px-3 py-2 text-xs">
+            <div className="flex items-center gap-2 rounded-md border border-border-default bg-bg-subtle px-3 py-2 text-tiny">
               <span className="flex-1 text-text-secondary">
                 {status === "ARCHIVED" ? "Desarquivar" : "Arquivar"} este
                 paciente?
@@ -106,7 +106,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
               type="button"
               onClick={handleArchive}
               disabled={pending}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs hover:bg-bg-subtle disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-1.5 text-tiny hover:bg-bg-subtle disabled:opacity-50"
             >
               {status === "ARCHIVED" ? (
                 <>
@@ -122,14 +122,14 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
             </button>
           )}
           {archiveError && (
-            <p role="alert" className="text-xs text-red-700">
+            <p role="alert" className="text-tiny text-danger">
               {archiveError}
             </p>
           )}
           <button
             type="button"
             onClick={() => setShowAnonymize(true)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs text-red-700 hover:bg-red-50"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-danger bg-bg-surface px-3 py-1.5 text-tiny text-danger hover:bg-danger-bg"
           >
             <Lock className="h-3.5 w-3.5" strokeWidth={1.75} />
             Anonimizar (LGPD)
@@ -137,21 +137,21 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
         </>
       ) : (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-            <header className="border-b border-red-200 bg-red-50 px-5 py-3">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-red-900">
+          <div className="w-full max-w-lg rounded-lg bg-bg-surface [box-shadow:var(--shadow-xl)]">
+            <header className="border-b border-danger-border bg-danger-bg px-5 py-3">
+              <h2 className="flex items-center gap-2 text-h3 font-bold text-danger">
                 <Lock className="h-5 w-5" strokeWidth={2} />
                 Anonimizar dados de {patientName}
               </h2>
             </header>
 
             <div className="space-y-4 p-5">
-              <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+              <div className="rounded-md border border-danger-border bg-danger-bg p-3 text-body text-danger">
                 <p className="flex items-center gap-1.5 font-semibold">
                   <AlertTriangle className="h-4 w-4" strokeWidth={2} />
                   Ação irreversível
                 </p>
-                <ul className="mt-2 list-inside list-disc space-y-0.5 text-xs">
+                <ul className="mt-2 list-inside list-disc space-y-0.5 text-tiny">
                   <li>Nome, CPF, email, telefone, endereço — apagados</li>
                   <li>Anamnese clínica — preservada (sem identificação)</li>
                   <li>
@@ -170,7 +170,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
               <div>
                 <label
                   htmlFor="reason"
-                  className="block text-xs font-medium text-text-secondary"
+                  className="block text-tiny font-medium text-text-secondary"
                 >
                   Motivo da anonimização * (será gravado em audit log)
                 </label>
@@ -182,9 +182,9 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Ex: Solicitação do titular via email em DD/MM/AAAA conforme LGPD Art. 18, V"
-                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
                 />
-                <p className="mt-1 text-xs text-text-muted">
+                <p className="mt-1 text-tiny text-text-muted">
                   {reason.length} / 500 (mínimo 10)
                 </p>
               </div>
@@ -192,7 +192,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
               <div>
                 <label
                   htmlFor="confirm"
-                  className="block text-xs font-medium text-text-secondary"
+                  className="block text-tiny font-medium text-text-secondary"
                 >
                   Para confirmar, digite{" "}
                   <code className="rounded bg-bg-subtle px-1 font-mono">
@@ -206,12 +206,12 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   autoComplete="off"
-                  className="mt-1 block w-full rounded-md border border-red-300 px-3 py-2 font-mono text-sm uppercase"
+                  className="mt-1 block w-full rounded-md border border-danger px-3 py-2 font-mono text-body uppercase"
                 />
               </div>
 
               {error && (
-                <p role="alert" className="text-sm text-red-700">
+                <p role="alert" className="text-body text-danger">
                   {error}
                 </p>
               )}
@@ -225,7 +225,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
                     setReason("");
                     setError(null);
                   }}
-                  className="rounded-md border border-border-default bg-white px-4 py-2 text-sm"
+                  className="rounded-md border border-border-default bg-bg-surface px-4 py-2 text-body"
                 >
                   Cancelar
                 </button>
@@ -237,7 +237,7 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
                     confirmText.trim().toUpperCase() !== CONFIRM_PHRASE ||
                     reason.trim().length < 10
                   }
-                  className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-danger px-4 py-2 text-body font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {pending ? (
                     "Anonimizando..."

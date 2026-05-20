@@ -81,7 +81,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-text-primary">
+          <h2 className="text-h2 font-semibold text-text-primary">
             Prontuário (Anotações clínicas)
           </h2>
           <p className="inline-flex items-center gap-1 text-xs text-text-muted">
@@ -93,7 +93,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-3 text-sm font-medium text-white hover:bg-brand-primary-hover"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-3 text-body font-medium text-white hover:bg-brand-primary-hover"
           >
             + Nova anotação
           </button>
@@ -103,14 +103,14 @@ export function ClinicalNotesSection({ patientId }: Props) {
       {showForm && (
         <form
           action={handleCreate}
-          className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
+          className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]"
         >
           <input type="hidden" name="patientId" value={patientId} />
 
           {error && (
             <div
               role="alert"
-              className="mb-3 rounded-md bg-red-50 p-3 text-sm text-red-800"
+              className="mb-3 rounded-md bg-danger-bg p-3 text-body text-danger"
             >
               {error}
             </div>
@@ -136,7 +136,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
             <div>
               <label
                 htmlFor="consultationDate"
-                className="block text-xs font-medium"
+                className="block text-tiny font-medium"
               >
                 Data da consulta
               </label>
@@ -163,7 +163,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
               required
               rows={8}
               placeholder="Anamnese, evolução, observações clínicas..."
-              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 font-mono text-sm"
+              className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 font-mono text-body"
             />
           </div>
 
@@ -171,14 +171,14 @@ export function ClinicalNotesSection({ patientId }: Props) {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-white px-4 text-sm font-medium hover:bg-bg-subtle"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-default bg-bg-surface px-4 text-body font-medium hover:bg-bg-subtle"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-brand-primary px-4 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
             >
               {pending ? "Salvando…" : "Salvar (criptografar)"}
             </button>
@@ -197,14 +197,14 @@ export function ClinicalNotesSection({ patientId }: Props) {
           {notes.map((note) => (
             <li
               key={note.id}
-              className="rounded-lg border border-border-subtle bg-white p-4 shadow-sm"
+              className="rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
                     {CATEGORY_LABEL[note.category] ?? note.category}
                   </span>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-tiny text-text-muted">
                     {new Date(note.consultationDate).toLocaleString("pt-BR")}
                   </p>
                 </div>
@@ -212,7 +212,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
                   type="button"
                   onClick={() => handleDecrypt(note.id)}
                   disabled={decrypting === note.id}
-                  className="text-xs font-medium text-brand-primary hover:underline disabled:opacity-50"
+                  className="text-tiny font-medium text-brand-primary hover:underline disabled:opacity-50"
                 >
                   {decrypting === note.id ? (
                     "Descriptografando…"
@@ -228,11 +228,11 @@ export function ClinicalNotesSection({ patientId }: Props) {
               </div>
 
               {decryptedNotes[note.id] ? (
-                <p className="mt-3 whitespace-pre-wrap rounded-md bg-bg-subtle p-3 text-sm text-text-secondary">
+                <p className="mt-3 whitespace-pre-wrap rounded-md bg-bg-subtle p-3 text-body text-text-secondary">
                   {decryptedNotes[note.id]}
                 </p>
               ) : note.contentPreview ? (
-                <p className="mt-2 text-sm text-text-muted">
+                <p className="mt-2 text-body text-text-muted">
                   {note.contentPreview}…{" "}
                   <span className="text-xs text-text-subtle">(preview)</span>
                 </p>
