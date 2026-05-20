@@ -114,16 +114,16 @@ export default async function PatientCheckinsPage({ params }: Props) {
       <div className="mx-auto max-w-5xl">
         <Link
           href={`/app/patients/${id}`}
-          className="text-sm text-brand-primary hover:underline"
+          className="text-body text-brand-primary hover:underline"
         >
           ← {patient.fullName}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-text-primary">
+        <h1 className="mt-2 text-h1 font-bold text-text-primary">
           Check-ins do paciente
         </h1>
 
         {!patient.userId ? (
-          <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+          <div className="mt-6 rounded-lg border border-warning-border bg-warning-bg p-4 text-body text-warning">
             Este paciente ainda não acessou o app. Envie um convite na página
             principal para que ele possa começar a registrar check-ins.
           </div>
@@ -208,20 +208,20 @@ export default async function PatientCheckinsPage({ params }: Props) {
             </div>
 
             {/* Tabela detalhada */}
-            <section className="mt-8 rounded-lg border border-border-subtle bg-white shadow-sm">
+            <section className="mt-8 rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
               <header className="border-b border-border-subtle px-5 py-3">
-                <h2 className="text-base font-semibold">
+                <h2 className="text-h3 font-semibold">
                   Histórico ({checkins.length})
                 </h2>
               </header>
               {checkins.length === 0 ? (
-                <p className="p-5 text-sm text-text-muted">
+                <p className="p-5 text-body text-text-muted">
                   Nenhum check-in registrado ainda.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b border-border-subtle bg-bg-subtle text-xs uppercase tracking-wider text-text-muted">
+                  <table className="w-full text-body">
+                    <thead className="border-b border-border-subtle bg-bg-subtle text-tiny uppercase tracking-wider text-text-muted">
                       <tr>
                         <th className="px-4 py-2 text-left">Data</th>
                         <th className="px-4 py-2 text-center">Humor</th>
@@ -250,7 +250,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
                     <tbody className="divide-y divide-border-subtle">
                       {checkins.map((c) => (
                         <tr key={c.id} className="hover:bg-bg-subtle">
-                          <td className="px-4 py-2 text-xs">
+                          <td className="px-4 py-2 text-tiny">
                             {new Date(c.checkinDate).toLocaleDateString(
                               "pt-BR",
                             )}
@@ -268,21 +268,21 @@ export default async function PatientCheckinsPage({ params }: Props) {
                                 })()
                               : "—"}
                           </td>
-                          <td className="px-4 py-2 text-center text-xs">
+                          <td className="px-4 py-2 text-center text-tiny">
                             {c.energyLevel ?? "—"}
                           </td>
-                          <td className="px-4 py-2 text-center text-xs">
+                          <td className="px-4 py-2 text-center text-tiny">
                             {c.hungerLevel ?? "—"}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums text-xs">
+                          <td className="px-4 py-2 text-right tabular-nums text-tiny">
                             {c.waterMl != null ? `${c.waterMl}ml` : "—"}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums text-xs">
+                          <td className="px-4 py-2 text-right tabular-nums text-tiny">
                             {c.weightKg
                               ? `${Number(c.weightKg).toFixed(1)}kg`
                               : "—"}
                           </td>
-                          <td className="px-4 py-2 text-center text-xs">
+                          <td className="px-4 py-2 text-center text-tiny">
                             {c.followedPlan === true && (
                               <CircleCheck
                                 className="inline-block h-3.5 w-3.5 text-success"
@@ -297,7 +297,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
                             )}
                             {c.followedPlan === null && "—"}
                           </td>
-                          <td className="max-w-xs truncate px-4 py-2 text-xs text-text-secondary">
+                          <td className="max-w-xs truncate px-4 py-2 text-tiny text-text-secondary">
                             {c.notes ?? "—"}
                           </td>
                         </tr>
@@ -324,10 +324,10 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-lg border border-border-subtle bg-white p-3 shadow-sm">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="mt-1 text-xl font-bold text-text-primary">{value}</p>
-      {sub && <p className="text-xs text-text-muted">{sub}</p>}
+    <div className="rounded-lg border border-border-subtle bg-bg-surface p-3 [box-shadow:var(--shadow-xs)]">
+      <p className="text-tiny text-text-muted">{label}</p>
+      <p className="mt-1 text-h2 font-bold text-text-primary">{value}</p>
+      {sub && <p className="text-tiny text-text-muted">{sub}</p>}
     </div>
   );
 }
