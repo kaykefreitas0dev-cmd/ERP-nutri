@@ -37,6 +37,7 @@ export default async function AppDashboard() {
     endsAt: Date;
     status: string;
     modality: string;
+    timezone: string;
     patientName: string | null; // null = external patient
     externalPatientName: string | null;
   }
@@ -184,6 +185,7 @@ export default async function AppDashboard() {
             endsAt: true,
             status: true,
             modality: true,
+            timezone: true,
             externalPatientName: true,
             patient: { select: { fullName: true } },
           },
@@ -251,6 +253,7 @@ export default async function AppDashboard() {
             endsAt: Date;
             status: string;
             modality: string;
+            timezone: string;
             externalPatientName: string | null;
             patient: { fullName: string } | null;
           }) => ({
@@ -259,6 +262,7 @@ export default async function AppDashboard() {
             endsAt: a.endsAt,
             status: a.status,
             modality: a.modality,
+            timezone: a.timezone,
             patientName: a.patient?.fullName ?? null,
             externalPatientName: a.externalPatientName,
           }),
@@ -471,12 +475,14 @@ export default async function AppDashboard() {
                           {new Date(appt.startsAt).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
+                            timeZone: appt.timezone,
                           })}
                         </p>
                         <p className="text-tiny tabular-nums text-text-muted">
                           {new Date(appt.endsAt).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
+                            timeZone: appt.timezone,
                           })}
                         </p>
                       </div>
