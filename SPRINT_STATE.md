@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20
+last_updated: 2026-05-20 (cont.)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -86,6 +86,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #65 | `c5066ff` | CI — gitleaks continue-on-error (fix ambiguous range on update-branch)                                  |
 | #66 | `c9ed16a` | Chore — SPRINT_STATE.md updated (PRs #60 + #62-#65)                                                     |
 | #67 | `e4218f7` | Test — E2E smoke steps 11-13: SCHEDULED→CONFIRMED→CANCEL full lifecycle                                 |
+| #68 | `005ff98` | Chore — SPRINT_STATE.md updated (PRs #67 + final S22 tech status)                                       |
+| #69 | `640d02b` | Patient PWA — upcoming appointments widget on home + plan status localization PT-BR                     |
+| #70 | `8abadaa` | Agenda — email notifications on appointment scheduled/confirmed/cancelled via Resend                    |
 
 ---
 
@@ -95,7 +98,7 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 
 - [ ] **Asaas BaaS produção contratado** — conversa comercial iniciada em S15 (ADR 0039). S22 requer subconta real.
 - [ ] **Convites beta S21** — lista de 5-10 nutricionistas enviada + Termos Beta assinados.
-- [ ] **Vercel Pro + Supabase Pro upgrade** (S20) — deadline duro pré-produção. Ver runbook em `/docs/runbooks/`.
+- [~] **Vercel Pro + Supabase Pro upgrade** — **deferido por decisão PM (2026-05-20)**. Hobby/Free mantidos por ora; upgradar antes de abrir signup público.
 
 ### Tech work disponível (não bloqueado)
 
@@ -116,6 +119,10 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Cancelamento de consultas CONFIRMED — botão Cancelar ausente corrigido (PR #64)
 - [x] CI — gitleaks continue-on-error para evitar falsos bloqueios pós update-branch (PR #65)
 - [x] E2E smoke estendido — steps 11-13: SCHEDULED→CONFIRMED→CANCEL lifecycle (PR #67)
+- [x] Patient home — próximas consultas (janela 30d) + localizações de status PT-BR (PR #69)
+- [x] Agenda — email transacional scheduled/confirmed/cancelled via Resend; graceful no-op sem API key (PR #70)
+- [x] Fix — pre-existing ESLint warnings eliminados em apps/web: 0 erros, 0 warnings (PR #71)
+- [x] Agenda — email transacional reagendamento (updateAppointmentAction) (PR #72)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -144,4 +151,5 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (noite) — PR #51-#53 merged: sprint state update, agenda deep-link, cancel com reason
 - 2026-05-20 (autônomo) — PR #55-#59 + #61 merged: alert/confirm sweep, no-show overlay, UI polish, E2E agenda, status breakdown, modal a11y
 - 2026-05-20 (autônomo, cont.) — PR #60 + #62-#67 merged: confirm sweep completo, emoji sweep, cancel CONFIRMED fix, CI gitleaks fix, E2E lifecycle steps 11-13
-- 2026-05-20 (autônomo, cont.) — PR #60 + #62-#65 merged: confirm() sweep completo, emoji sweep completo, cancel CONFIRMED fix, CI gitleaks fix
+- 2026-05-20 (autônomo, cont.) — PR #68 merged: SPRINT_STATE update; PM decide diferir Vercel/Supabase Pro upgrade
+- 2026-05-20 (autônomo, cont.) — PR #69-#72 merged: patient home appointments, emails transacionais (scheduled/confirmed/cancelled/reagendado), ESLint warnings eliminados
