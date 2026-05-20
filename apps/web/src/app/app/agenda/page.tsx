@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Agenda" };
 
 interface Props {
-  searchParams: Promise<{ date?: string; view?: string }>;
+  searchParams: Promise<{ date?: string; view?: string; patientId?: string }>;
 }
 
 /** Returns the Monday of the week containing `date`. */
@@ -24,7 +24,11 @@ function getWeekStart(date: Date): Date {
 }
 
 export default async function AgendaPage({ searchParams }: Props) {
-  const { date, view = "day" } = await searchParams;
+  const {
+    date,
+    view = "day",
+    patientId: defaultPatientId,
+  } = await searchParams;
   const isWeekView = view === "week";
 
   const targetDate = date ? new Date(date + "T00:00:00") : new Date();
@@ -299,6 +303,7 @@ export default async function AgendaPage({ searchParams }: Props) {
               <NewAppointmentForm
                 patients={data.patients}
                 defaultDate={targetDate}
+                defaultPatientId={defaultPatientId}
               />
             </div>
           </div>

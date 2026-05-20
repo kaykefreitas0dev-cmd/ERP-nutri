@@ -223,7 +223,7 @@ export function PatientsDataTable({
                 <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
               </Link>
               <Link
-                href="/app/agenda"
+                href={`/app/agenda?patientId=${row.id}`}
                 aria-label="Agendar consulta"
                 title="Agendar consulta"
                 className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-primary"
