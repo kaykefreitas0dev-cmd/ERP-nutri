@@ -26,6 +26,7 @@ import {
   Plus,
   X,
   Search,
+  TriangleAlert,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -446,6 +447,17 @@ export function MealPlanEditor({ days }: Props) {
   const [pending, startTransition] = useTransition();
   const [openMealId, setOpenMealId] = useState<string | null>(null);
   const [localDays, setLocalDays] = useState<DayView[]>(days);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-dismiss error banner after 6 seconds
+  useEffect(() => {
+    if (!errorMsg) return;
+    errorTimerRef.current = setTimeout(() => setErrorMsg(null), 6_000);
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
+  }, [errorMsg]);
 
   // Sync from server after add/remove (key-based remount is simpler, but
   // let's use a ref comparison so we don't lose drag state unnecessarily)
@@ -492,7 +504,7 @@ export function MealPlanEditor({ days }: Props) {
     startTransition(async () => {
       const result = await addMealItemAction({ mealId, foodId, quantityG });
       if (!result.ok) {
-        alert(result.message);
+        setErrorMsg(result.message ?? "Erro ao adicionar alimento");
         return;
       }
       router.refresh();
@@ -500,7 +512,6 @@ export function MealPlanEditor({ days }: Props) {
   }
 
   function handleRemoveItem(itemId: string) {
-    if (!confirm("Remover este alimento?")) return;
     startTransition(async () => {
       await removeMealItemAction(itemId);
       router.refresh();
@@ -516,62 +527,81 @@ export function MealPlanEditor({ days }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      {localDays.map((day) => (
-        <section
-          key={day.id}
-          className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
+    <div className="space-y-4">
+      {errorMsg && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-lg border border-danger-border bg-danger-bg px-4 py-3 text-caption text-danger"
         >
-          <header className="flex items-center justify-between border-b border-border-subtle bg-bg-subtle px-5 py-3">
-            <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
-              <CalendarDays
-                className="h-4 w-4 text-text-muted"
-                strokeWidth={1.75}
-              />
-              {day.dayLabel}
-            </h2>
-            <div className="flex items-center gap-3">
-              <span className="text-tiny font-medium uppercase tracking-wider text-text-muted tabular-nums">
-                {day.meals.length}{" "}
-                {day.meals.length === 1 ? "refeição" : "refeições"}
-              </span>
-              {day.meals.length > 1 && (
-                <span className="text-tiny text-text-muted">
-                  · arraste para reordenar
-                </span>
-              )}
-            </div>
-          </header>
-
-          {/* Sortable meals within this day */}
-          <DndContext
-            sensors={mealSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={(event) => handleMealDragEnd(day.id, event)}
+          <TriangleAlert className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+          <span className="flex-1">{errorMsg}</span>
+          <button
+            type="button"
+            onClick={() => setErrorMsg(null)}
+            aria-label="Fechar"
+            className="rounded p-0.5 hover:bg-danger/10"
           >
-            <SortableContext
-              items={day.meals.map((m) => m.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="divide-y divide-border-subtle">
-                {day.meals.map((meal) => (
-                  <SortableMeal
-                    key={meal.id}
-                    meal={meal}
-                    pendingGlobal={pending}
-                    openMealId={openMealId}
-                    onToggleOpen={(id) =>
-                      setOpenMealId((prev) => (prev === id ? null : id))
-                    }
-                    onAddItem={handleAddItem}
-                    onRemoveItem={handleRemoveItem}
-                  />
-                ))}
+            ×
+          </button>
+        </div>
+      )}
+      <div className="space-y-6">
+        {localDays.map((day) => (
+          <section
+            key={day.id}
+            className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
+          >
+            <header className="flex items-center justify-between border-b border-border-subtle bg-bg-subtle px-5 py-3">
+              <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+                <CalendarDays
+                  className="h-4 w-4 text-text-muted"
+                  strokeWidth={1.75}
+                />
+                {day.dayLabel}
+              </h2>
+              <div className="flex items-center gap-3">
+                <span className="text-tiny font-medium uppercase tracking-wider text-text-muted tabular-nums">
+                  {day.meals.length}{" "}
+                  {day.meals.length === 1 ? "refeição" : "refeições"}
+                </span>
+                {day.meals.length > 1 && (
+                  <span className="text-tiny text-text-muted">
+                    · arraste para reordenar
+                  </span>
+                )}
               </div>
-            </SortableContext>
-          </DndContext>
-        </section>
-      ))}
+            </header>
+
+            {/* Sortable meals within this day */}
+            <DndContext
+              sensors={mealSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => handleMealDragEnd(day.id, event)}
+            >
+              <SortableContext
+                items={day.meals.map((m) => m.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="divide-y divide-border-subtle">
+                  {day.meals.map((meal) => (
+                    <SortableMeal
+                      key={meal.id}
+                      meal={meal}
+                      pendingGlobal={pending}
+                      openMealId={openMealId}
+                      onToggleOpen={(id) =>
+                        setOpenMealId((prev) => (prev === id ? null : id))
+                      }
+                      onAddItem={handleAddItem}
+                      onRemoveItem={handleRemoveItem}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
