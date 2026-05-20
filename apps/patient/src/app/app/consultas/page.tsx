@@ -89,6 +89,7 @@ export default async function PatientAppointmentsPage() {
             endsAt: true,
             status: true,
             modality: true,
+            timezone: true,
             notes: true,
             patientId: true,
             organizationId: true,
@@ -105,6 +106,7 @@ export default async function PatientAppointmentsPage() {
   const appointments = rawAppointments.map((a) => ({
     ...a,
     organizationName: orgMap.get(a.organizationId) ?? "—",
+    timezone: a.timezone ?? "America/Sao_Paulo",
   }));
 
   const nowMs = new Date().getTime();
@@ -187,6 +189,7 @@ function AppointmentItem({
     endsAt: Date;
     status: string;
     modality: string;
+    timezone: string;
     notes: string | null;
     organizationName: string;
   };
@@ -199,6 +202,7 @@ function AppointmentItem({
   const mod = MODALITY[a.modality];
   const start = new Date(a.startsAt);
   const end = new Date(a.endsAt);
+  const tz = a.timezone;
   const isPast = a.status === "COMPLETED" || a.status === "CANCELLED";
 
   return (
@@ -216,16 +220,20 @@ function AppointmentItem({
           <div className="flex min-w-[56px] flex-col items-center rounded-md bg-bg-subtle px-2 py-2 text-text-primary">
             <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
               {start
-                .toLocaleDateString("pt-BR", { month: "short" })
+                .toLocaleDateString("pt-BR", { month: "short", timeZone: tz })
                 .slice(0, 3)}
             </span>
             <span className="text-h2 font-semibold tabular-nums leading-none">
-              {start.getDate()}
+              {start.toLocaleDateString("pt-BR", {
+                day: "numeric",
+                timeZone: tz,
+              })}
             </span>
             <span className="mt-0.5 text-tiny font-medium tabular-nums text-text-secondary">
               {start.toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
                 minute: "2-digit",
+                timeZone: tz,
               })}
             </span>
           </div>
@@ -237,11 +245,13 @@ function AppointmentItem({
                 {start.toLocaleTimeString("pt-BR", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  timeZone: tz,
                 })}
                 {" – "}
                 {end.toLocaleTimeString("pt-BR", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  timeZone: tz,
                 })}
               </span>
               <span

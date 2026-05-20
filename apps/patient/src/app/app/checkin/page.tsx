@@ -59,10 +59,13 @@ export default async function CheckinPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
       <header>
-        <h1 className="text-2xl font-bold text-text-primary">
+        <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+          Seu dia
+        </p>
+        <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
           Check-in de hoje
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="mt-1 text-caption text-text-secondary">
           Como foi seu dia? Responda em ~30 segundos.
         </p>
       </header>
@@ -109,7 +112,7 @@ export default async function CheckinPage() {
       {/* Histórico últimos 7 dias */}
       {last7.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-sm font-semibold text-text-secondary">
+          <h2 className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
             Últimos check-ins
           </h2>
           <ul className="mt-2 space-y-1">
@@ -118,12 +121,12 @@ export default async function CheckinPage() {
               return (
                 <li
                   key={c.id}
-                  className="flex items-center justify-between rounded-md border border-border-subtle bg-bg-surface px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-md border border-border-subtle bg-bg-surface px-3 py-2 text-body"
                 >
-                  <span className="text-xs text-text-secondary tabular-nums">
+                  <span className="text-tiny text-text-secondary tabular-nums">
                     {new Date(c.checkinDate).toLocaleDateString("pt-BR")}
                   </span>
-                  <span className="flex items-center gap-3 text-xs text-text-secondary">
+                  <span className="flex items-center gap-3 text-tiny text-text-secondary">
                     {MoodIcon && (
                       <MoodIcon
                         className="h-4 w-4 text-text-muted"

@@ -41,19 +41,48 @@ const MODALITY_INFO: Record<string, { Icon: LucideIcon; label: string }> = {
   phone: { Icon: Phone, label: "Telefone" },
 };
 
-function formatApptDate(date: Date): string {
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffDays = Math.floor(diffMs / 86_400_000);
+function formatApptDate(date: Date, tz: string): string {
+  const nowStr = new Date().toLocaleDateString("pt-BR", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const dateStr = date.toLocaleDateString("pt-BR", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  // Compute diff in calendar days in the appointment's timezone
+  const [nowD, nowM, nowY] = nowStr.split("/").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const [d, m, y] = dateStr.split("/").map(Number) as [number, number, number];
+  const nowMidnight = new Date(nowY!, nowM! - 1, nowD!);
+  const dateMidnight = new Date(y!, m! - 1, d!);
+  const diffDays = Math.round(
+    (dateMidnight.getTime() - nowMidnight.getTime()) / 86_400_000,
+  );
 
   if (diffDays === 0) return "Hoje";
   if (diffDays === 1) return "Amanhã";
   if (diffDays > 1 && diffDays <= 6)
-    return date.toLocaleDateString("pt-BR", { weekday: "long" });
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      timeZone: tz,
+    });
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
-    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    timeZone: tz,
+    year:
+      new Date(y!, m! - 1, d!).getFullYear() !== new Date().getFullYear()
+        ? "numeric"
+        : undefined,
   });
 }
 
@@ -133,6 +162,7 @@ export default async function PatientHomePage({
           endsAt: true,
           status: true,
           modality: true,
+          timezone: true,
           notes: true,
           organizationId: true,
         },
@@ -226,6 +256,7 @@ export default async function PatientHomePage({
             {upcomingAppointments.map((a) => {
               const start = new Date(a.startsAt);
               const end = new Date(a.endsAt);
+              const tz = a.timezone ?? "America/Sao_Paulo";
               const mod = MODALITY_INFO[a.modality];
               const isConfirmed = a.status === "CONFIRMED";
               const isCheckedIn = a.status === "CHECKED_IN";
@@ -245,25 +276,33 @@ export default async function PatientHomePage({
                   <div className="flex min-w-[52px] flex-col items-center rounded-md bg-bg-subtle px-2 py-1.5 text-center">
                     <span className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
                       {start
-                        .toLocaleDateString("pt-BR", { month: "short" })
+                        .toLocaleDateString("pt-BR", {
+                          month: "short",
+                          timeZone: tz,
+                        })
                         .slice(0, 3)}
                     </span>
                     <span className="text-h2 font-bold tabular-nums leading-none text-text-primary">
-                      {start.getDate()}
+                      {start.toLocaleDateString("pt-BR", {
+                        day: "numeric",
+                        timeZone: tz,
+                      })}
                     </span>
                   </div>
                   {/* Info */}
                   <div className="min-w-0 flex-1">
                     <p className="text-body font-semibold tabular-nums text-text-primary">
-                      {formatApptDate(start)},{" "}
+                      {formatApptDate(start, tz)},{" "}
                       {start.toLocaleTimeString("pt-BR", {
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: tz,
                       })}
                       {" – "}
                       {end.toLocaleTimeString("pt-BR", {
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: tz,
                       })}
                     </p>
                     <p className="mt-0.5 flex items-center gap-1 text-tiny text-text-secondary">
