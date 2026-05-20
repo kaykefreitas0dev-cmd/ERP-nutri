@@ -171,12 +171,12 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
   return (
     <form
       action={handleSubmit}
-      className="space-y-5 rounded-lg border border-border-subtle bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-lg border border-border-subtle bg-bg-surface p-6 [box-shadow:var(--shadow-xs)]"
     >
       {error && (
         <div
           role="alert"
-          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          className="rounded-md bg-danger-bg p-3 text-body text-danger"
         >
           {error}
         </div>
@@ -184,7 +184,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
 
       {/* Tipo */}
       <div>
-        <label className="block text-xs font-medium text-text-secondary">
+        <label className="block text-tiny font-medium text-text-secondary">
           Tipo de documento *
         </label>
         <div className="mt-2 grid grid-cols-2 gap-2">
@@ -193,14 +193,14 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
               key={opt.value}
               type="button"
               onClick={() => handleTypeChange(opt.value)}
-              className={`rounded-md border p-3 text-left text-sm transition ${
+              className={`rounded-md border p-3 text-left text-body transition-colors ${
                 docType === opt.value
                   ? "border-brand-primary bg-brand-primary-bg ring-1 ring-brand-primary"
-                  : "border-border-default bg-white hover:border-border-strong"
+                  : "border-border-default bg-bg-surface hover:border-border-strong hover:bg-bg-subtle"
               }`}
             >
               <div className="font-medium">{opt.label}</div>
-              <div className="mt-0.5 text-xs text-text-muted">{opt.help}</div>
+              <div className="mt-0.5 text-tiny text-text-muted">{opt.help}</div>
             </button>
           ))}
         </div>
@@ -210,7 +210,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
       <div>
         <label
           htmlFor="title"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           Título *
         </label>
@@ -223,7 +223,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Ex: Atestado — 15/03/2026"
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
         />
       </div>
 
@@ -232,7 +232,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
         <div>
           <label
             htmlFor="mealPlanId"
-            className="block text-xs font-medium text-text-secondary"
+            className="block text-tiny font-medium text-text-secondary"
           >
             Plano alimentar relacionado
           </label>
@@ -240,7 +240,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
             id="mealPlanId"
             value={mealPlanId}
             onChange={(e) => setMealPlanId(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
           >
             <option value="">— sem vínculo —</option>
             {mealPlans.map((mp) => (
@@ -256,7 +256,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
       <div>
         <label
           htmlFor="validUntil"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           Válido até (opcional)
         </label>
@@ -266,13 +266,13 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
           type="date"
           value={validUntil}
           onChange={(e) => setValidUntil(e.target.value)}
-          className="mt-1 block w-44 rounded-md border border-border-default px-3 py-2 text-sm"
+          className="mt-1 block w-44 rounded-md border border-border-default px-3 py-2 text-body"
         />
       </div>
 
       {/* CIDs */}
       <div>
-        <label className="block text-xs font-medium text-text-secondary">
+        <label className="block text-tiny font-medium text-text-secondary">
           CID-10 (opcional)
         </label>
 
@@ -281,14 +281,14 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
             {cidsSelected.map((c) => (
               <span
                 key={c.id}
-                className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-primary-hover"
+                className="inline-flex items-center gap-1 rounded-full bg-brand-primary-bg px-2.5 py-1 text-tiny font-medium text-brand-primary"
               >
                 <strong>{c.code}</strong>
                 <span className="max-w-[200px] truncate">{c.description}</span>
                 <button
                   type="button"
                   onClick={() => removeCid(c.id)}
-                  className="ml-1 text-brand-primary hover:text-red-600"
+                  className="ml-1 text-brand-primary hover:text-danger"
                   aria-label={`Remover CID ${c.code}`}
                 >
                   ×
@@ -303,19 +303,19 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
           value={cidQuery}
           onChange={(e) => handleCidSearch(e.target.value)}
           placeholder='Buscar CID (ex: "E66" ou "diabetes")'
-          className="mt-2 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+          className="mt-2 block w-full rounded-md border border-border-default px-3 py-2 text-body"
         />
         {searchingCids && (
-          <p className="mt-1 text-xs text-text-muted">Buscando...</p>
+          <p className="mt-1 text-tiny text-text-muted">Buscando...</p>
         )}
         {cidResults.length > 0 && (
-          <ul className="mt-1 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-subtle bg-white p-1">
+          <ul className="mt-1 max-h-48 space-y-1 overflow-y-auto rounded-md border border-border-subtle bg-bg-surface p-1">
             {cidResults.map((c) => (
               <li key={c.id}>
                 <button
                   type="button"
                   onClick={() => addCid(c)}
-                  className="block w-full rounded px-3 py-1.5 text-left text-xs hover:bg-brand-primary-bg"
+                  className="block w-full rounded px-3 py-1.5 text-left text-tiny hover:bg-brand-primary-bg"
                 >
                   <strong>{c.code}</strong> — {c.description}
                 </button>
@@ -329,11 +329,11 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
       <div>
         <label
           htmlFor="bodyMarkdown"
-          className="block text-xs font-medium text-text-secondary"
+          className="block text-tiny font-medium text-text-secondary"
         >
           Corpo do documento *
         </label>
-        <p className="text-xs text-text-muted">
+        <p className="text-tiny text-text-muted">
           Use <code className="rounded bg-bg-subtle px-1">**negrito**</code>{" "}
           para destacar. Parágrafos separados por linha em branco.
         </p>
@@ -346,7 +346,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
           maxLength={20000}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 font-mono text-xs"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 font-mono text-body"
         />
       </div>
 
@@ -354,7 +354,7 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
         <button
           type="submit"
           disabled={pending || !title.trim() || body.trim().length < 5}
-          className="rounded-md bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+          className="rounded-md bg-brand-primary px-5 py-2 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending ? "Salvando..." : "Salvar como rascunho"}
         </button>

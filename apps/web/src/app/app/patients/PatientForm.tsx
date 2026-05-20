@@ -60,14 +60,14 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
       {error && (
         <div
           role="alert"
-          className="rounded-md bg-red-50 p-4 text-sm text-red-800"
+          className="rounded-md bg-danger-bg p-4 text-body text-danger"
         >
           {error}
         </div>
       )}
 
       <div>
-        <label htmlFor="fullName" className="block text-sm font-medium">
+        <label htmlFor="fullName" className="block text-body font-medium">
           Nome completo *
         </label>
         <input
@@ -76,13 +76,16 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
           type="text"
           required
           defaultValue={patient?.fullName ?? ""}
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="preferredName" className="block text-sm font-medium">
+          <label
+            htmlFor="preferredName"
+            className="block text-body font-medium"
+          >
             Como prefere ser chamado
           </label>
           <input
@@ -90,11 +93,11 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             name="preferredName"
             type="text"
             defaultValue={patient?.preferredName ?? ""}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
-          <label htmlFor="cpf" className="block text-sm font-medium">
+          <label htmlFor="cpf" className="block text-body font-medium">
             CPF
           </label>
           <input
@@ -103,14 +106,14 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             type="text"
             defaultValue={patient?.cpf ?? ""}
             placeholder="000.000.000-00"
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">
+          <label htmlFor="email" className="block text-body font-medium">
             Email
           </label>
           <input
@@ -118,11 +121,11 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             name="email"
             type="email"
             defaultValue={patient?.email ?? ""}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium">
+          <label htmlFor="phone" className="block text-body font-medium">
             WhatsApp / Telefone
           </label>
           <input
@@ -131,14 +134,14 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             type="tel"
             defaultValue={patient?.phone ?? ""}
             placeholder="(11) 99999-9999"
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="birthDate" className="block text-sm font-medium">
+          <label htmlFor="birthDate" className="block text-body font-medium">
             Data de nascimento
           </label>
           <input
@@ -146,18 +149,21 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             name="birthDate"
             type="date"
             defaultValue={formatDate(patient?.birthDate ?? null)}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
-          <label htmlFor="biologicalSex" className="block text-sm font-medium">
+          <label
+            htmlFor="biologicalSex"
+            className="block text-body font-medium"
+          >
             Sexo biológico
           </label>
           <select
             id="biologicalSex"
             name="biologicalSex"
             defaultValue={patient?.biologicalSex ?? ""}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           >
             <option value="">Não informado</option>
             <option value="female">Feminino</option>
@@ -170,7 +176,7 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label htmlFor="city" className="block text-sm font-medium">
+          <label htmlFor="city" className="block text-body font-medium">
             Cidade
           </label>
           <input
@@ -178,11 +184,11 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             name="city"
             type="text"
             defaultValue={patient?.city ?? ""}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
         <div>
-          <label htmlFor="state" className="block text-sm font-medium">
+          <label htmlFor="state" className="block text-body font-medium">
             UF
           </label>
           <input
@@ -191,13 +197,13 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
             type="text"
             maxLength={2}
             defaultValue={patient?.state ?? ""}
-            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm uppercase focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body uppercase focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="occupation" className="block text-sm font-medium">
+        <label htmlFor="occupation" className="block text-body font-medium">
           Profissão
         </label>
         <input
@@ -205,12 +211,12 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
           name="occupation"
           type="text"
           defaultValue={patient?.occupation ?? ""}
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         />
       </div>
 
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium">
+        <label htmlFor="notes" className="block text-body font-medium">
           Notas administrativas
         </label>
         <textarea
@@ -219,9 +225,9 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
           rows={3}
           defaultValue={patient?.notes ?? ""}
           placeholder="Preferências de agendamento, observações não-clínicas..."
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
         />
-        <p className="mt-1 flex items-start gap-1.5 text-xs text-text-muted">
+        <p className="mt-1 flex items-start gap-1.5 text-tiny text-text-muted">
           <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
           <span>
             Anotações clínicas (anamnese, evolução) ficam em
@@ -234,7 +240,7 @@ export function PatientForm({ mode, patient }: PatientFormProps) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-brand-primary px-6 text-body font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {pending
             ? "Salvando…"
