@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   Calendar,
@@ -9,6 +10,10 @@ import {
   Salad,
   Download,
   Settings,
+  MapPin,
+  Video,
+  Phone,
+  ChevronRight,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
@@ -26,6 +31,16 @@ function greeting(): string {
 }
 
 export default async function AppDashboard() {
+  interface AgendaAppt {
+    id: string;
+    startsAt: Date;
+    endsAt: Date;
+    status: string;
+    modality: string;
+    patientName: string | null; // null = external patient
+    externalPatientName: string | null;
+  }
+
   let data: {
     org: { name: string; plan: string; subscriptionStatus: string };
     role: string;
@@ -45,6 +60,7 @@ export default async function AppDashboard() {
       /** Daily doc count, last 30 days. */
       docs30d: number[];
     };
+    agendaHoje: AgendaAppt[];
   } | null = null;
 
   try {
@@ -94,6 +110,7 @@ export default async function AppDashboard() {
         appts30dRaw,
         payments30dRaw,
         docs30dRaw,
+        agendaHojeRaw,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -153,6 +170,24 @@ export default async function AppDashboard() {
           },
           select: { createdAt: true },
         }),
+        // Agenda do dia — todos os compromissos de hoje (incluindo cancelados para mostrar gaps)
+        tx.appointment.findMany({
+          where: {
+            professionalUserId: userId,
+            startsAt: { gte: startOfToday, lte: endOfToday },
+          },
+          orderBy: { startsAt: "asc" },
+          take: 20,
+          select: {
+            id: true,
+            startsAt: true,
+            endsAt: true,
+            status: true,
+            modality: true,
+            externalPatientName: true,
+            patient: { select: { fullName: true } },
+          },
+        }),
       ]);
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
@@ -209,6 +244,25 @@ export default async function AppDashboard() {
             docs30dRaw.map((d: { createdAt: Date }) => d.createdAt),
           ),
         },
+        agendaHoje: agendaHojeRaw.map(
+          (a: {
+            id: string;
+            startsAt: Date;
+            endsAt: Date;
+            status: string;
+            modality: string;
+            externalPatientName: string | null;
+            patient: { fullName: string } | null;
+          }) => ({
+            id: a.id,
+            startsAt: a.startsAt,
+            endsAt: a.endsAt,
+            status: a.status,
+            modality: a.modality,
+            patientName: a.patient?.fullName ?? null,
+            externalPatientName: a.externalPatientName,
+          }),
+        ),
       };
     });
   } catch (err) {
@@ -311,6 +365,174 @@ export default async function AppDashboard() {
             sub="emitidos no mês"
             sparkData={data.sparks.docs30d}
           />
+        </section>
+
+        {/* Agenda do dia */}
+        <section aria-label="Agenda de hoje" className="mt-10">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-h2 font-semibold text-text-primary">
+              Agenda de hoje
+            </h2>
+            <Link
+              href="/app/agenda"
+              className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
+            >
+              Ver agenda completa
+              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+            </Link>
+          </div>
+
+          {data.agendaHoje.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-6 text-center">
+              <Calendar
+                className="mx-auto h-8 w-8 text-text-muted"
+                strokeWidth={1.5}
+              />
+              <p className="mt-2 text-body font-medium text-text-secondary">
+                Nenhuma consulta agendada para hoje
+              </p>
+              <Link
+                href="/app/agenda"
+                className="mt-3 inline-block text-caption text-brand-primary hover:underline"
+              >
+                Agendar consulta →
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {data.agendaHoje.map((appt) => {
+                const displayName =
+                  appt.patientName ?? appt.externalPatientName ?? "Paciente";
+                const isCancelled = appt.status === "CANCELLED";
+                const isCompleted = appt.status === "COMPLETED";
+                const isNoShow = appt.status === "NO_SHOW";
+                const isDimmed = isCancelled || isNoShow;
+
+                const statusConfig: Record<
+                  string,
+                  { label: string; cls: string }
+                > = {
+                  SCHEDULED: {
+                    label: "Agendado",
+                    cls: "bg-info-bg text-info ring-info-border",
+                  },
+                  CONFIRMED: {
+                    label: "Confirmado",
+                    cls: "bg-brand-primary-bg text-brand-primary ring-brand-primary/20",
+                  },
+                  CHECKED_IN: {
+                    label: "Check-in",
+                    cls: "bg-info-bg text-info ring-info-border",
+                  },
+                  COMPLETED: {
+                    label: "Realizada",
+                    cls: "bg-success-bg text-success ring-success-border",
+                  },
+                  CANCELLED: {
+                    label: "Cancelada",
+                    cls: "bg-bg-subtle text-text-muted ring-border-subtle",
+                  },
+                  NO_SHOW: {
+                    label: "No-show",
+                    cls: "bg-danger-bg text-danger ring-danger-border",
+                  },
+                };
+                const sc = statusConfig[appt.status] ?? {
+                  label: appt.status,
+                  cls: "bg-bg-subtle text-text-muted ring-border-subtle",
+                };
+
+                const ModalityIcon =
+                  appt.modality === "video"
+                    ? Video
+                    : appt.modality === "phone"
+                      ? Phone
+                      : MapPin;
+
+                return (
+                  <li key={appt.id}>
+                    <Link
+                      href="/app/agenda"
+                      className={[
+                        "flex items-center gap-3 rounded-lg border bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast",
+                        isDimmed
+                          ? "border-border-subtle opacity-60"
+                          : "border-border-subtle hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]",
+                      ].join(" ")}
+                    >
+                      {/* Time column */}
+                      <div className="w-14 shrink-0 text-right">
+                        <p
+                          className={[
+                            "text-body font-semibold tabular-nums",
+                            isDimmed ? "text-text-muted" : "text-text-primary",
+                          ].join(" ")}
+                        >
+                          {new Date(appt.startsAt).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-tiny tabular-nums text-text-muted">
+                          {new Date(appt.endsAt).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+
+                      {/* Divider */}
+                      <div
+                        className={[
+                          "h-8 w-px shrink-0",
+                          isDimmed
+                            ? "bg-border-subtle"
+                            : isCompleted
+                              ? "bg-success"
+                              : "bg-brand-primary",
+                        ].join(" ")}
+                      />
+
+                      {/* Patient + modality */}
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={[
+                            "truncate text-body font-medium",
+                            isDimmed
+                              ? "text-text-muted line-through"
+                              : "text-text-primary",
+                          ].join(" ")}
+                        >
+                          {displayName}
+                        </p>
+                        <p className="mt-0.5 inline-flex items-center gap-1 text-tiny text-text-muted">
+                          <ModalityIcon
+                            className="h-3 w-3"
+                            strokeWidth={1.75}
+                          />
+                          {appt.modality === "video"
+                            ? "Videoconferência"
+                            : appt.modality === "phone"
+                              ? "Telefone"
+                              : "Presencial"}
+                        </p>
+                      </div>
+
+                      {/* Status badge */}
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset",
+                          sc.cls,
+                        ].join(" ")}
+                      >
+                        {sc.label}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </section>
 
         {/* Nav cards — seções principais */}
