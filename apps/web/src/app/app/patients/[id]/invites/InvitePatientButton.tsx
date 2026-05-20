@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CircleCheck, Mail, ClipboardCopy } from "lucide-react";
 import { createInviteAction, revokeInviteAction } from "./actions";
 
@@ -24,6 +25,7 @@ export function InvitePatientButton({
   activeInviteExpiresAt,
   hasLinkedAccount,
 }: Props) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState(defaultEmail ?? "");
@@ -31,6 +33,7 @@ export function InvitePatientButton({
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmingRevoke, setConfirmingRevoke] = useState(false);
 
   if (hasLinkedAccount) {
     return (
@@ -61,13 +64,15 @@ export function InvitePatientButton({
 
   async function handleRevoke() {
     if (!activeInviteId) return;
-    if (
-      !confirm("Revogar convite ativo? O paciente não poderá mais usar o link.")
-    )
-      return;
+    setConfirmingRevoke(true);
+  }
+
+  function confirmRevoke() {
+    if (!activeInviteId) return;
+    setConfirmingRevoke(false);
     startTransition(async () => {
       await revokeInviteAction(activeInviteId);
-      window.location.reload();
+      router.refresh();
     });
   }
 
@@ -108,26 +113,49 @@ export function InvitePatientButton({
             {new Date(activeInviteExpiresAt).toLocaleDateString("pt-BR")}
           </p>
         )}
-        <div className="mt-2 flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(true);
-              setEmail(activeInviteEmail ?? "");
-            }}
-            className="rounded border border-amber-400 bg-white px-2 py-1 text-xs"
-          >
-            Reenviar (novo link)
-          </button>
-          <button
-            type="button"
-            onClick={handleRevoke}
-            disabled={pending}
-            className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700"
-          >
-            Revogar
-          </button>
-        </div>
+        {confirmingRevoke ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-red-700">
+              Revogar convite? O paciente não poderá mais usar o link.
+            </span>
+            <button
+              type="button"
+              onClick={confirmRevoke}
+              disabled={pending}
+              className="rounded border border-red-400 bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              Confirmar
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingRevoke(false)}
+              className="rounded border border-amber-400 bg-white px-2 py-1 text-xs"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(true);
+                setEmail(activeInviteEmail ?? "");
+              }}
+              className="rounded border border-amber-400 bg-white px-2 py-1 text-xs"
+            >
+              Reenviar (novo link)
+            </button>
+            <button
+              type="button"
+              onClick={handleRevoke}
+              disabled={pending}
+              className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700"
+            >
+              Revogar
+            </button>
+          </div>
+        )}
       </div>
     );
   }
