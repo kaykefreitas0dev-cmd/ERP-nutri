@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (cont.)
+last_updated: 2026-05-20 (autônomo cont.)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -96,6 +96,10 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #75 | `553340c` | Patient — notificação email ao nutri quando paciente aceita convite                                     |
 | #76 | `f47b0e0` | Patient — polish: PLAN_STATUS_LABEL localizado, ChevronLeft back-link, Date cleanup                     |
 | #77 | `2d01773` | Agenda — lembrete D-1 antes da consulta via QStash + worker /api/internal/remind                        |
+| #78 | `f6e3854` | Chore — SPRINT_STATE.md atualizado (PRs #73-#77 + sprint state histórico)                               |
+| #79 | `068eb1f` | Dashboard — widget "Agenda de hoje" inline com consultas do dia e status coloridos                      |
+| #80 | `5e1c49d` | Patients — seção próximas consultas na página de detalhe do paciente (janela 90d)                       |
+| #81 | `7e14bde` | Fix — timezone correto em todas as datas/horas do apps/patient (consultas, home, checkin tokens)        |
 
 ---
 
@@ -135,6 +139,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Patient — polish: PLAN_STATUS_LABEL localizado PT-BR, ChevronLeft back-link, Date.now() cleanup (PR #76)
 - [x] Agenda — lembrete D-1 antes da consulta via QStash `notBefore`; worker `/api/internal/workers/appointments/remind` com verificação manual de assinatura e janela 0-30h (PR #77)
 - [ ] PM: configurar secrets Vercel em apps/web: `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`, `NEXT_PUBLIC_APP_URL` para ativar lembretes D-1
+- [x] Dashboard — widget "Agenda de hoje" com lista inline das consultas do dia: status coloridos, tz-aware, canceladas/no-show dimmed + strikethrough (PR #79)
+- [x] Patients — seção "Consultas" na página de detalhe: próximas 3 (90d) ou últimas 3 se nenhuma futura; deep-link "Agendar consulta" (PR #80)
+- [x] Fix — timezone correto em apps/patient: consultas page (getDate() → toLocaleDateString tz), patient home formatApptDate tz-aware, checkin page tokens design system alinhados (PR #81)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -166,3 +173,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #68 merged: SPRINT_STATE update; PM decide diferir Vercel/Supabase Pro upgrade
 - 2026-05-20 (autônomo, cont.) — PR #69-#72 merged: patient home appointments, emails transacionais (scheduled/confirmed/cancelled/reagendado), ESLint warnings eliminados
 - 2026-05-20 (autônomo, cont.) — PR #73-#77 merged: SPRINT_STATE update, email COMPLETED, notif nutri invite-accept, patient polish, lembrete D-1 QStash
+- 2026-05-20 (autônomo, cont.) — PR #78-#81 merged: SPRINT_STATE update, dashboard agenda widget, patient detail consultas section, patient tz fix
