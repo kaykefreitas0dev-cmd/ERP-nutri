@@ -35,7 +35,13 @@ async function scheduleReminderViaQStash(
   // Só agendar se a consulta é mais de 2h no futuro
   if (startsAt.getTime() - nowMs < 2 * 3_600_000) return;
 
-  const workerUrl = `${(process.env.NEXT_PUBLIC_APP_URL ?? process.env.VERCEL_URL) ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}/api/internal/workers/appointments/remind`;
+  // Resolve the base URL explicitly to avoid template-literal ternary ambiguity
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
+  const workerUrl = `${baseUrl}/api/internal/workers/appointments/remind`;
 
   try {
     const { Client } = await import("@upstash/qstash");

@@ -2,7 +2,8 @@
  * POST /api/internal/workers/appointments/remind
  *
  * Worker invocado pelo QStash ~24h antes de cada consulta.
- * - Verifica assinatura QStash (proteção contra replay/spam)
+ * - Verifica assinatura QStash quando QSTASH_CURRENT_SIGNING_KEY está presente
+ *   (em dev/CI sem keys configuradas a verificação é ignorada)
  * - Valida que a consulta ainda está SCHEDULED ou CONFIRMED
  * - Valida janela de tempo: startsAt deve estar 0–30h no futuro
  *   (garante que lembretes de consultas reagendadas são ignorados)
@@ -15,7 +16,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 import { prisma } from "@nutricore/db";
 import { sendAppointmentReminderEmail } from "@/lib/email/send-appointment-notification";
 
@@ -24,10 +24,47 @@ export const dynamic = "force-dynamic";
 // Janela máxima: aceitar se consulta for até 30h no futuro
 const MAX_HOURS_AHEAD = 30;
 
-async function handler(req: NextRequest) {
+/**
+ * Verifica assinatura QStash se as signing keys estiverem configuradas.
+ * Retorna false se a assinatura for inválida quando as keys estão presentes.
+ * Retorna true (sem verificação) se as keys não estiverem configuradas.
+ */
+async function verifyQStashSignature(
+  req: NextRequest,
+  rawBody: string,
+): Promise<boolean> {
+  const currentKey = process.env.QSTASH_CURRENT_SIGNING_KEY;
+  const nextKey = process.env.QSTASH_NEXT_SIGNING_KEY;
+
+  // Dev mode / not configured — skip verification
+  if (!currentKey || !nextKey) return true;
+
+  try {
+    const { Receiver } = await import("@upstash/qstash");
+    const receiver = new Receiver({
+      currentSigningKey: currentKey,
+      nextSigningKey: nextKey,
+    });
+    const signature = req.headers.get("upstash-signature") ?? "";
+    await receiver.verify({ signature, body: rawBody });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(req: NextRequest) {
+  // Read body as text first (needed for signature verification)
+  const rawBody = await req.text();
+
+  const isValid = await verifyQStashSignature(req, rawBody);
+  if (!isValid) {
+    return NextResponse.json({ error: "invalid_signature" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
@@ -117,7 +154,3 @@ async function handler(req: NextRequest) {
     error: result.error,
   });
 }
-
-// QStash signature verification — no dev mode (QSTASH_CURRENT_SIGNING_KEY not set)
-// verifySignatureAppRouter falls back to no-op when signing keys are absent.
-export const POST = verifySignatureAppRouter(handler);
