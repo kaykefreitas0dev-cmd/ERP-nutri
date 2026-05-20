@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont.)
+last_updated: 2026-05-20 (autônomo cont. — PRs #83-#86)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -100,6 +100,11 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #79 | `068eb1f` | Dashboard — widget "Agenda de hoje" inline com consultas do dia e status coloridos                      |
 | #80 | `5e1c49d` | Patients — seção próximas consultas na página de detalhe do paciente (janela 90d)                       |
 | #81 | `7e14bde` | Fix — timezone correto em todas as datas/horas do apps/patient (consultas, home, checkin tokens)        |
+| #82 | `60eaef0` | Chore — SPRINT_STATE.md atualizado (PRs #78-#81: agenda widget, patient consultas, tz fix)              |
+| #83 | `bc0b3f6` | Fix(patient) — NavBar active highlight dinâmico (usePathname) + todayLocalISO tz correto                |
+| #84 | `9375a86` | Fix(patient) — design token sweep na página de detalhe de documento                                     |
+| #85 | `6cd350a` | Fix(web) — agenda todayStr tz (sv-SE BRT) + financeiro/anthropometry/ClinicalNotes design tokens        |
+| #86 | `0b90c4d` | Fix(web) — design token sweep: CompleteWithPaymentModal + alimentos page (bg-white/text-xs eliminados)  |
 
 ---
 
@@ -142,6 +147,10 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Dashboard — widget "Agenda de hoje" com lista inline das consultas do dia: status coloridos, tz-aware, canceladas/no-show dimmed + strikethrough (PR #79)
 - [x] Patients — seção "Consultas" na página de detalhe: próximas 3 (90d) ou últimas 3 se nenhuma futura; deep-link "Agendar consulta" (PR #80)
 - [x] Fix — timezone correto em apps/patient: consultas page (getDate() → toLocaleDateString tz), patient home formatApptDate tz-aware, checkin page tokens design system alinhados (PR #81)
+- [x] Fix(patient) — NavBar ativa: usePathname() detecta rota atual, marca aria-current="page" + cor brand-primary + strokeWidth bold; todayLocalISO usa sv-SE America/Sao_Paulo em checkin + home (PR #83)
+- [x] Fix(patient) — documentos/[docId]/page.tsx: bg-amber-50 → bg-warning-bg, bg-white → bg-bg-surface, text-xs → text-tiny, text-sm → text-body, download button alinhado (PR #84)
+- [x] Fix(web) — agenda page: todayStr usa sv-SE Brazil tz + noon UTC stability trick; financeiro: status badges → design tokens ring-inset; anthropometry + ClinicalNotes: datetime-local default usa sv-SE tz (PR #85)
+- [x] Fix(web) — CompleteWithPaymentModal: bg-white → bg-bg-surface, text-xs → text-tiny, text-sm → text-body, bg-green-600 → bg-success, text-red-700 → text-danger; alimentos/page: mesmos tokens + badge hardcoded → bg-brand-primary-bg/bg-info-bg (PR #86)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -174,3 +183,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #69-#72 merged: patient home appointments, emails transacionais (scheduled/confirmed/cancelled/reagendado), ESLint warnings eliminados
 - 2026-05-20 (autônomo, cont.) — PR #73-#77 merged: SPRINT_STATE update, email COMPLETED, notif nutri invite-accept, patient polish, lembrete D-1 QStash
 - 2026-05-20 (autônomo, cont.) — PR #78-#81 merged: SPRINT_STATE update, dashboard agenda widget, patient detail consultas section, patient tz fix
+- 2026-05-20 (autônomo, cont.) — PR #82-#86 merged: SPRINT_STATE update, patient NavBar active state, documentos token sweep, agenda+financeiro tokens, CompleteWithPaymentModal+alimentos tokens
