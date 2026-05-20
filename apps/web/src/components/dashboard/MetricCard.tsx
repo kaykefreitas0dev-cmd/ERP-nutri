@@ -4,6 +4,7 @@ import Link from "next/link";
 import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import CountUp from "react-countup";
+import { Sparkline } from "./Sparkline";
 
 interface Props {
   label: string;
@@ -31,6 +32,13 @@ interface Props {
   sub?: string;
   /** Destino do click. */
   href?: string;
+  /**
+   * Dados para sparkline (últimos N períodos).
+   * Se ausente, sparkline não é renderizado.
+   */
+  sparkData?: number[];
+  /** Cor da linha sparkline (CSS color ou var()). Default: brand-primary. */
+  sparkColor?: string;
 }
 
 /**
@@ -55,6 +63,8 @@ export function MetricCard({
   deltaLabel = "vs mês anterior",
   sub,
   href,
+  sparkData,
+  sparkColor,
 }: Props) {
   const formattedDelta = useMemo(() => {
     if (delta == null) return null;
@@ -123,6 +133,15 @@ export function MetricCard({
       )}
 
       {sub && !delta && <p className="mt-1 text-tiny text-text-muted">{sub}</p>}
+
+      {sparkData && sparkData.length >= 2 && (
+        <div className="mt-3 h-9 w-full opacity-70 transition-opacity duration-fast group-hover:opacity-100">
+          <Sparkline
+            data={sparkData}
+            color={sparkColor ?? "var(--color-brand-primary)"}
+          />
+        </div>
+      )}
     </>
   );
 
