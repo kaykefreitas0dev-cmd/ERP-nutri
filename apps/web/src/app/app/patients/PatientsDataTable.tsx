@@ -250,6 +250,7 @@ export function PatientsDataTable({
 
   /* ── table instance ─────────────────────────────────────────── */
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable refs incompatible with React Compiler; safe here since we never pass table to memo'd children
   const table = useReactTable({
     data: patients,
     columns,
