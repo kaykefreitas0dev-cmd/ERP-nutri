@@ -20,6 +20,8 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
   const [confirmText, setConfirmText] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [confirmingArchive, setConfirmingArchive] = useState(false);
 
   if (status === "ANONYMIZED") {
     return (
@@ -31,12 +33,16 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
   }
 
   function handleArchive() {
-    const verb = status === "ARCHIVED" ? "desarquivar" : "arquivar";
-    if (!confirm(`Confirmar ${verb} este paciente?`)) return;
+    setArchiveError(null);
+    setConfirmingArchive(true);
+  }
+
+  function confirmArchive() {
+    setConfirmingArchive(false);
     startTransition(async () => {
       const r = await archivePatientAction(patientId);
       if (!r.ok) {
-        alert(r.message ?? "Erro");
+        setArchiveError(r.message ?? "Erro ao arquivar");
         return;
       }
       router.refresh();
@@ -73,24 +79,53 @@ export function AnonymizeButton({ patientId, patientName, status }: Props) {
     <div className="space-y-2">
       {!showAnonymize ? (
         <>
-          <button
-            type="button"
-            onClick={handleArchive}
-            disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs hover:bg-bg-subtle disabled:opacity-50"
-          >
-            {status === "ARCHIVED" ? (
-              <>
-                <Undo2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Desarquivar
-              </>
-            ) : (
-              <>
-                <Archive className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Arquivar
-              </>
-            )}
-          </button>
+          {confirmingArchive ? (
+            <div className="flex items-center gap-2 rounded-md border border-border-default bg-bg-subtle px-3 py-2 text-xs">
+              <span className="flex-1 text-text-secondary">
+                {status === "ARCHIVED" ? "Desarquivar" : "Arquivar"} este
+                paciente?
+              </span>
+              <button
+                type="button"
+                onClick={confirmArchive}
+                disabled={pending}
+                className="rounded px-2 py-0.5 font-medium text-text-primary hover:bg-bg-surface-hover disabled:opacity-50"
+              >
+                Confirmar
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingArchive(false)}
+                className="rounded px-2 py-0.5 text-text-muted hover:bg-bg-surface-hover"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleArchive}
+              disabled={pending}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs hover:bg-bg-subtle disabled:opacity-50"
+            >
+              {status === "ARCHIVED" ? (
+                <>
+                  <Undo2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Desarquivar
+                </>
+              ) : (
+                <>
+                  <Archive className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Arquivar
+                </>
+              )}
+            </button>
+          )}
+          {archiveError && (
+            <p role="alert" className="text-xs text-red-700">
+              {archiveError}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => setShowAnonymize(true)}
