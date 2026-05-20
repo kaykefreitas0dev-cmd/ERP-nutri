@@ -117,7 +117,7 @@ export default async function PatientHomePage({
 
   // Próximas consultas — máx 3, janela de 30 dias
   const patientIds = patients.map((p) => p.id);
-  const thirtyDaysOut = new Date(Date.now() + 30 * 86_400_000);
+  const thirtyDaysOut = new Date(new Date().getTime() + 30 * 86_400_000);
   const upcomingAppointments = patientIds.length
     ? await prisma.appointment.findMany({
         where: {
