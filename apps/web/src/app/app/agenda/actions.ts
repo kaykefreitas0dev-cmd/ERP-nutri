@@ -12,6 +12,51 @@ import {
   sendAppointmentCancelledEmail,
 } from "@/lib/email/send-appointment-notification";
 
+// ─── QStash reminder scheduling ──────────────────────────────────────────────
+
+/**
+ * Agenda lembrete D-1 para a consulta via QStash.
+ * - Graceful: sem QSTASH_TOKEN → skipped silenciosamente
+ * - O handler /api/internal/workers/appointments/remind valida:
+ *     • status ainda é SCHEDULED/CONFIRMED
+ *     • janela de tempo (0–30h): filtra lembretes de reagendamentos
+ */
+async function scheduleReminderViaQStash(
+  appointmentId: string,
+  startsAt: Date,
+): Promise<void> {
+  const token = process.env.QSTASH_TOKEN;
+  if (!token) return; // dev ou env sem QStash configurado
+
+  // Agendar para 24h antes da consulta (ou imediatamente se < 25h)
+  const reminderMs = startsAt.getTime() - 24 * 3_600_000;
+  const nowMs = Date.now();
+
+  // Só agendar se a consulta é mais de 2h no futuro
+  if (startsAt.getTime() - nowMs < 2 * 3_600_000) return;
+
+  // Resolve the base URL explicitly to avoid template-literal ternary ambiguity
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
+  const workerUrl = `${baseUrl}/api/internal/workers/appointments/remind`;
+
+  try {
+    const { Client } = await import("@upstash/qstash");
+    const qstash = new Client({ token });
+    await qstash.publishJSON({
+      url: workerUrl,
+      body: { appointmentId },
+      // notBefore = Unix timestamp em segundos (ou agora + 60s mínimo)
+      notBefore: Math.floor(Math.max(reminderMs, nowMs + 60_000) / 1_000),
+    });
+  } catch {
+    // Falha no agendamento nunca bloqueia o fluxo principal
+  }
+}
+
 const ScheduleSchema = z.object({
   startsAt: z.string(), // ISO
   durationMinutes: z.coerce.number().int().min(15).max(480),
@@ -142,6 +187,9 @@ export async function scheduleAppointmentAction(
       })();
     }
 
+    // Schedule D-1 reminder via QStash (graceful: no-op sem QSTASH_TOKEN)
+    void scheduleReminderViaQStash(result.id, startsAt);
+
     revalidatePath("/app/agenda");
     return { ok: true, appointmentId: result.id };
   } catch (err) {
@@ -262,6 +310,10 @@ export async function updateAppointmentAction(
         }
       })();
     }
+
+    // Re-schedule D-1 reminder for new appointment time (graceful: no-op sem QSTASH_TOKEN)
+    // O handler valida janela de tempo → lembrete da hora antiga será ignorado
+    void scheduleReminderViaQStash(d.appointmentId, startsAt);
 
     revalidatePath("/app/agenda");
     return { ok: true, appointmentId: d.appointmentId };

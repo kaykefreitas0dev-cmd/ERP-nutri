@@ -11,6 +11,7 @@
  *   • appointment.confirmed   — status SCHEDULED → CONFIRMED
  *   • appointment.completed   — status → COMPLETED (checar documentos/recibo)
  *   • appointment.cancelled   — status → CANCELLED
+ *   • appointment.reminder    — lembrete D-1 / H-2 antes da consulta (via QStash)
  */
 
 import { Resend } from "resend";
@@ -425,6 +426,80 @@ Sua consulta com ${p.organizationName} foi cancelada.
 ${apptInfoText(p)}
 ${reasonLine}
 Para reagendar, entre em contato com ${p.organizationName} ou acesse o app.
+
+—
+NutriCore · acompanhamento nutricional digital`;
+}
+
+// ─── reminder ────────────────────────────────────────────────────────────────
+
+export async function sendAppointmentReminderEmail(
+  params: AppointmentEmailBase,
+): Promise<AppointmentNotificationResult> {
+  const hoursUntil = Math.round(
+    (params.startsAt.getTime() - Date.now()) / 3_600_000,
+  );
+  const timeLabel =
+    hoursUntil <= 3
+      ? `em breve (${hoursUntil}h)`
+      : hoursUntil < 20
+        ? `hoje`
+        : `amanhã`;
+  return sendNotification({
+    ...params,
+    subject: `Lembrete: consulta ${timeLabel} — ${formatDateTime(params.startsAt, params.timezone)}`,
+    html: renderReminderHtml(params, hoursUntil),
+    text: renderReminderText(params, hoursUntil),
+  });
+}
+
+function renderReminderHtml(
+  p: AppointmentEmailBase,
+  hoursUntil: number,
+): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  const whenLabel =
+    hoursUntil <= 3
+      ? `em <strong>${hoursUntil} hora${hoursUntil === 1 ? "" : "s"}</strong>`
+      : hoursUntil < 20
+        ? `<strong>hoje</strong>`
+        : `<strong>amanhã</strong>`;
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">
+      Lembrete de consulta 🔔
+    </h1>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Olá, <strong style="color:#0f172a;">${escapeHtml(firstName)}</strong>!
+    </p>
+    <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#475569;">
+      Sua consulta com <strong>${escapeHtml(p.organizationName)}</strong>
+      acontece ${whenLabel}. Não se esqueça!
+    </p>
+    ${apptInfoBlock(p)}
+    <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#64748b;">
+      Se precisar cancelar ou reagendar, entre em contato com
+      ${escapeHtml(p.organizationName)} o quanto antes.
+    </p>`;
+  const footer = `Lembrete de consulta com ${escapeHtml(p.organizationName)}.`;
+  return baseLayout(body, footer);
+}
+
+function renderReminderText(
+  p: AppointmentEmailBase,
+  hoursUntil: number,
+): string {
+  const firstName = p.patientFullName.split(" ")[0]!;
+  const whenLabel =
+    hoursUntil <= 3 ? `em ${hoursUntil}h` : hoursUntil < 20 ? "hoje" : "amanhã";
+  return `Lembrete de consulta — ${p.organizationName}
+
+Olá, ${firstName}!
+
+Sua consulta com ${p.organizationName} acontece ${whenLabel}. Não se esqueça!
+
+${apptInfoText(p)}
+
+Se precisar cancelar ou reagendar, entre em contato com ${p.organizationName} o quanto antes.
 
 —
 NutriCore · acompanhamento nutricional digital`;
