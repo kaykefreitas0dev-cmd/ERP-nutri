@@ -72,6 +72,13 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #51 | `1f7711f` | Chore — SPRINT_STATE.md updated (PRs #47-#50)                                 |
 | #52 | `0dfab12` | Agenda — patient deep-link from patients list to scheduling form              |
 | #53 | `6dbf293` | Agenda — cancel appointment with optional reason + inline error banner        |
+| #54 | `603b9ff` | Chore — SPRINT_STATE.md updated (PRs #51-#53)                                 |
+| #55 | `f62d82e` | UX — replace alert()/confirm() in AnonymizeButton + MealPlanEditor            |
+| #56 | `7092c3c` | Agenda — generalize overlay to CANCEL + NO_SHOW with reason                   |
+| #57 | `5abce62` | Fix — remove developer-facing copy from user-visible UI                       |
+| #58 | `8a1bcdc` | Test — E2E agenda smoke: day view + create appointment + confirm button       |
+| #59 | `b9c3556` | Agenda — per-status colored breakdown pills in day view header                |
+| #61 | `8ca18cf` | A11y — Escape key closes appointment modals + aria attrs on CompleteModal     |
 
 ---
 
@@ -91,6 +98,14 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Edição de consulta na agenda — modal reschedule (PR #50)
 - [x] Deep-link paciente → formulário de agendamento via ?patientId= (PR #52)
 - [x] Cancelamento de consulta com motivo + inline error banner sem alert() (PR #53)
+- [x] alert()/confirm() removidos em AnonymizeButton e MealPlanEditor (PR #55)
+- [x] No-show com motivo — overlay CANCEL/NO_SHOW generalizado (PR #56)
+- [x] UI copy polish — remoção de notas dev de UI de produção (PR #57)
+- [x] E2E smoke agenda — day view + criar consulta + confirmar (PR #58)
+- [x] Agenda day view — breakdown colorido de consultas por status (PR #59)
+- [x] A11y modais — Escape fecha EditAppointmentModal + CompleteWithPaymentModal (PR #61)
+- [ ] confirm() removidos em DocumentActions + InvitePatientButton (PR #60 — pending merge)
+- [ ] Emojis substituídos por ícones lucide-react — DocumentActions, ClinicalNotesSection, NewMealPlanForm (PR #62 — pending merge)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -117,3 +132,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 — PR #44-#47 merged; SPRINT_STATE atualizado para S22
 - 2026-05-20 (tarde) — PR #48-#50 merged: TanStack Table + Virtual, axe-core a11y CI, agenda edit modal
 - 2026-05-20 (noite) — PR #51-#53 merged: sprint state update, agenda deep-link, cancel com reason
+- 2026-05-20 (autônomo) — PR #55-#59 + #61 merged: alert/confirm sweep, no-show overlay, UI polish, E2E agenda, status breakdown, modal a11y
