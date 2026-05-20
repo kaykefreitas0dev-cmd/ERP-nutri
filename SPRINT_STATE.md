@@ -89,6 +89,13 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #68 | `005ff98` | Chore — SPRINT_STATE.md updated (PRs #67 + final S22 tech status)                                       |
 | #69 | `640d02b` | Patient PWA — upcoming appointments widget on home + plan status localization PT-BR                     |
 | #70 | `8abadaa` | Agenda — email notifications on appointment scheduled/confirmed/cancelled via Resend                    |
+| #71 | `3544e29` | Fix — ESLint warnings eliminados em apps/web (0 errors, 0 warnings)                                     |
+| #72 | `f59afc8` | Agenda — email transacional reagendamento (rescheduled)                                                 |
+| #73 | `25c0574` | Chore — SPRINT_STATE.md atualizado (PRs #68-#72 + deferral Vercel/Supabase Pro)                         |
+| #74 | `e0cf574` | Agenda — email transacional COMPLETED (checar docs/recibo/plano alimentar)                              |
+| #75 | `553340c` | Patient — notificação email ao nutri quando paciente aceita convite                                     |
+| #76 | `f47b0e0` | Patient — polish: PLAN_STATUS_LABEL localizado, ChevronLeft back-link, Date cleanup                     |
+| #77 | `2d01773` | Agenda — lembrete D-1 antes da consulta via QStash + worker /api/internal/remind                        |
 
 ---
 
@@ -123,6 +130,11 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Agenda — email transacional scheduled/confirmed/cancelled via Resend; graceful no-op sem API key (PR #70)
 - [x] Fix — pre-existing ESLint warnings eliminados em apps/web: 0 erros, 0 warnings (PR #71)
 - [x] Agenda — email transacional reagendamento (updateAppointmentAction) (PR #72)
+- [x] Agenda — email transacional COMPLETED: prompt paciente checar docs/recibo/plano alimentar (PR #74)
+- [x] Patient — notificação ao nutricionista quando paciente aceita convite (fire-and-forget Resend) (PR #75)
+- [x] Patient — polish: PLAN_STATUS_LABEL localizado PT-BR, ChevronLeft back-link, Date.now() cleanup (PR #76)
+- [x] Agenda — lembrete D-1 antes da consulta via QStash `notBefore`; worker `/api/internal/workers/appointments/remind` com verificação manual de assinatura e janela 0-30h (PR #77)
+- [ ] PM: configurar secrets Vercel em apps/web: `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`, `NEXT_PUBLIC_APP_URL` para ativar lembretes D-1
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -153,3 +165,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #60 + #62-#67 merged: confirm sweep completo, emoji sweep, cancel CONFIRMED fix, CI gitleaks fix, E2E lifecycle steps 11-13
 - 2026-05-20 (autônomo, cont.) — PR #68 merged: SPRINT_STATE update; PM decide diferir Vercel/Supabase Pro upgrade
 - 2026-05-20 (autônomo, cont.) — PR #69-#72 merged: patient home appointments, emails transacionais (scheduled/confirmed/cancelled/reagendado), ESLint warnings eliminados
+- 2026-05-20 (autônomo, cont.) — PR #73-#77 merged: SPRINT_STATE update, email COMPLETED, notif nutri invite-accept, patient polish, lembrete D-1 QStash
