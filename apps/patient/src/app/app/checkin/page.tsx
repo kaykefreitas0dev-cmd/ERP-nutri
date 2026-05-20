@@ -21,8 +21,10 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Check-in diário" };
 
 function todayLocalISO(): string {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
+  // Use pt-BR target timezone to avoid UTC date being off by 1 day near midnight
+  return new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
 }
 
 export default async function CheckinPage() {
