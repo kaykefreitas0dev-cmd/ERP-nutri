@@ -40,7 +40,7 @@ export function ExportDataButton({ patientId }: Props) {
         type="button"
         onClick={handleExport}
         disabled={pending}
-        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border-default bg-white px-3 py-1.5 text-xs hover:bg-bg-subtle disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-1.5 text-tiny hover:bg-bg-subtle disabled:opacity-50"
       >
         {pending ? (
           <>
@@ -56,14 +56,14 @@ export function ExportDataButton({ patientId }: Props) {
       </button>
 
       {error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-tiny text-danger">
           {error}
         </p>
       )}
 
       {result && (
-        <div className="rounded-md border border-green-300 bg-green-50 p-3">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-green-900">
+        <div className="rounded-md border border-success-border bg-success-bg p-3">
+          <p className="flex items-center gap-1.5 text-tiny font-semibold text-success">
             <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
             ZIP gerado!
           </p>
@@ -71,21 +71,21 @@ export function ExportDataButton({ patientId }: Props) {
             href={result.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-xs font-medium text-green-700 underline"
+            className="mt-1 inline-block text-tiny font-medium text-success underline"
           >
             <Download className="inline h-3 w-3" strokeWidth={1.75} /> Baixar
             ZIP
           </a>
-          <p className="mt-1 text-[10px] text-green-700">
+          <p className="mt-1 text-[10px] text-success">
             Link válido até {new Date(result.expiresAt).toLocaleString("pt-BR")}
           </p>
           <details className="mt-2">
-            <summary className="cursor-pointer text-[10px] text-green-800">
+            <summary className="cursor-pointer text-[10px] text-success">
               Conteúdo (
               {Object.values(result.counts).reduce((a, b) => a + b, 0)}{" "}
               registros)
             </summary>
-            <ul className="mt-1 space-y-0.5 text-[10px] text-green-800">
+            <ul className="mt-1 space-y-0.5 text-[10px] text-success">
               {Object.entries(result.counts)
                 .filter(([, n]) => n > 0)
                 .map(([k, n]) => (

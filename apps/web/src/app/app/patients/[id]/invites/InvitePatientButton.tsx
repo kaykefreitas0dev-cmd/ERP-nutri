@@ -37,7 +37,7 @@ export function InvitePatientButton({
 
   if (hasLinkedAccount) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-success-bg px-3 py-1 text-tiny font-medium text-success">
         <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
         Paciente acessou plataforma
       </span>
@@ -92,7 +92,7 @@ export function InvitePatientButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover"
+        className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-tiny font-medium text-white hover:bg-brand-primary-hover"
       >
         <Mail className="h-3.5 w-3.5" strokeWidth={1.75} />
         Convidar para acessar app
@@ -102,7 +102,7 @@ export function InvitePatientButton({
 
   if (hasActiveInvite && !inviteUrl) {
     return (
-      <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+      <div className="rounded-md border border-warning-border bg-warning-bg p-3 text-tiny text-warning">
         <p>
           <strong>Convite ativo enviado para:</strong>{" "}
           {activeInviteEmail ?? "—"}
@@ -115,21 +115,21 @@ export function InvitePatientButton({
         )}
         {confirmingRevoke ? (
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="text-red-700">
+            <span className="text-danger">
               Revogar convite? O paciente não poderá mais usar o link.
             </span>
             <button
               type="button"
               onClick={confirmRevoke}
               disabled={pending}
-              className="rounded border border-red-400 bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded bg-danger px-2 py-1 text-tiny text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               Confirmar
             </button>
             <button
               type="button"
               onClick={() => setConfirmingRevoke(false)}
-              className="rounded border border-amber-400 bg-white px-2 py-1 text-xs"
+              className="rounded border border-border-default bg-bg-surface px-2 py-1 text-tiny"
             >
               Cancelar
             </button>
@@ -142,7 +142,7 @@ export function InvitePatientButton({
                 setOpen(true);
                 setEmail(activeInviteEmail ?? "");
               }}
-              className="rounded border border-amber-400 bg-white px-2 py-1 text-xs"
+              className="rounded border border-border-default bg-bg-surface px-2 py-1 text-tiny"
             >
               Reenviar (novo link)
             </button>
@@ -150,7 +150,7 @@ export function InvitePatientButton({
               type="button"
               onClick={handleRevoke}
               disabled={pending}
-              className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700"
+              className="rounded border border-danger bg-bg-surface px-2 py-1 text-tiny text-danger"
             >
               Revogar
             </button>
@@ -161,14 +161,14 @@ export function InvitePatientButton({
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-border-default bg-white p-3 shadow-sm">
-      <p className="text-xs text-text-secondary">
+    <div className="space-y-3 rounded-md border border-border-default bg-bg-surface p-3 [box-shadow:var(--shadow-xs)]">
+      <p className="text-tiny text-text-secondary">
         Gere um link de acesso passwordless. O paciente entrará pelo email
         recebido no app.
       </p>
 
       <div>
-        <label htmlFor="invite-email" className="block text-xs font-medium">
+        <label htmlFor="invite-email" className="block text-tiny font-medium">
           Email do paciente *
         </label>
         <input
@@ -177,31 +177,31 @@ export function InvitePatientButton({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="paciente@email.com"
-          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+          className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
         />
       </div>
 
       {error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-tiny text-danger">
           {error}
         </p>
       )}
 
       {inviteUrl && (
-        <div className="rounded-md border border-green-300 bg-green-50 p-2">
+        <div className="rounded-md border border-success-border bg-success-bg p-2">
           {emailSent ? (
             <>
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-green-800">
+              <p className="flex items-center gap-1.5 text-tiny font-semibold text-success">
                 <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
                 Email enviado para {email}!
               </p>
-              <p className="mt-1 text-[10px] text-green-700">
+              <p className="mt-1 text-[10px] text-success">
                 O paciente receberá um email com o link de acesso. Se ele não
                 receber em alguns minutos, pode usar o link abaixo manualmente.
               </p>
             </>
           ) : (
-            <p className="flex items-center gap-1.5 text-xs font-medium text-green-800">
+            <p className="flex items-center gap-1.5 text-tiny font-medium text-success">
               <CircleCheck className="h-3.5 w-3.5" strokeWidth={2} />
               Link gerado! (sem provider de email configurado — envie
               manualmente abaixo)
@@ -211,12 +211,12 @@ export function InvitePatientButton({
             readOnly
             value={inviteUrl}
             onClick={(e) => (e.target as HTMLInputElement).select()}
-            className="mt-2 block w-full rounded border border-green-300 bg-white px-2 py-1 font-mono text-[10px]"
+            className="mt-2 block w-full rounded border border-success-border bg-bg-surface px-2 py-1 font-mono text-[10px]"
           />
           <button
             type="button"
             onClick={handleCopy}
-            className="mt-1 inline-flex items-center gap-1 rounded bg-green-700 px-2 py-1 text-xs font-medium text-white hover:bg-green-800"
+            className="mt-1 inline-flex items-center gap-1 rounded bg-success px-2 py-1 text-tiny font-medium text-white transition-opacity hover:opacity-90"
           >
             {copied ? (
               <>
@@ -239,7 +239,7 @@ export function InvitePatientButton({
             type="button"
             onClick={handleCreate}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-tiny font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {pending ? (
               "Enviando..."
@@ -258,7 +258,7 @@ export function InvitePatientButton({
             setError(null);
             setInviteUrl(null);
           }}
-          className="rounded-md border border-border-default bg-white px-3 py-1.5 text-xs"
+          className="rounded-md border border-border-default bg-bg-surface px-3 py-1.5 text-tiny"
         >
           {inviteUrl ? "Fechar" : "Cancelar"}
         </button>
