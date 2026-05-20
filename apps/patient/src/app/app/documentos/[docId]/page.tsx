@@ -76,23 +76,23 @@ export default async function MyDocumentPage({ params }: Props) {
       </header>
 
       {doc.validUntil && (
-        <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          <Calendar className="h-4 w-4" strokeWidth={1.75} />
+        <div className="mt-3 flex items-center gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-caption text-warning">
+          <Calendar className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           Válido até {new Date(doc.validUntil).toLocaleDateString("pt-BR")}
         </div>
       )}
 
-      <div className="mt-6 rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
-        <div className="whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
+      <div className="mt-6 rounded-lg border border-border-subtle bg-bg-surface p-6 [box-shadow:var(--shadow-xs)]">
+        <div className="whitespace-pre-wrap text-body leading-relaxed text-text-primary">
           {renderMarkdown(doc.bodyMarkdown)}
         </div>
 
         {doc.cidCodes.length > 0 && (
           <div className="mt-6 border-t border-border-subtle pt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+            <h3 className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
               CID-10
             </h3>
-            <ul className="mt-2 space-y-1 text-xs">
+            <ul className="mt-2 space-y-1 text-tiny">
               {doc.cidCodes.map((c) => (
                 <li key={c.id}>
                   <strong className="text-brand-primary">{c.cid.code}</strong>{" "}
@@ -109,13 +109,14 @@ export default async function MyDocumentPage({ params }: Props) {
           href={`${process.env.NEXT_PUBLIC_NUTRI_APP_URL ?? ""}/api/v1/documents/${doc.id}/pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-border-default bg-white px-4 py-2 text-sm font-medium hover:bg-bg-subtle"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-4 py-2 text-caption font-medium text-text-primary transition-colors hover:bg-bg-surface-hover"
         >
-          <Download className="inline h-4 w-4" strokeWidth={1.75} /> Baixar PDF
+          <Download className="h-4 w-4" strokeWidth={1.75} />
+          Baixar PDF
         </a>
       </div>
 
-      <p className="mt-3 text-xs text-text-muted">
+      <p className="mt-3 text-tiny text-text-muted">
         Emitido em{" "}
         {doc.issuedAt && new Date(doc.issuedAt).toLocaleString("pt-BR")}
       </p>
