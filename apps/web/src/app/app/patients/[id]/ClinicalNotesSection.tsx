@@ -144,7 +144,10 @@ export function ClinicalNotesSection({ patientId }: Props) {
                 id="consultationDate"
                 name="consultationDate"
                 type="datetime-local"
-                defaultValue={new Date().toISOString().slice(0, 16)}
+                defaultValue={new Date()
+                  .toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" })
+                  .slice(0, 16)
+                  .replace(" ", "T")}
                 className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
               />
             </div>
