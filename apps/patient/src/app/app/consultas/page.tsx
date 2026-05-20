@@ -107,9 +107,7 @@ export default async function PatientAppointmentsPage() {
     organizationName: orgMap.get(a.organizationId) ?? "—",
   }));
 
-  // Não usar Date() direto no componente (react-hooks/purity)
-  // eslint-disable-next-line react-hooks/purity
-  const nowMs = Date.now();
+  const nowMs = new Date().getTime();
   const future = appointments.filter(
     (a) =>
       a.startsAt.getTime() >= nowMs &&

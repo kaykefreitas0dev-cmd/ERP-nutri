@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, Hospital, Calendar, Download } from "lucide-react";
+import {
+  FileText,
+  Hospital,
+  Calendar,
+  Download,
+  ChevronLeft,
+} from "lucide-react";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -44,20 +50,26 @@ export default async function MyDocumentPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-5 py-6">
       <Link
         href="/app/documentos"
-        className="text-sm text-brand-primary hover:underline"
+        className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
       >
-        ← Documentos
+        <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+        Documentos
       </Link>
 
-      <header className="mt-2">
-        <h1 className="text-2xl font-bold text-text-primary">{doc.title}</h1>
-        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-text-secondary">
+      <header className="mt-3">
+        <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+          {TYPE_LABELS[doc.documentType] ?? doc.documentType}
+        </p>
+        <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
+          {doc.title}
+        </h1>
+        <p className="mt-1 inline-flex items-center gap-1.5 text-caption text-text-secondary">
           <FileText className="h-4 w-4" strokeWidth={1.75} />
-          {TYPE_LABELS[doc.documentType] ?? doc.documentType} • {doc.issuerName}
+          {doc.issuerName}
           {doc.issuerCrn &&
             ` (CRN-${doc.issuerCrnUf ?? "—"}: ${doc.issuerCrn})`}
         </p>
-        <p className="flex items-center gap-1 text-xs text-text-muted">
+        <p className="flex items-center gap-1 text-tiny text-text-muted">
           <Hospital className="h-3 w-3" strokeWidth={1.75} />
           {doc.patient.organization.name}
         </p>

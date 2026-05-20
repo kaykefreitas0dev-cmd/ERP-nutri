@@ -6,6 +6,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Meus planos — NutriCore" };
 
+const PLAN_STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Ativo",
+  DRAFT: "Rascunho",
+  ARCHIVED: "Arquivado",
+};
+
 export default async function MyPlansPage() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -107,7 +113,7 @@ export default async function MyPlansPage() {
                             : "bg-bg-subtle text-text-secondary ring-border-subtle")
                       }
                     >
-                      {p.status}
+                      {PLAN_STATUS_LABEL[p.status] ?? p.status}
                     </span>
                   </div>
                 </Link>
