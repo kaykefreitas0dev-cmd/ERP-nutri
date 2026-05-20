@@ -6,6 +6,7 @@ import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { prisma } from "@nutricore/db";
 import {
   sendAppointmentScheduledEmail,
+  sendAppointmentRescheduledEmail,
   sendAppointmentConfirmedEmail,
   sendAppointmentCancelledEmail,
 } from "@/lib/email/send-appointment-notification";
@@ -180,12 +181,14 @@ export async function updateAppointmentAction(
   const startsAt = new Date(d.startsAt);
   const endsAt = new Date(startsAt.getTime() + d.durationMinutes * 60_000);
 
+  let reschedulePatientId: string | null = null;
+
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
       try {
         const current = await tx.appointment.findFirst({
           where: { id: d.appointmentId },
-          select: { status: true, patientId: true },
+          select: { status: true, patientId: true, timezone: true },
         });
         if (!current) throw new Error("Agendamento não encontrado");
         if (current.status === "COMPLETED" || current.status === "CANCELLED") {
@@ -215,6 +218,8 @@ export async function updateAppointmentAction(
             '{}'::jsonb
           )
         `;
+
+        reschedulePatientId = current.patientId ?? null;
       } catch (err) {
         if (
           err instanceof Error &&
@@ -227,6 +232,35 @@ export async function updateAppointmentAction(
         throw err;
       }
     });
+
+    // Fire-and-forget: notificar paciente sobre reagendamento
+    if (reschedulePatientId) {
+      const pid = reschedulePatientId as string;
+      void (async () => {
+        try {
+          const patient = await prisma.patient.findFirst({
+            where: { id: pid },
+            select: {
+              email: true,
+              fullName: true,
+              organization: { select: { name: true } },
+            },
+          });
+          if (patient?.email) {
+            await sendAppointmentRescheduledEmail({
+              to: patient.email,
+              patientFullName: patient.fullName,
+              organizationName: patient.organization.name,
+              startsAt,
+              endsAt,
+              modality: d.modality,
+            });
+          }
+        } catch {
+          // Email failure nunca bloqueia o reagendamento
+        }
+      })();
+    }
 
     revalidatePath("/app/agenda");
     return { ok: true, appointmentId: d.appointmentId };
