@@ -1,6 +1,13 @@
 "use client";
 
-import { useRef, useState, useTransition, useMemo, useCallback } from "react";
+import {
+  useRef,
+  useState,
+  useTransition,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import Link from "next/link";
 import {
   Lock,
@@ -12,14 +19,18 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Loader2,
+  Search,
+  X,
 } from "lucide-react";
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
+  type FilterFn,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Avatar } from "@repo/ui/avatar";
@@ -51,11 +62,27 @@ function timeSince(date: Date): string {
   return `${Math.floor(days / 365)}a atrás`;
 }
 
-/* ── column helper ───────────────────────────────────────────────── */
+/* ── column helper + fuzzy filter ────────────────────────────────── */
 
 const columnHelper = createColumnHelper<PatientRow>();
 
 const ROW_HEIGHT = 56; // px — must match the tr height via className
+
+/** Client-side fuzzy filter: matches name OR email (case-insensitive, accent-folded) */
+const patientGlobalFilter: FilterFn<PatientRow> = (
+  row,
+  _colId,
+  value: string,
+) => {
+  if (!value) return true;
+  const term = value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const name = row.original.fullName
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  const email = (row.original.email ?? "").toLowerCase();
+  return name.includes(term) || email.includes(term);
+};
 
 /* ── component ──────────────────────────────────────────────────── */
 
@@ -75,7 +102,15 @@ export function PatientsDataTable({
   const [patients, setPatients] = useState<PatientRow[]>(initialPatients);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
   const [isPending, startTransition] = useTransition();
+
+  // Sync patients when server re-fetches (status/query change from URL)
+  useEffect(() => {
+    setPatients(initialPatients);
+    setNextCursor(initialCursor);
+    setGlobalFilter("");
+  }, [initialPatients, initialCursor]);
 
   /* ── column definitions ─────────────────────────────────────── */
 
@@ -218,10 +253,13 @@ export function PatientsDataTable({
   const table = useReactTable({
     data: patients,
     columns,
-    state: { sorting },
+    state: { sorting, globalFilter },
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    globalFilterFn: patientGlobalFilter,
     // Dates need special comparison (TanStack Table compares by default with </>)
     sortingFns: {
       auto: (rowA, rowB, colId) => {
@@ -289,13 +327,64 @@ export function PatientsDataTable({
 
   /* ── render ─────────────────────────────────────────────────── */
 
+  const filteredCount = table.getFilteredRowModel().rows.length;
+  const showFilterNotice =
+    globalFilter.length > 0 && filteredCount < patients.length;
+
   return (
     <div className="flex flex-col gap-3">
+      {/* Inline instant search (client-side, no server round-trip) */}
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+          strokeWidth={1.75}
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Filtrar por nome ou email na lista carregada…"
+          aria-label="Filtrar pacientes carregados"
+          className="h-9 w-full rounded-md border border-border-default bg-bg-surface pl-9 pr-8 text-body text-text-primary placeholder:text-text-muted transition-[border-color,box-shadow] duration-fast focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+        />
+        {globalFilter && (
+          <button
+            type="button"
+            onClick={() => setGlobalFilter("")}
+            aria-label="Limpar filtro local"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-muted transition-colors hover:text-text-primary"
+          >
+            <X className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        )}
+      </div>
+
+      {/* Filter notice */}
+      {showFilterNotice && (
+        <p className="text-tiny text-text-muted">
+          Mostrando{" "}
+          <span className="font-medium text-text-secondary tabular-nums">
+            {filteredCount}
+          </span>{" "}
+          de <span className="tabular-nums">{patients.length}</span> carregados
+          para "<span className="italic">{globalFilter}</span>". Para busca no
+          banco,{" "}
+          <a
+            href={`/app/patients?q=${encodeURIComponent(globalFilter)}`}
+            className="text-text-link underline-offset-2 hover:underline"
+          >
+            use o filtro acima
+          </a>
+          .
+        </p>
+      )}
+
       {/* Scrollable virtualized table */}
       <div
         ref={parentRef}
         className="overflow-auto rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
-        style={{ maxHeight: "min(calc(100vh - 340px), 640px)", minHeight: 200 }}
+        style={{ maxHeight: "min(calc(100vh - 400px), 600px)", minHeight: 200 }}
         role="region"
         aria-label="Lista de pacientes"
       >
