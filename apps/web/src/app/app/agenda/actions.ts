@@ -3,6 +3,12 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { prisma } from "@nutricore/db";
+import {
+  sendAppointmentScheduledEmail,
+  sendAppointmentConfirmedEmail,
+  sendAppointmentCancelledEmail,
+} from "@/lib/email/send-appointment-notification";
 
 const ScheduleSchema = z.object({
   startsAt: z.string(), // ISO
@@ -104,6 +110,35 @@ export async function scheduleAppointmentAction(
         }
       },
     );
+
+    // Fire-and-forget: notificar paciente vinculado por email
+    if (d.patientId) {
+      void (async () => {
+        try {
+          const patient = await prisma.patient.findFirst({
+            where: { id: d.patientId! },
+            select: {
+              email: true,
+              fullName: true,
+              organization: { select: { name: true } },
+            },
+          });
+          if (patient?.email) {
+            await sendAppointmentScheduledEmail({
+              to: patient.email,
+              patientFullName: patient.fullName,
+              organizationName: patient.organization.name,
+              startsAt,
+              endsAt,
+              modality: d.modality,
+              timezone: d.timezone,
+            });
+          }
+        } catch {
+          // Email failure nunca bloqueia o agendamento
+        }
+      })();
+    }
 
     revalidatePath("/app/agenda");
     return { ok: true, appointmentId: result.id };
@@ -232,11 +267,30 @@ export async function updateAppointmentStatusAction(input: {
   const parsed = StatusUpdateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Dados invalidos" };
 
+  // Estado da consulta após a transação (para email pós-commit)
+  interface AppointmentNotifyData {
+    patientId: string;
+    startsAt: Date;
+    endsAt: Date;
+    modality: string;
+    timezone: string;
+    toStatus: "CONFIRMED" | "CANCELLED";
+    reason?: string;
+  }
+  let notifyData: AppointmentNotifyData | null = null;
+
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
       const current = await tx.appointment.findFirst({
         where: { id: parsed.data.appointmentId },
-        select: { status: true, patientId: true },
+        select: {
+          status: true,
+          patientId: true,
+          startsAt: true,
+          endsAt: true,
+          modality: true,
+          timezone: true,
+        },
       });
       if (!current) throw new Error("Agendamento não encontrado");
 
@@ -279,7 +333,60 @@ export async function updateAppointmentStatusAction(input: {
           '{}'::jsonb
         )
       `;
+
+      // Capturar dados para email pós-transação
+      if (
+        (parsed.data.toStatus === "CONFIRMED" ||
+          parsed.data.toStatus === "CANCELLED") &&
+        current.patientId
+      ) {
+        notifyData = {
+          patientId: current.patientId,
+          startsAt: current.startsAt,
+          endsAt: current.endsAt,
+          modality: current.modality,
+          timezone: current.timezone,
+          toStatus: parsed.data.toStatus as "CONFIRMED" | "CANCELLED",
+          reason: parsed.data.reason,
+        };
+      }
     });
+
+    // Fire-and-forget: email de notificação pós-commit
+    if (notifyData) {
+      const nd = notifyData as AppointmentNotifyData;
+      void (async () => {
+        try {
+          const patient = await prisma.patient.findFirst({
+            where: { id: nd.patientId! },
+            select: {
+              email: true,
+              fullName: true,
+              organization: { select: { name: true } },
+            },
+          });
+          if (!patient?.email) return;
+
+          const base = {
+            to: patient.email,
+            patientFullName: patient.fullName,
+            organizationName: patient.organization.name,
+            startsAt: nd.startsAt,
+            endsAt: nd.endsAt,
+            modality: nd.modality,
+            timezone: nd.timezone,
+          };
+
+          if (nd.toStatus === "CONFIRMED") {
+            await sendAppointmentConfirmedEmail(base);
+          } else if (nd.toStatus === "CANCELLED") {
+            await sendAppointmentCancelledEmail({ ...base, reason: nd.reason });
+          }
+        } catch {
+          // Email failure nunca bloqueia a atualização de status
+        }
+      })();
+    }
 
     revalidatePath("/app/agenda");
     return { ok: true, appointmentId: parsed.data.appointmentId };
