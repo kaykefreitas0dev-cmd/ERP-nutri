@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Smartphone,
@@ -57,6 +57,15 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
   const [generateReceipt, setGenerateReceipt] = useState(true);
   const [paymentDate, setPaymentDate] = useState<string>(todayLocalISO());
 
+  // Close on Escape key (only when not submitting)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !pending) onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [pending, onClose]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -96,9 +105,17 @@ export function CompleteWithPaymentModal({ appointment, onClose }: Props) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="complete-appt-title"
+        className="w-full max-w-md rounded-lg bg-white shadow-xl"
+      >
         <header className="border-b border-border-subtle px-5 py-3">
-          <h2 className="text-lg font-semibold text-text-primary">
+          <h2
+            id="complete-appt-title"
+            className="text-lg font-semibold text-text-primary"
+          >
             Concluir consulta
           </h2>
           <p className="mt-0.5 text-xs text-text-secondary">
