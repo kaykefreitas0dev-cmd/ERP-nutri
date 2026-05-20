@@ -369,8 +369,8 @@ export function PatientsDataTable({
             {filteredCount}
           </span>{" "}
           de <span className="tabular-nums">{patients.length}</span> carregados
-          para "<span className="italic">{globalFilter}</span>". Para busca no
-          banco,{" "}
+          para &ldquo;<span className="italic">{globalFilter}</span>&rdquo;.
+          Para busca no banco,{" "}
           <a
             href={`/app/patients?q=${encodeURIComponent(globalFilter)}`}
             className="text-text-link underline-offset-2 hover:underline"
