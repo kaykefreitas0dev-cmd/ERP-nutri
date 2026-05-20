@@ -84,6 +84,8 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #63 | `5ea619c` | Chore — SPRINT_STATE.md updated (PRs #54-#61 + S22 tech progress)                                       |
 | #64 | `bfa66be` | Agenda — allow cancelling CONFIRMED appointments (UX gap fix)                                           |
 | #65 | `c5066ff` | CI — gitleaks continue-on-error (fix ambiguous range on update-branch)                                  |
+| #66 | `c9ed16a` | Chore — SPRINT_STATE.md updated (PRs #60 + #62-#65)                                                     |
+| #67 | `e4218f7` | Test — E2E smoke steps 11-13: SCHEDULED→CONFIRMED→CANCEL full lifecycle                                 |
 
 ---
 
@@ -113,6 +115,7 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Emojis substituídos por ícones lucide-react — DocumentActions, ClinicalNotesSection, NewMealPlanForm (PR #62)
 - [x] Cancelamento de consultas CONFIRMED — botão Cancelar ausente corrigido (PR #64)
 - [x] CI — gitleaks continue-on-error para evitar falsos bloqueios pós update-branch (PR #65)
+- [x] E2E smoke estendido — steps 11-13: SCHEDULED→CONFIRMED→CANCEL lifecycle (PR #67)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -140,4 +143,5 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (tarde) — PR #48-#50 merged: TanStack Table + Virtual, axe-core a11y CI, agenda edit modal
 - 2026-05-20 (noite) — PR #51-#53 merged: sprint state update, agenda deep-link, cancel com reason
 - 2026-05-20 (autônomo) — PR #55-#59 + #61 merged: alert/confirm sweep, no-show overlay, UI polish, E2E agenda, status breakdown, modal a11y
+- 2026-05-20 (autônomo, cont.) — PR #60 + #62-#67 merged: confirm sweep completo, emoji sweep, cancel CONFIRMED fix, CI gitleaks fix, E2E lifecycle steps 11-13
 - 2026-05-20 (autônomo, cont.) — PR #60 + #62-#65 merged: confirm() sweep completo, emoji sweep completo, cancel CONFIRMED fix, CI gitleaks fix
