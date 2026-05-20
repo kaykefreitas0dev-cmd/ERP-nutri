@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { createMealPlanAction } from "./actions";
 
 export function NewMealPlanForm({ patientId }: { patientId: string }) {
@@ -100,8 +101,9 @@ export function NewMealPlanForm({ patientId }: { patientId: string }) {
           {pending ? "Criando…" : "Criar plano"}
         </button>
 
-        <p className="text-xs text-text-muted">
-          ✨ Cria com 1 dia padrão e 6 refeições (café, lanches, almoço, jantar,
+        <p className="inline-flex items-start gap-1 text-xs text-text-muted">
+          <Sparkles className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
+          Cria com 1 dia padrão e 6 refeições (café, lanches, almoço, jantar,
           ceia). Personalize depois.
         </p>
       </form>
