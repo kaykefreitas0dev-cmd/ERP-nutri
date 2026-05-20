@@ -75,14 +75,14 @@ export default async function CheckinPage() {
       {/* Streak badge */}
       {streak && streak.currentStreak > 0 && (
         <div className="mt-4 rounded-lg border border-warning-border bg-warning-bg p-3">
-          <p className="flex items-center gap-2 text-sm text-warning">
+          <p className="flex items-center gap-2 text-body text-warning">
             <Flame className="h-4 w-4" strokeWidth={1.75} />
             <strong className="tabular-nums">
               {streak.currentStreak}
             </strong>{" "}
             dia(s) seguidos!
             {streak.longestStreak > streak.currentStreak && (
-              <span className="ml-1 text-xs opacity-80">
+              <span className="ml-1 text-tiny opacity-80">
                 (recorde: {streak.longestStreak})
               </span>
             )}

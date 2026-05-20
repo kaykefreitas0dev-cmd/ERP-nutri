@@ -84,7 +84,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
           <h2 className="text-h2 font-semibold text-text-primary">
             Prontuário (Anotações clínicas)
           </h2>
-          <p className="inline-flex items-center gap-1 text-xs text-text-muted">
+          <p className="inline-flex items-center gap-1 text-tiny text-text-muted">
             <Lock className="h-3 w-3 shrink-0" strokeWidth={2} />
             Conteúdo criptografado em repouso. Cada leitura é auditada.
           </p>
@@ -118,14 +118,14 @@ export function ClinicalNotesSection({ patientId }: Props) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="category" className="block text-xs font-medium">
+              <label htmlFor="category" className="block text-tiny font-medium">
                 Categoria
               </label>
               <select
                 id="category"
                 name="category"
                 defaultValue="evolution"
-                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
               >
                 <option value="evolution">Evolução</option>
                 <option value="anamnesis">Anamnese</option>
@@ -148,13 +148,13 @@ export function ClinicalNotesSection({ patientId }: Props) {
                   .toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" })
                   .slice(0, 16)
                   .replace(" ", "T")}
-                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-border-default px-3 py-2 text-body"
               />
             </div>
           </div>
 
           <div className="mt-3">
-            <label htmlFor="content" className="block text-xs font-medium">
+            <label htmlFor="content" className="block text-tiny font-medium">
               Conteúdo *
             </label>
             <textarea
@@ -187,9 +187,9 @@ export function ClinicalNotesSection({ patientId }: Props) {
       )}
 
       {loading ? (
-        <p className="text-sm text-text-muted">Carregando…</p>
+        <p className="text-body text-text-muted">Carregando…</p>
       ) : notes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border-default p-8 text-center text-sm text-text-muted">
+        <div className="rounded-lg border border-dashed border-border-default p-8 text-center text-body text-text-muted">
           Nenhuma anotação clínica registrada.
         </div>
       ) : (
@@ -201,7 +201,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+                  <span className="text-tiny font-semibold uppercase tracking-wider text-brand-primary">
                     {CATEGORY_LABEL[note.category] ?? note.category}
                   </span>
                   <p className="text-tiny text-text-muted">
@@ -234,7 +234,7 @@ export function ClinicalNotesSection({ patientId }: Props) {
               ) : note.contentPreview ? (
                 <p className="mt-2 text-body text-text-muted">
                   {note.contentPreview}…{" "}
-                  <span className="text-xs text-text-subtle">(preview)</span>
+                  <span className="text-tiny text-text-subtle">(preview)</span>
                 </p>
               ) : null}
             </li>

@@ -99,7 +99,7 @@ export function CheckinForm({ todayISO, initial }: Props) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success text-white">
           <Sparkles className="h-7 w-7" strokeWidth={1.75} />
         </div>
-        <p className="mt-3 text-lg font-semibold text-success">
+        <p className="mt-3 text-h3 font-semibold text-success">
           Check-in registrado!
         </p>
         <p className="mt-2 flex items-center justify-center gap-1.5 text-body text-success">
