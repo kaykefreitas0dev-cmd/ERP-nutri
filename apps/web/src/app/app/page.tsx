@@ -37,6 +37,14 @@ export default async function AppDashboard() {
       docsThisMonth: number;
       paymentsThisMonth: { count: number; totalCents: number };
     };
+    sparks: {
+      /** Daily appointment count, last 30 days (index 0 = oldest). */
+      appts30d: number[];
+      /** Daily revenue in cents, last 30 days (index 0 = oldest). */
+      revenue30d: number[];
+      /** Daily doc count, last 30 days. */
+      docs30d: number[];
+    };
   } | null = null;
 
   try {
@@ -56,6 +64,11 @@ export default async function AppDashboard() {
 
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+      // Spark window: 30 days ago at midnight
+      const spark30Start = new Date(now);
+      spark30Start.setDate(spark30Start.getDate() - 29);
+      spark30Start.setHours(0, 0, 0, 0);
 
       const membership = await tx.membership.findFirst({
         where: { userId, status: "ACTIVE" },
@@ -78,6 +91,9 @@ export default async function AppDashboard() {
         mealPlansActive,
         docsThisMonth,
         paymentsThisMonth,
+        appts30dRaw,
+        payments30dRaw,
+        docs30dRaw,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -115,7 +131,59 @@ export default async function AppDashboard() {
               totalCents: r._sum.amountCents ?? 0,
             }),
           ),
+        // Spark: appointments last 30 days
+        tx.appointment.findMany({
+          where: {
+            professionalUserId: userId,
+            startsAt: { gte: spark30Start, lte: endOfToday },
+            status: { notIn: ["CANCELLED"] },
+          },
+          select: { startsAt: true },
+        }),
+        // Spark: payments last 30 days
+        tx.patientPayment.findMany({
+          where: { paymentDate: { gte: spark30Start, lte: endOfToday } },
+          select: { paymentDate: true, amountCents: true },
+        }),
+        // Spark: docs last 30 days
+        tx.clinicalDocument.findMany({
+          where: {
+            issuedByUserId: userId,
+            createdAt: { gte: spark30Start, lte: endOfToday },
+          },
+          select: { createdAt: true },
+        }),
       ]);
+
+      // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
+      function buildDailyCount(dates: Date[], days = 30): number[] {
+        const counts = new Array(days).fill(0) as number[];
+        const msNow = startOfToday.getTime();
+        for (const d of dates) {
+          const diff = Math.floor(
+            (msNow - new Date(d).setHours(0, 0, 0, 0)) / 86_400_000,
+          );
+          const idx = days - 1 - diff;
+          if (idx >= 0 && idx < days) counts[idx]++;
+        }
+        return counts;
+      }
+
+      function buildDailySum(
+        records: Array<{ paymentDate: Date; amountCents: number }>,
+        days = 30,
+      ): number[] {
+        const sums = new Array(days).fill(0) as number[];
+        const msNow = startOfToday.getTime();
+        for (const r of records) {
+          const diff = Math.floor(
+            (msNow - new Date(r.paymentDate).setHours(0, 0, 0, 0)) / 86_400_000,
+          );
+          const idx = days - 1 - diff;
+          if (idx >= 0 && idx < days) sums[idx] += r.amountCents;
+        }
+        return sums;
+      }
 
       return {
         org: membership.organization,
@@ -127,6 +195,19 @@ export default async function AppDashboard() {
           mealPlansActive,
           docsThisMonth,
           paymentsThisMonth,
+        },
+        sparks: {
+          appts30d: buildDailyCount(
+            appts30dRaw.map((a: { startsAt: Date }) => a.startsAt),
+          ),
+          revenue30d: buildDailySum(
+            payments30dRaw.map(
+              (p: { paymentDate: Date; amountCents: number }) => p,
+            ),
+          ),
+          docs30d: buildDailyCount(
+            docs30dRaw.map((d: { createdAt: Date }) => d.createdAt),
+          ),
         },
       };
     });
@@ -194,6 +275,7 @@ export default async function AppDashboard() {
             icon={<Calendar strokeWidth={1.75} />}
             href="/app/agenda"
             sub="agendadas hoje"
+            sparkData={data.sparks.appts30d}
           />
           <MetricCard
             label="Consultas semana"
@@ -201,6 +283,7 @@ export default async function AppDashboard() {
             icon={<CalendarDays strokeWidth={1.75} />}
             href="/app/agenda"
             sub={`${totalAppts >= data.counts.apptsThisWeek ? "" : "+ extras"}`}
+            sparkData={data.sparks.appts30d}
           />
           <MetricCard
             label="Planos ativos"
@@ -217,6 +300,8 @@ export default async function AppDashboard() {
             icon={<Wallet strokeWidth={1.75} />}
             href="/app/financeiro"
             sub={`${data.counts.paymentsThisMonth.count} pagamento${data.counts.paymentsThisMonth.count !== 1 ? "s" : ""}`}
+            sparkData={data.sparks.revenue30d.map((c) => c / 100)}
+            sparkColor="var(--color-success)"
           />
           <MetricCard
             label="Docs do mês"
@@ -224,6 +309,7 @@ export default async function AppDashboard() {
             icon={<FileText strokeWidth={1.75} />}
             href="/app/patients"
             sub="emitidos no mês"
+            sparkData={data.sparks.docs30d}
           />
         </section>
 
