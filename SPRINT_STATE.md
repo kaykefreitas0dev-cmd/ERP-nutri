@@ -69,6 +69,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #48 | `8d56383` | Patients — TanStack Table + Virtual, cursor pagination, instant search filter |
 | #49 | `a906662` | CI — axe-core a11y tests + Playwright workflow + Lighthouse budgets           |
 | #50 | `9cc2b8b` | Agenda — edit appointment modal (date/time, duration, modality, notes)        |
+| #51 | `1f7711f` | Chore — SPRINT_STATE.md updated (PRs #47-#50)                                 |
+| #52 | `0dfab12` | Agenda — patient deep-link from patients list to scheduling form              |
+| #53 | `6dbf293` | Agenda — cancel appointment with optional reason + inline error banner        |
 
 ---
 
@@ -86,6 +89,8 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] axe-core a11y automatizado em CI + Playwright deployment workflow (PR #49)
 - [x] Lighthouse CI performance budgets formalizados (PR #49)
 - [x] Edição de consulta na agenda — modal reschedule (PR #50)
+- [x] Deep-link paciente → formulário de agendamento via ?patientId= (PR #52)
+- [x] Cancelamento de consulta com motivo + inline error banner sem alert() (PR #53)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -111,3 +116,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-19 — UI Polish phases 1-7 (PRs #33-#43); Agenda week view; Meal plan dnd-kit; Dashboard sparklines
 - 2026-05-20 — PR #44-#47 merged; SPRINT_STATE atualizado para S22
 - 2026-05-20 (tarde) — PR #48-#50 merged: TanStack Table + Virtual, axe-core a11y CI, agenda edit modal
+- 2026-05-20 (noite) — PR #51-#53 merged: sprint state update, agenda deep-link, cancel com reason
