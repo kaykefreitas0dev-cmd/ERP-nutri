@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import { updateAppointmentAction } from "./actions";
 
@@ -31,6 +31,15 @@ export function EditAppointmentModal({ appointment, onClose }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isPending) onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isPending, onClose]);
 
   const durationMinutes = Math.round(
     (new Date(appointment.endsAt).getTime() -
