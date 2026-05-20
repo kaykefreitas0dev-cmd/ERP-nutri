@@ -1,27 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  Home,
-  CircleCheck,
-  Utensils,
-  Calendar,
-  FileText,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
+import { NavBar } from "./NavBar";
 
 export const dynamic = "force-dynamic";
-
-const NAV_ITEMS: Array<{ href: string; label: string; Icon: LucideIcon }> = [
-  { href: "/app", label: "Início", Icon: Home },
-  { href: "/app/checkin", label: "Check-in", Icon: CircleCheck },
-  { href: "/app/meu-plano", label: "Plano", Icon: Utensils },
-  { href: "/app/consultas", label: "Consultas", Icon: Calendar },
-  { href: "/app/documentos", label: "Docs", Icon: FileText },
-  { href: "/app/pagamentos", label: "Pagto", Icon: Wallet },
-];
 
 export default async function AppLayout({
   children,
@@ -86,24 +69,7 @@ export default async function AppLayout({
 
       <main className="flex-1 pb-20">{children}</main>
 
-      {/* Bottom nav (fixed) */}
-      <nav
-        aria-label="Navegação principal"
-        className="fixed bottom-0 left-0 right-0 z-fixed border-t border-border-subtle glass px-1 py-1.5"
-      >
-        <div className="mx-auto flex max-w-3xl justify-around">
-          {NAV_ITEMS.map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-md px-2 py-1 text-text-secondary transition-colors duration-fast hover:bg-bg-subtle hover:text-text-primary active:scale-[0.96]"
-            >
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
-              <span className="text-[10px] font-medium">{label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <NavBar />
     </div>
   );
 }
