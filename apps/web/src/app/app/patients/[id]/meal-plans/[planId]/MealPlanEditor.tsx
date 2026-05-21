@@ -28,6 +28,7 @@ import {
   Search,
   TriangleAlert,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -36,6 +37,8 @@ import {
   updateMealItemNotesAction,
   updateMealPlanDayLabelAction,
   updateMealNameAction,
+  addMealToDayAction,
+  deleteMealAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -291,22 +294,26 @@ function SortableMeal({
   meal,
   pendingGlobal,
   openMealId,
+  canDelete,
   onToggleOpen,
   onAddItem,
   onRemoveItem,
   onUpdateQuantity,
   onUpdateNotes,
   onUpdateName,
+  onDelete,
 }: {
   meal: MealView;
   pendingGlobal: boolean;
   openMealId: string | null;
+  canDelete: boolean;
   onToggleOpen: (mealId: string) => void;
   onAddItem: (mealId: string, foodId: string, quantityG: number) => void;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
   onUpdateNotes: (itemId: string, notes: string) => void;
   onUpdateName: (mealId: string, name: string) => void;
+  onDelete: (mealId: string) => void;
 }) {
   const {
     attributes,
@@ -342,6 +349,9 @@ function SortableMeal({
     setNameValue(meal.name);
     setEditingName(false);
   }
+
+  // Inline delete confirm
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -521,29 +531,68 @@ function SortableMeal({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onToggleOpen(meal.id)}
-            aria-expanded={isOpen}
-            className={
-              "inline-flex h-8 shrink-0 items-center gap-1 rounded-md px-3 text-tiny font-medium transition-all duration-fast active:scale-[0.98] " +
-              (isOpen
-                ? "border border-border-default bg-bg-surface text-text-primary hover:bg-bg-surface-hover"
-                : "bg-brand-primary text-white [box-shadow:var(--shadow-sm)] hover:bg-brand-primary-hover")
-            }
-          >
-            {isOpen ? (
-              <>
-                <X className="h-3.5 w-3.5" strokeWidth={2} />
-                Fechar
-              </>
-            ) : (
-              <>
-                <Plus className="h-3.5 w-3.5" strokeWidth={2} />
-                Adicionar
-              </>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onToggleOpen(meal.id)}
+              aria-expanded={isOpen}
+              className={
+                "inline-flex h-8 items-center gap-1 rounded-md px-3 text-tiny font-medium transition-all duration-fast active:scale-[0.98] " +
+                (isOpen
+                  ? "border border-border-default bg-bg-surface text-text-primary hover:bg-bg-surface-hover"
+                  : "bg-brand-primary text-white [box-shadow:var(--shadow-sm)] hover:bg-brand-primary-hover")
+              }
+            >
+              {isOpen ? (
+                <>
+                  <X className="h-3.5 w-3.5" strokeWidth={2} />
+                  Fechar
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                  Adicionar
+                </>
+              )}
+            </button>
+
+            {canDelete && !confirmingDelete && (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={pendingGlobal}
+                aria-label={`Excluir ${meal.name}`}
+                title="Excluir refeição"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted opacity-0 transition-all hover:bg-danger-bg hover:text-danger disabled:opacity-50 group-hover/meal:opacity-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+              </button>
             )}
-          </button>
+
+            {confirmingDelete && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-tiny text-text-secondary">Excluir?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    onDelete(meal.id);
+                  }}
+                  disabled={pendingGlobal}
+                  className="inline-flex items-center gap-1 rounded px-2 py-1 text-tiny font-medium bg-danger text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  Excluir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-tiny text-text-secondary hover:text-text-primary"
+                >
+                  <X className="h-3 w-3" strokeWidth={2} />
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Sortable items list */}
@@ -661,6 +710,12 @@ export function MealPlanEditor({ days }: Props) {
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
   const [dayLabelValue, setDayLabelValue] = useState("");
   const dayLabelInputRef = useRef<HTMLInputElement>(null);
+
+  // Add meal inline form
+  const [addingMealDayId, setAddingMealDayId] = useState<string | null>(null);
+  const [addMealName, setAddMealName] = useState("");
+  const [addMealTime, setAddMealTime] = useState("");
+  const addMealInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-dismiss error banner after 6 seconds
   useEffect(() => {
@@ -797,6 +852,33 @@ export function MealPlanEditor({ days }: Props) {
       const result = await updateMealNameAction({ mealId, name });
       if (!result.ok) {
         setErrorMsg(result.message ?? "Erro ao renomear refeição");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleDeleteMeal(mealId: string) {
+    startTransition(async () => {
+      const result = await deleteMealAction(mealId);
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao excluir refeição");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleAddMeal(dayId: string, name: string, scheduledTime: string) {
+    setAddingMealDayId(null);
+    startTransition(async () => {
+      const result = await addMealToDayAction({
+        mealPlanDayId: dayId,
+        name,
+        scheduledTime: scheduledTime || undefined,
+      });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao adicionar refeição");
         return;
       }
       router.refresh();
@@ -972,6 +1054,7 @@ export function MealPlanEditor({ days }: Props) {
                         meal={meal}
                         pendingGlobal={pending}
                         openMealId={openMealId}
+                        canDelete={day.meals.length > 1}
                         onToggleOpen={(id) =>
                           setOpenMealId((prev) => (prev === id ? null : id))
                         }
@@ -980,11 +1063,92 @@ export function MealPlanEditor({ days }: Props) {
                         onUpdateQuantity={handleUpdateQuantity}
                         onUpdateNotes={handleUpdateNotes}
                         onUpdateName={handleUpdateMealName}
+                        onDelete={handleDeleteMeal}
                       />
                     ))}
                   </div>
                 </SortableContext>
               </DndContext>
+
+              {/* Add meal inline form */}
+              {addingMealDayId === day.id ? (
+                <div className="border-t border-border-subtle bg-bg-subtle p-4">
+                  <p className="mb-2 text-tiny font-medium text-text-secondary">
+                    Nova refeição
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      ref={addMealInputRef}
+                      type="text"
+                      maxLength={80}
+                      placeholder="Nome (ex: Lanche da tarde)"
+                      value={addMealName}
+                      onChange={(e) => setAddMealName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (addMealName.trim())
+                            handleAddMeal(day.id, addMealName, addMealTime);
+                        }
+                        if (e.key === "Escape") {
+                          setAddingMealDayId(null);
+                          setAddMealName("");
+                          setAddMealTime("");
+                        }
+                      }}
+                      autoFocus
+                      className="h-8 flex-1 rounded-md border border-border-default bg-bg-surface px-3 text-body text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                    />
+                    <input
+                      type="time"
+                      value={addMealTime}
+                      onChange={(e) => setAddMealTime(e.target.value)}
+                      className="h-8 w-28 rounded-md border border-border-default bg-bg-surface px-2 text-body tabular-nums text-text-primary focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (addMealName.trim())
+                          handleAddMeal(day.id, addMealName, addMealTime);
+                      }}
+                      disabled={!addMealName.trim() || pending}
+                      className="inline-flex h-8 items-center gap-1 rounded-md bg-brand-primary px-3 text-tiny font-medium text-white disabled:opacity-50 hover:bg-brand-primary-hover"
+                    >
+                      <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                      Adicionar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddingMealDayId(null);
+                        setAddMealName("");
+                        setAddMealTime("");
+                      }}
+                      className="inline-flex h-8 items-center gap-1 rounded-md border border-border-default px-3 text-tiny text-text-secondary hover:bg-bg-surface-hover"
+                    >
+                      <X className="h-3.5 w-3.5" strokeWidth={2} />
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-t border-border-subtle px-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddMealName("");
+                      setAddMealTime("");
+                      setAddingMealDayId(day.id);
+                      setTimeout(() => addMealInputRef.current?.focus(), 20);
+                    }}
+                    disabled={pending}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-tiny text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-secondary disabled:pointer-events-none"
+                  >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    Adicionar refeição
+                  </button>
+                </div>
+              )}
             </section>
           );
         })}
