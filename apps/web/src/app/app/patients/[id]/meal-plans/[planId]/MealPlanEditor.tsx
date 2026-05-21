@@ -30,6 +30,7 @@ import {
   Pencil,
   Trash2,
   Clock,
+  Copy,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -43,6 +44,7 @@ import {
   deleteMealAction,
   addDayToMealPlanAction,
   deleteMealPlanDayAction,
+  duplicateMealPlanDayAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -989,6 +991,17 @@ export function MealPlanEditor({ planId, days }: Props) {
     });
   }
 
+  function handleDuplicateDay(dayId: string) {
+    startTransition(async () => {
+      const result = await duplicateMealPlanDayAction(dayId);
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao duplicar dia");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   function handleDeleteDay(dayId: string) {
     setConfirmingDeleteDayId(null);
     startTransition(async () => {
@@ -1122,6 +1135,18 @@ export function MealPlanEditor({ planId, days }: Props) {
                         · arraste para reordenar
                       </span>
                     )}
+
+                    {/* Duplicate day */}
+                    <button
+                      type="button"
+                      onClick={() => handleDuplicateDay(day.id)}
+                      disabled={pending}
+                      aria-label={`Duplicar ${day.dayLabel}`}
+                      title="Duplicar dia"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded text-text-muted opacity-0 transition-all hover:bg-bg-subtle hover:text-text-secondary disabled:opacity-50 group-hover/dayheader:opacity-100"
+                    >
+                      <Copy className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    </button>
 
                     {/* Delete day — guard: only when >1 day */}
                     {localDays.length > 1 &&

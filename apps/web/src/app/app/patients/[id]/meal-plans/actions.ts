@@ -865,3 +865,92 @@ export async function updateMealPlanMetaAction(input: {
     };
   }
 }
+
+/**
+ * Duplica um dia do plano alimentar (deep copy: meals → items).
+ * O novo dia é inserido no final com label "Cópia de {sourceLabel}".
+ * Snapshots de foodVersion + macros são preservados (Lock 15).
+ */
+export async function duplicateMealPlanDayAction(
+  dayId: string,
+): Promise<{ ok: boolean; newDayId?: string; message?: string }> {
+  if (!dayId) return { ok: false, message: "Dia inválido" };
+
+  try {
+    const newDayId = await withTenantAction(async ({ tx }) => {
+      // 1. Fetch source day with full meals+items tree (tenant-scoped via RLS)
+      const source = await tx.mealPlanDay.findFirst({
+        where: { id: dayId },
+        include: {
+          meals: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              items: { orderBy: { sortOrder: "asc" } },
+            },
+          },
+        },
+      });
+      if (!source) throw new Error("Dia não encontrado");
+
+      // 2. Count existing days to set sortOrder at the end
+      const count = await tx.mealPlanDay.count({
+        where: { mealPlanId: source.mealPlanId },
+      });
+
+      // 3. Create new day
+      const newDay = await tx.mealPlanDay.create({
+        data: {
+          mealPlanId: source.mealPlanId,
+          dayLabel: `Cópia de ${source.dayLabel}`,
+          sortOrder: count, // 0-indexed: append after last
+          notes: source.notes,
+        },
+      });
+
+      // 4. Deep copy meals + items
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const meal of source.meals as any[]) {
+        const newMeal = await tx.meal.create({
+          data: {
+            mealPlanDayId: newDay.id,
+            name: meal.name as string,
+            scheduledTime: meal.scheduledTime as string | null,
+            sortOrder: meal.sortOrder as number,
+            notes: meal.notes as string | null,
+          },
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const items = meal.items as any[];
+        if (items.length > 0) {
+          await tx.mealItem.createMany({
+            data: items.map((item) => ({
+              mealId: newMeal.id,
+              foodId: item.foodId as string,
+              foodVersion: item.foodVersion as number, // Lock 15 snapshot preserved
+              quantityG: item.quantityG,
+              preparationNotes: item.preparationNotes as string | null,
+              sortOrder: item.sortOrder as number,
+              kcal: item.kcal,
+              proteinG: item.proteinG,
+              carbG: item.carbG,
+              fatG: item.fatG,
+            })),
+          });
+        }
+      }
+
+      return newDay.id;
+    });
+
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true, newDayId };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao duplicar o dia",
+    };
+  }
+}
