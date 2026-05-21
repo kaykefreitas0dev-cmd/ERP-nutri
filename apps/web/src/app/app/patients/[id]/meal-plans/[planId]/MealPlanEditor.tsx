@@ -393,8 +393,14 @@ function SortableMeal({
   const [, itemTransition] = useTransition();
   const [localItems, setLocalItems] = useState(meal.items);
   const [foodQuery, setFoodQuery] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [foodResults, setFoodResults] = useState<
-    Array<{ id: string; name: string; source: string }>
+    Array<{
+      id: string;
+      name: string;
+      source: string;
+      kcalPer100g: { toString: () => string } | null;
+    }>
   >([]);
   const [searching, setSearching] = useState(false);
   const [quantityG, setQuantityG] = useState("100");
@@ -447,16 +453,20 @@ function SortableMeal({
     });
   }
 
-  async function handleSearchFoods(q: string) {
+  function handleSearchFoods(q: string) {
     setFoodQuery(q);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (q.length < 2) {
       setFoodResults([]);
+      setSearching(false);
       return;
     }
     setSearching(true);
-    const result = await searchFoodsAction({ query: q, limit: 10 });
-    if (result.ok && result.foods) setFoodResults(result.foods);
-    setSearching(false);
+    searchTimerRef.current = setTimeout(async () => {
+      const result = await searchFoodsAction({ query: q, limit: 10 });
+      if (result.ok && result.foods) setFoodResults(result.foods);
+      setSearching(false);
+    }, 300);
   }
 
   return (
@@ -740,13 +750,20 @@ function SortableMeal({
                         setQuantityG("100");
                       }}
                       disabled={pendingGlobal}
-                      className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
+                      className="flex w-full items-center justify-between gap-2 rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
                     >
-                      <span className="font-medium text-text-primary">
+                      <span className="min-w-0 flex-1 truncate font-medium text-text-primary">
                         {f.name}
                       </span>
-                      <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
-                        {f.source}
+                      <span className="flex shrink-0 items-center gap-2">
+                        {f.kcalPer100g != null && (
+                          <span className="tabular-nums text-tiny text-text-muted">
+                            {Math.round(Number(f.kcalPer100g))} kcal/100g
+                          </span>
+                        )}
+                        <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                          {f.source}
+                        </span>
                       </span>
                     </button>
                   </li>
