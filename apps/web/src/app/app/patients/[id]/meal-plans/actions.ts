@@ -472,6 +472,170 @@ export async function searchFoodsAction(input: {
   }
 }
 
+export async function searchRecipesAction(input: {
+  query: string;
+  limit?: number;
+}): Promise<{
+  ok: boolean;
+  recipes?: Array<{
+    id: string;
+    name: string;
+    servings: number;
+    totalKcal: string | null;
+    totalProteinG: string | null;
+    totalCarbG: string | null;
+    totalFatG: string | null;
+    ingredientCount: number;
+  }>;
+  message?: string;
+}> {
+  if (input.query.length < 2) return { ok: true, recipes: [] };
+
+  try {
+    const recipes = await withTenantAction(async ({ tx }) => {
+      return tx.recipe.findMany({
+        where: {
+          isActive: true,
+          name: { contains: input.query, mode: "insensitive" },
+        },
+        orderBy: { name: "asc" },
+        take: input.limit ?? 10,
+        select: {
+          id: true,
+          name: true,
+          servings: true,
+          totalKcal: true,
+          totalProteinG: true,
+          totalCarbG: true,
+          totalFatG: true,
+          _count: { select: { ingredients: true } },
+        },
+      });
+    });
+    return {
+      ok: true,
+      recipes: (
+        recipes as Array<{
+          id: string;
+          name: string;
+          servings: number;
+          totalKcal: { toString: () => string } | null;
+          totalProteinG: { toString: () => string } | null;
+          totalCarbG: { toString: () => string } | null;
+          totalFatG: { toString: () => string } | null;
+          _count: { ingredients: number };
+        }>
+      ).map((r) => ({
+        id: r.id,
+        name: r.name,
+        servings: r.servings,
+        totalKcal: r.totalKcal?.toString() ?? null,
+        totalProteinG: r.totalProteinG?.toString() ?? null,
+        totalCarbG: r.totalCarbG?.toString() ?? null,
+        totalFatG: r.totalFatG?.toString() ?? null,
+        ingredientCount: r._count.ingredients,
+      })),
+    };
+  } catch {
+    return { ok: false, message: "Erro na busca de receitas" };
+  }
+}
+
+export async function addRecipeToMealAction(input: {
+  mealId: string;
+  recipeId: string;
+}): Promise<{ ok: boolean; count?: number; message?: string }> {
+  try {
+    const count = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        // Verify recipe belongs to this org
+        const recipe = await tx.recipe.findFirst({
+          where: { id: input.recipeId, organizationId, isActive: true },
+          include: {
+            ingredients: {
+              orderBy: { sortOrder: "asc" },
+              include: {
+                food: {
+                  select: {
+                    id: true,
+                    version: true,
+                    kcalPer100g: true,
+                    proteinG: true,
+                    carbG: true,
+                    fatG: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (!recipe) throw new Error("Receita não encontrada");
+        if (recipe.ingredients.length === 0)
+          throw new Error("Receita não tem ingredientes");
+
+        // Get current max sortOrder in meal
+        const existing = await tx.mealItem.count({
+          where: { mealId: input.mealId },
+        });
+
+        // Create a MealItem for each recipe ingredient (preserves Lock 15 snapshot)
+        let idx = 0;
+        for (const ing of recipe.ingredients) {
+          const factor = ing.quantityG.toNumber() / 100;
+          const kcal = ing.food.kcalPer100g
+            ? Math.round(ing.food.kcalPer100g.toNumber() * factor * 100) / 100
+            : null;
+          const protein = ing.food.proteinG
+            ? Math.round(ing.food.proteinG.toNumber() * factor * 100) / 100
+            : null;
+          const carb = ing.food.carbG
+            ? Math.round(ing.food.carbG.toNumber() * factor * 100) / 100
+            : null;
+          const fat = ing.food.fatG
+            ? Math.round(ing.food.fatG.toNumber() * factor * 100) / 100
+            : null;
+
+          await tx.mealItem.create({
+            data: {
+              mealId: input.mealId,
+              foodId: ing.food.id,
+              foodVersion: ing.food.version, // Lock 15
+              quantityG: ing.quantityG,
+              preparationNotes: ing.notes ?? null,
+              sortOrder: existing + idx,
+              kcal,
+              proteinG: protein,
+              carbG: carb,
+              fatG: fat,
+            },
+          });
+          idx++;
+        }
+
+        await tx.$executeRaw`
+        SELECT audit.append_log(
+          ${organizationId}::uuid, ${userId}::uuid,
+          'nutritionist'::text, NULL::inet, NULL::text,
+          'meal_plan.add_recipe'::text, 'MealItem'::text,
+          ${input.mealId}::text, NULL::uuid,
+          ARRAY['mealId','recipeId']::text[],
+          ${JSON.stringify({ recipeId: input.recipeId, itemsAdded: recipe.ingredients.length })}::jsonb
+        )
+      `;
+
+        return recipe.ingredients.length;
+      },
+    );
+
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true, count };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
+  }
+}
+
 export async function updateMealPlanStatusAction(input: {
   mealPlanId: string;
   status: "DRAFT" | "ACTIVE" | "COMPLETED" | "REPLACED" | "ARCHIVED";
