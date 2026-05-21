@@ -30,6 +30,7 @@ import {
   Pencil,
   Trash2,
   Clock,
+  BookOpen,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -44,6 +45,8 @@ import {
   addDayToMealPlanAction,
   deleteMealPlanDayAction,
   searchFoodsAction,
+  searchRecipesAction,
+  addRecipeToMealAction,
   reorderMealItemsAction,
   reorderMealsAction,
 } from "../actions";
@@ -307,6 +310,7 @@ function SortableMeal({
   onUpdateName,
   onUpdateScheduledTime,
   onDelete,
+  onRefresh,
 }: {
   meal: MealView;
   pendingGlobal: boolean;
@@ -320,6 +324,7 @@ function SortableMeal({
   onUpdateName: (mealId: string, name: string) => void;
   onUpdateScheduledTime: (mealId: string, scheduledTime: string | null) => void;
   onDelete: (mealId: string) => void;
+  onRefresh: () => void;
 }) {
   const {
     attributes,
@@ -392,12 +397,28 @@ function SortableMeal({
 
   const [, itemTransition] = useTransition();
   const [localItems, setLocalItems] = useState(meal.items);
+  const [pickerTab, setPickerTab] = useState<"foods" | "recipes">("foods");
   const [foodQuery, setFoodQuery] = useState("");
   const [foodResults, setFoodResults] = useState<
     Array<{ id: string; name: string; source: string }>
   >([]);
   const [searching, setSearching] = useState(false);
   const [quantityG, setQuantityG] = useState("100");
+  // Recipe tab state
+  const [recipeQuery, setRecipeQuery] = useState("");
+  const [recipeResults, setRecipeResults] = useState<
+    Array<{
+      id: string;
+      name: string;
+      servings: number;
+      totalKcal: string | null;
+      ingredientCount: number;
+    }>
+  >([]);
+  const [searchingRecipes, setSearchingRecipes] = useState(false);
+  const [addingRecipe, setAddingRecipe] = useState(false);
+  const [recipeMsg, setRecipeMsg] = useState<string | null>(null);
+  const recipeMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync local items when server props change (add/remove)
   const prevItemsRef = useRef(meal.items);
@@ -457,6 +478,34 @@ function SortableMeal({
     const result = await searchFoodsAction({ query: q, limit: 10 });
     if (result.ok && result.foods) setFoodResults(result.foods);
     setSearching(false);
+  }
+
+  async function handleSearchRecipes(q: string) {
+    setRecipeQuery(q);
+    if (q.length < 2) {
+      setRecipeResults([]);
+      return;
+    }
+    setSearchingRecipes(true);
+    const result = await searchRecipesAction({ query: q, limit: 10 });
+    if (result.ok && result.recipes) setRecipeResults(result.recipes);
+    setSearchingRecipes(false);
+  }
+
+  async function handleAddRecipe(recipeId: string, recipeName: string) {
+    setAddingRecipe(true);
+    const result = await addRecipeToMealAction({ mealId: meal.id, recipeId });
+    setAddingRecipe(false);
+    if (result.ok) {
+      setRecipeQuery("");
+      setRecipeResults([]);
+      onToggleOpen(meal.id); // close the picker panel
+      onRefresh(); // re-fetch from server so localItems reflects new ingredients
+    } else {
+      if (recipeMsgTimerRef.current) clearTimeout(recipeMsgTimerRef.current);
+      setRecipeMsg(result.message ?? "Erro ao adicionar receita");
+      recipeMsgTimerRef.current = setTimeout(() => setRecipeMsg(null), 4_000);
+    }
   }
 
   return (
@@ -696,71 +745,189 @@ function SortableMeal({
         {/* Food picker */}
         {isOpen && (
           <div className="mt-3 rounded-md border border-brand-200 bg-brand-primary-bg p-3">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                <input
-                  type="search"
-                  placeholder="Buscar alimento (TACO, POF, receita)..."
-                  value={foodQuery}
-                  onChange={(e) => handleSearchFoods(e.target.value)}
-                  className="h-9 w-full rounded-sm border border-border-default bg-bg-surface pl-9 pr-3 text-body text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
-                  autoFocus
-                />
-              </div>
-              <input
-                type="number"
-                min="1"
-                max="5000"
-                value={quantityG}
-                onChange={(e) => setQuantityG(e.target.value)}
-                className="h-9 w-20 rounded-sm border border-border-default bg-bg-surface px-2 text-body tabular-nums focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
-                placeholder="g"
-              />
+            {/* Tab bar */}
+            <div className="mb-3 flex gap-1 rounded-md border border-border-default bg-bg-surface p-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setPickerTab("foods");
+                  setRecipeQuery("");
+                  setRecipeResults([]);
+                }}
+                className={
+                  "flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-tiny font-medium transition-all " +
+                  (pickerTab === "foods"
+                    ? "bg-brand-primary text-white [box-shadow:var(--shadow-xs)]"
+                    : "text-text-secondary hover:text-text-primary")
+                }
+              >
+                <Search className="h-3 w-3" strokeWidth={2} />
+                Alimentos
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPickerTab("recipes");
+                  setFoodQuery("");
+                  setFoodResults([]);
+                }}
+                className={
+                  "flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-tiny font-medium transition-all " +
+                  (pickerTab === "recipes"
+                    ? "bg-brand-primary text-white [box-shadow:var(--shadow-xs)]"
+                    : "text-text-secondary hover:text-text-primary")
+                }
+              >
+                <BookOpen className="h-3 w-3" strokeWidth={2} />
+                Receitas
+              </button>
             </div>
 
-            {searching && (
-              <p className="mt-2 text-tiny text-text-muted">Buscando…</p>
+            {/* Food search panel */}
+            {pickerTab === "foods" && (
+              <>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
+                    <input
+                      type="search"
+                      placeholder="Buscar alimento (TACO, POF, CUSTOM)..."
+                      value={foodQuery}
+                      onChange={(e) => handleSearchFoods(e.target.value)}
+                      className="h-9 w-full rounded-sm border border-border-default bg-bg-surface pl-9 pr-3 text-body text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                      autoFocus
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5000"
+                    value={quantityG}
+                    onChange={(e) => setQuantityG(e.target.value)}
+                    className="h-9 w-20 rounded-sm border border-border-default bg-bg-surface px-2 text-body tabular-nums focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                    placeholder="g"
+                  />
+                </div>
+
+                {searching && (
+                  <p className="mt-2 text-tiny text-text-muted">Buscando…</p>
+                )}
+
+                {foodResults.length > 0 && (
+                  <ul className="mt-2 max-h-60 space-y-1 overflow-y-auto">
+                    {foodResults.map((f) => (
+                      <li key={f.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onAddItem(meal.id, f.id, Number(quantityG));
+                            setFoodQuery("");
+                            setFoodResults([]);
+                            setQuantityG("100");
+                          }}
+                          disabled={pendingGlobal}
+                          className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
+                        >
+                          <span className="font-medium text-text-primary">
+                            {f.name}
+                          </span>
+                          <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
+                            {f.source}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {foodQuery.length >= 2 &&
+                  foodResults.length === 0 &&
+                  !searching && (
+                    <p className="mt-2 text-tiny text-text-muted">
+                      Nenhum alimento encontrado para &ldquo;{foodQuery}&rdquo;.
+                    </p>
+                  )}
+              </>
             )}
 
-            {foodResults.length > 0 && (
-              <ul className="mt-2 max-h-60 space-y-1 overflow-y-auto">
-                {foodResults.map((f) => (
-                  <li key={f.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onAddItem(meal.id, f.id, Number(quantityG));
-                        setFoodQuery("");
-                        setFoodResults([]);
-                        setQuantityG("100");
-                      }}
-                      disabled={pendingGlobal}
-                      className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
-                    >
-                      <span className="font-medium text-text-primary">
-                        {f.name}
-                      </span>
-                      <span className="text-tiny font-medium uppercase tracking-wider text-text-muted">
-                        {f.source}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* Recipe search panel */}
+            {pickerTab === "recipes" && (
+              <>
+                <div className="relative">
+                  <BookOpen
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
+                  <input
+                    type="search"
+                    placeholder="Buscar receita..."
+                    value={recipeQuery}
+                    onChange={(e) => handleSearchRecipes(e.target.value)}
+                    className="h-9 w-full rounded-sm border border-border-default bg-bg-surface pl-9 pr-3 text-body text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                    autoFocus
+                  />
+                </div>
 
-            {foodQuery.length >= 2 &&
-              foodResults.length === 0 &&
-              !searching && (
-                <p className="mt-2 text-tiny text-text-muted">
-                  Nenhum alimento encontrado para &ldquo;{foodQuery}&rdquo;.
+                <p className="mt-1.5 text-tiny text-text-muted">
+                  Todos os ingredientes da receita serão adicionados à refeição.
                 </p>
-              )}
+
+                {searchingRecipes && (
+                  <p className="mt-2 text-tiny text-text-muted">Buscando…</p>
+                )}
+
+                {recipeMsg && (
+                  <p className="mt-2 text-tiny font-medium text-danger">
+                    {recipeMsg}
+                  </p>
+                )}
+
+                {recipeResults.length > 0 && (
+                  <ul className="mt-2 max-h-60 space-y-1 overflow-y-auto">
+                    {recipeResults.map((r) => (
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => handleAddRecipe(r.id, r.name)}
+                          disabled={pendingGlobal || addingRecipe}
+                          className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
+                        >
+                          <div className="min-w-0">
+                            <span className="block truncate font-medium text-text-primary">
+                              {r.name}
+                            </span>
+                            <span className="text-tiny text-text-muted">
+                              {r.ingredientCount} ingrediente
+                              {r.ingredientCount !== 1 ? "s" : ""}
+                              {r.totalKcal
+                                ? ` · ${Math.round(parseFloat(r.totalKcal))} kcal`
+                                : ""}
+                            </span>
+                          </div>
+                          <span className="ml-2 shrink-0 text-tiny font-medium uppercase tracking-wider text-text-muted">
+                            Receita
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {recipeQuery.length >= 2 &&
+                  recipeResults.length === 0 &&
+                  !searchingRecipes && (
+                    <p className="mt-2 text-tiny text-text-muted">
+                      Nenhuma receita encontrada para &ldquo;{recipeQuery}
+                      &rdquo;.
+                    </p>
+                  )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -1219,6 +1386,9 @@ export function MealPlanEditor({ planId, days }: Props) {
                         onUpdateName={handleUpdateMealName}
                         onUpdateScheduledTime={handleUpdateMealScheduledTime}
                         onDelete={handleDeleteMeal}
+                        onRefresh={() =>
+                          startTransition(() => router.refresh())
+                        }
                       />
                     ))}
                   </div>
