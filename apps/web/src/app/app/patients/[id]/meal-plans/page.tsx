@@ -4,6 +4,15 @@ import { ChevronLeft, Target, Wallet, Utensils } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewMealPlanForm } from "./NewMealPlanForm";
 import { DuplicateMealPlanButton } from "./DuplicateMealPlanButton";
+import { MealPlanStatusActions } from "./MealPlanStatusActions";
+
+const STATUS_LABEL: Record<string, string> = {
+  DRAFT: "Rascunho",
+  ACTIVE: "Ativo",
+  COMPLETED: "Concluído",
+  REPLACED: "Substituído",
+  ARCHIVED: "Arquivado",
+};
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Planos alimentares" };
@@ -164,9 +173,21 @@ export default async function PatientMealPlansPage({ params }: Props) {
                               : "bg-bg-subtle text-text-secondary ring-border-subtle")
                         }
                       >
-                        {p.status}
+                        {STATUS_LABEL[p.status] ?? p.status}
                       </span>
                     </div>
+                    <MealPlanStatusActions
+                      planId={p.id}
+                      patientId={id}
+                      status={
+                        p.status as
+                          | "DRAFT"
+                          | "ACTIVE"
+                          | "COMPLETED"
+                          | "REPLACED"
+                          | "ARCHIVED"
+                      }
+                    />
                     <DuplicateMealPlanButton
                       planId={p.id}
                       patientId={id}
