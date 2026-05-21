@@ -263,6 +263,43 @@ export async function deleteMealAction(
   }
 }
 
+/**
+ * Updates the scheduledTime of a meal (HH:MM or null to clear).
+ */
+export async function updateMealScheduledTimeAction(input: {
+  mealId: string;
+  scheduledTime: string | null;
+}): Promise<{ ok: boolean; message?: string }> {
+  const time = input.scheduledTime?.trim() || null;
+  if (time && !/^\d{2}:\d{2}$/.test(time)) {
+    return { ok: false, message: "Horário inválido (use HH:MM)" };
+  }
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const meal = await tx.meal.findFirst({
+        where: { id: input.mealId },
+        select: { id: true },
+      });
+      if (!meal) throw new Error("Refeição não encontrada");
+
+      await tx.meal.update({
+        where: { id: input.mealId },
+        data: { scheduledTime: time },
+      });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao atualizar horário",
+    };
+  }
+}
+
 const UpdateItemQtySchema = z.object({
   itemId: z.string().uuid(),
   quantityG: z.coerce.number().positive().max(5000),
