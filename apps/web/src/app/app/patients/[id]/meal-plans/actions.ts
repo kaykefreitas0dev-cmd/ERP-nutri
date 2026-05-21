@@ -865,3 +865,406 @@ export async function updateMealPlanMetaAction(input: {
     };
   }
 }
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+
+/**
+ * Serialised structure stored in MealPlanTemplate.structure JSON.
+ * All IDs reference existing DB rows (foodId + foodVersion Lock-15
+ * snapshot) so templates can be cloned into new plans safely.
+ */
+interface TemplateItemData {
+  foodId: string;
+  foodVersion: number;
+  quantityG: number;
+  preparationNotes: string | null;
+  kcal: number | null;
+  proteinG: number | null;
+  carbG: number | null;
+  fatG: number | null;
+  sortOrder: number;
+}
+
+interface TemplateMealData {
+  name: string;
+  scheduledTime: string | null;
+  sortOrder: number;
+  items: TemplateItemData[];
+}
+
+interface TemplateDayData {
+  dayLabel: string;
+  sortOrder: number;
+  meals: TemplateMealData[];
+}
+
+interface TemplateStructure {
+  days: TemplateDayData[];
+  totalKcal?: number | null;
+}
+
+// ── Save plan as template ────────────────────────────────────
+
+export async function saveAsMealPlanTemplateAction(input: {
+  mealPlanId: string;
+  name: string;
+  description?: string;
+}): Promise<{ ok: boolean; templateId?: string; message?: string }> {
+  if (!input.name.trim() || input.name.trim().length < 2) {
+    return {
+      ok: false,
+      message: "Nome do modelo deve ter ao menos 2 caracteres",
+    };
+  }
+  if (input.name.trim().length > 120) {
+    return { ok: false, message: "Nome muito longo (máx. 120 caracteres)" };
+  }
+
+  try {
+    const templateId = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        // Fetch full plan structure (tenant-scoped via RLS)
+        const plan = await tx.mealPlan.findFirst({
+          where: { id: input.mealPlanId },
+          select: {
+            targetKcal: true,
+            days: {
+              orderBy: { sortOrder: "asc" },
+              select: {
+                dayLabel: true,
+                sortOrder: true,
+                meals: {
+                  orderBy: { sortOrder: "asc" },
+                  select: {
+                    name: true,
+                    scheduledTime: true,
+                    sortOrder: true,
+                    items: {
+                      orderBy: { sortOrder: "asc" },
+                      select: {
+                        foodId: true,
+                        foodVersion: true,
+                        quantityG: true,
+                        preparationNotes: true,
+                        kcal: true,
+                        proteinG: true,
+                        carbG: true,
+                        fatG: true,
+                        sortOrder: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (!plan) throw new Error("Plano não encontrado");
+
+        // Build structure JSON
+        let totalKcal = 0;
+        type PlanDay = {
+          dayLabel: string;
+          sortOrder: number;
+          meals: Array<{
+            name: string;
+            scheduledTime: string | null;
+            sortOrder: number;
+            items: Array<{
+              foodId: string;
+              foodVersion: number;
+              quantityG: { toNumber: () => number };
+              preparationNotes: string | null;
+              kcal: { toNumber: () => number } | null;
+              proteinG: { toNumber: () => number } | null;
+              carbG: { toNumber: () => number } | null;
+              fatG: { toNumber: () => number } | null;
+              sortOrder: number;
+            }>;
+          }>;
+        };
+        const days: TemplateDayData[] = (plan.days as PlanDay[]).map((d) => ({
+          dayLabel: d.dayLabel,
+          sortOrder: d.sortOrder,
+          meals: d.meals.map((m) => ({
+            name: m.name,
+            scheduledTime: m.scheduledTime,
+            sortOrder: m.sortOrder,
+            items: m.items.map((i) => {
+              const k = i.kcal?.toNumber() ?? null;
+              if (k) totalKcal += k;
+              return {
+                foodId: i.foodId,
+                foodVersion: i.foodVersion,
+                quantityG: i.quantityG.toNumber(),
+                preparationNotes: i.preparationNotes,
+                kcal: k,
+                proteinG: i.proteinG?.toNumber() ?? null,
+                carbG: i.carbG?.toNumber() ?? null,
+                fatG: i.fatG?.toNumber() ?? null,
+                sortOrder: i.sortOrder,
+              } satisfies TemplateItemData;
+            }),
+          })),
+        }));
+
+        const structure: TemplateStructure = {
+          days,
+          totalKcal: Math.round(totalKcal) || null,
+        };
+
+        const tpl = await tx.mealPlanTemplate.create({
+          data: {
+            organizationId,
+            createdByUserId: userId,
+            name: input.name.trim(),
+            description: input.description?.trim() || null,
+            targetKcal: plan.targetKcal,
+            structure,
+          },
+          select: { id: true },
+        });
+
+        await tx.$executeRaw`
+          SELECT audit.append_log(
+            ${organizationId}::uuid, ${userId}::uuid,
+            'nutritionist'::text, NULL::inet, NULL::text,
+            'meal_plan_template.create'::text,
+            'MealPlanTemplate'::text,
+            ${tpl.id}::text, NULL::uuid,
+            ARRAY['name','structure']::text[], '{}'::jsonb
+          )
+        `;
+
+        return tpl.id;
+      },
+    );
+
+    revalidatePath("/app/patients/[id]/meal-plans");
+    return { ok: true, templateId };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao salvar modelo",
+    };
+  }
+}
+
+// ── List org templates ───────────────────────────────────────
+
+export async function listMealPlanTemplatesAction(): Promise<{
+  ok: boolean;
+  templates?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    targetKcal: string | null;
+    usageCount: number;
+    dayCount: number;
+    totalKcal: number | null;
+  }>;
+  message?: string;
+}> {
+  try {
+    const templates = await withTenantAction(async ({ tx }) => {
+      return tx.mealPlanTemplate.findMany({
+        orderBy: [{ usageCount: "desc" }, { name: "asc" }],
+        take: 50,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          targetKcal: true,
+          usageCount: true,
+          structure: true,
+        },
+      });
+    });
+
+    return {
+      ok: true,
+      templates: (
+        templates as Array<{
+          id: string;
+          name: string;
+          description: string | null;
+          targetKcal: { toString: () => string } | null;
+          usageCount: number;
+          structure: unknown;
+        }>
+      ).map((t) => {
+        const s = t.structure as TemplateStructure | null;
+        const dayCount = s?.days?.length ?? 0;
+        const totalKcal = s?.totalKcal ?? null;
+        return {
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          targetKcal: t.targetKcal?.toString() ?? null,
+          usageCount: t.usageCount,
+          dayCount,
+          totalKcal,
+        };
+      }),
+    };
+  } catch {
+    return { ok: false, message: "Erro ao carregar modelos" };
+  }
+}
+
+// ── Create plan from template ────────────────────────────────
+
+const CreateFromTemplateSchema = z.object({
+  patientId: z.string().uuid(),
+  templateId: z.string().uuid(),
+  name: z.string().min(2).max(120).trim(),
+  targetKcal: z.coerce.number().min(600).max(6000).optional(),
+});
+
+export async function createMealPlanFromTemplateAction(
+  formData: FormData,
+): Promise<PlanActionResult> {
+  const raw = Object.fromEntries(formData.entries());
+  const parsed = CreateFromTemplateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Dados inválidos: " + parsed.error.issues[0]?.message,
+    };
+  }
+
+  const d = parsed.data;
+
+  try {
+    const mealPlanId = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        // Fetch template (tenant-scoped via RLS)
+        const tpl = await tx.mealPlanTemplate.findFirst({
+          where: { id: d.templateId, organizationId },
+          select: { structure: true, targetKcal: true },
+        });
+        if (!tpl) throw new Error("Modelo não encontrado");
+
+        const structure = tpl.structure as TemplateStructure;
+        if (!structure?.days?.length) {
+          throw new Error("Modelo sem estrutura de dias");
+        }
+
+        // Create plan
+        const plan = await tx.mealPlan.create({
+          data: {
+            organizationId,
+            patientId: d.patientId,
+            prescribedByUserId: userId,
+            name: d.name,
+            targetKcal: d.targetKcal ?? tpl.targetKcal ?? null,
+            status: "DRAFT",
+          },
+          select: { id: true },
+        });
+
+        // Clone days → meals → items
+        for (const dayData of structure.days) {
+          const day = await tx.mealPlanDay.create({
+            data: {
+              mealPlanId: plan.id,
+              dayLabel: dayData.dayLabel,
+              sortOrder: dayData.sortOrder,
+            },
+            select: { id: true },
+          });
+
+          for (const mealData of dayData.meals) {
+            const meal = await tx.meal.create({
+              data: {
+                mealPlanDayId: day.id,
+                name: mealData.name,
+                scheduledTime: mealData.scheduledTime,
+                sortOrder: mealData.sortOrder,
+              },
+              select: { id: true },
+            });
+
+            for (const itemData of mealData.items) {
+              await tx.mealItem.create({
+                data: {
+                  mealId: meal.id,
+                  foodId: itemData.foodId,
+                  foodVersion: itemData.foodVersion,
+                  quantityG: itemData.quantityG,
+                  preparationNotes: itemData.preparationNotes,
+                  kcal: itemData.kcal,
+                  proteinG: itemData.proteinG,
+                  carbG: itemData.carbG,
+                  fatG: itemData.fatG,
+                  sortOrder: itemData.sortOrder,
+                },
+              });
+            }
+          }
+        }
+
+        // Increment usage count
+        await tx.mealPlanTemplate.update({
+          where: { id: d.templateId },
+          data: { usageCount: { increment: 1 } },
+        });
+
+        await tx.$executeRaw`
+          SELECT audit.append_log(
+            ${organizationId}::uuid, ${userId}::uuid,
+            'nutritionist'::text, NULL::inet, NULL::text,
+            'meal_plan.create_from_template'::text,
+            'MealPlan'::text,
+            ${plan.id}::text, NULL::uuid,
+            ARRAY['templateId']::text[], ${JSON.stringify({ templateId: d.templateId })}::jsonb
+          )
+        `;
+
+        return plan.id;
+      },
+    );
+
+    revalidatePath(`/app/patients/${d.patientId}/meal-plans`);
+    return { ok: true, mealPlanId };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message:
+        err instanceof Error ? err.message : "Erro ao criar plano do modelo",
+    };
+  }
+}
+
+// ── Delete template ──────────────────────────────────────────
+
+export async function deleteMealPlanTemplateAction(input: {
+  templateId: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  try {
+    await withTenantAction(async ({ tx, organizationId }) => {
+      const tpl = await tx.mealPlanTemplate.findFirst({
+        where: { id: input.templateId, organizationId },
+        select: { id: true },
+      });
+      if (!tpl) throw new Error("Modelo não encontrado");
+      await tx.mealPlanTemplate.delete({ where: { id: input.templateId } });
+    });
+
+    revalidatePath("/app/patients/[id]/meal-plans");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao excluir modelo",
+    };
+  }
+}
