@@ -489,3 +489,41 @@ export async function reorderMealsAction(input: {
     return { ok: false, message: err instanceof Error ? err.message : "Erro" };
   }
 }
+
+/**
+ * Atualiza as notas de preparo de um MealItem.
+ * String vazia → null (remove as notas). Máx 500 caracteres.
+ */
+export async function updateMealItemNotesAction(input: {
+  itemId: string;
+  notes: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const notes = input.notes.trim();
+  if (notes.length > 500) {
+    return { ok: false, message: "Nota muito longa (máx. 500 caracteres)" };
+  }
+  if (!input.itemId) return { ok: false, message: "Item inválido" };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const item = await tx.mealItem.findFirst({
+        where: { id: input.itemId },
+        select: { id: true },
+      });
+      if (!item) throw new Error("Item não encontrado");
+
+      await tx.mealItem.update({
+        where: { id: input.itemId },
+        data: { preparationNotes: notes || null },
+      });
+    });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao salvar nota",
+    };
+  }
+}
