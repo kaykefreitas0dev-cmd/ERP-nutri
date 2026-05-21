@@ -2,8 +2,11 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Target } from "lucide-react";
-import { updateMealPlanMetaAction } from "../actions";
+import { Pencil, Target, FileText, Loader2 } from "lucide-react";
+import {
+  updateMealPlanMetaAction,
+  generateMealPlanPdfAction,
+} from "../actions";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Rascunho",
@@ -15,9 +18,11 @@ const STATUS_LABEL: Record<string, string> = {
 
 interface Props {
   planId: string;
+  patientId: string;
   initialName: string;
   initialTargetKcal: number | null;
   status: string;
+  hasItems: boolean;
 }
 
 /**
@@ -29,12 +34,19 @@ interface Props {
  */
 export function PlanHeaderEditable({
   planId,
+  patientId,
   initialName,
   initialTargetKcal,
   status,
+  hasItems,
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+
+  // PDF generation state
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [pdfDocId, setPdfDocId] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Plan name editing
   const [editingName, setEditingName] = useState(false);
@@ -110,6 +122,21 @@ export function PlanHeaderEditable({
   function cancelKcalEdit() {
     setKcalValue(localTargetKcal?.toString() ?? "");
     setEditingKcal(false);
+  }
+
+  async function handleGeneratePdf() {
+    setPdfError(null);
+    setGeneratingPdf(true);
+    const result = await generateMealPlanPdfAction({
+      mealPlanId: planId,
+      patientId,
+    });
+    setGeneratingPdf(false);
+    if (result.ok && result.documentId) {
+      setPdfDocId(result.documentId);
+    } else {
+      setPdfError(result.message ?? "Erro ao gerar PDF");
+    }
   }
 
   return (
@@ -232,6 +259,44 @@ export function PlanHeaderEditable({
             </button>
           )}
         </div>
+
+        {/* PDF generation */}
+        {hasItems && (
+          <div className="mt-2 flex items-center gap-2">
+            {pdfDocId ? (
+              <a
+                href={`/app/patients/${patientId}/documents/${pdfDocId}`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-success-border bg-success-bg px-3 py-1 text-tiny font-medium text-success transition-colors hover:opacity-80"
+              >
+                <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Ver documento PDF
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={handleGeneratePdf}
+                disabled={generatingPdf}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-1 text-tiny font-medium text-text-secondary transition-all hover:border-brand-primary hover:bg-brand-primary-bg hover:text-brand-primary disabled:opacity-50"
+              >
+                {generatingPdf ? (
+                  <>
+                    <Loader2
+                      className="h-3.5 w-3.5 animate-spin"
+                      strokeWidth={2}
+                    />
+                    Gerando PDF…
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Gerar PDF
+                  </>
+                )}
+              </button>
+            )}
+            {pdfError && <p className="text-tiny text-danger">{pdfError}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

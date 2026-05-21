@@ -127,11 +127,15 @@ export default async function MealPlanEditorPage({ params }: Props) {
         <header className="mt-3 flex flex-wrap items-start justify-between gap-4">
           <PlanHeaderEditable
             planId={planId}
+            patientId={id}
             initialName={data.plan.name}
             initialTargetKcal={
               data.plan.targetKcal ? Number(data.plan.targetKcal) : null
             }
             status={data.plan.status}
+            hasItems={data.plan.days.some((d) =>
+              d.meals.some((m) => m.items.length > 0),
+            )}
           />
 
           <div className="min-w-[280px] rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]">
