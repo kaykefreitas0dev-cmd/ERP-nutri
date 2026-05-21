@@ -300,6 +300,82 @@ export async function updateMealScheduledTimeAction(input: {
   }
 }
 
+/**
+ * Adiciona um novo dia ao plano alimentar.
+ * O rótulo padrão é "Dia N" onde N é o número de dias existentes + 1.
+ * O novo dia começa sem refeições — o nutricionista pode adicionar via UI.
+ */
+export async function addDayToMealPlanAction(input: {
+  mealPlanId: string;
+}): Promise<{ ok: boolean; dayId?: string; message?: string }> {
+  try {
+    const day = await withTenantAction(async ({ tx }) => {
+      const plan = await tx.mealPlan.findFirst({
+        where: { id: input.mealPlanId },
+        select: { id: true },
+      });
+      if (!plan) throw new Error("Plano não encontrado");
+
+      const count = await tx.mealPlanDay.count({
+        where: { mealPlanId: input.mealPlanId },
+      });
+
+      return tx.mealPlanDay.create({
+        data: {
+          mealPlanId: input.mealPlanId,
+          dayLabel: `Dia ${count + 1}`,
+          sortOrder: count,
+        },
+      });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true, dayId: day.id };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao adicionar dia",
+    };
+  }
+}
+
+/**
+ * Remove um dia do plano alimentar e cascateia para meals + items.
+ */
+export async function deleteMealPlanDayAction(
+  dayId: string,
+): Promise<{ ok: boolean; message?: string }> {
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const day = await tx.mealPlanDay.findFirst({
+        where: { id: dayId },
+        select: { id: true, mealPlanId: true },
+      });
+      if (!day) throw new Error("Dia não encontrado");
+
+      // Guard: must not be the last day
+      const count = await tx.mealPlanDay.count({
+        where: { mealPlanId: day.mealPlanId },
+      });
+      if (count <= 1) {
+        throw new Error("Não é possível remover o único dia do plano");
+      }
+
+      await tx.mealPlanDay.delete({ where: { id: dayId } });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao remover dia",
+    };
+  }
+}
+
 const UpdateItemQtySchema = z.object({
   itemId: z.string().uuid(),
   quantityG: z.coerce.number().positive().max(5000),

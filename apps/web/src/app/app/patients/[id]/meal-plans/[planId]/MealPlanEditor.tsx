@@ -41,6 +41,8 @@ import {
   updateMealScheduledTimeAction,
   addMealToDayAction,
   deleteMealAction,
+  addDayToMealPlanAction,
+  deleteMealPlanDayAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -767,7 +769,7 @@ function SortableMeal({
 }
 
 // ── Main editor ──────────────────────────────────────────────────────────────
-export function MealPlanEditor({ days }: Props) {
+export function MealPlanEditor({ planId, days }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [openMealId, setOpenMealId] = useState<string | null>(null);
@@ -785,6 +787,11 @@ export function MealPlanEditor({ days }: Props) {
   const [addMealName, setAddMealName] = useState("");
   const [addMealTime, setAddMealTime] = useState("");
   const addMealInputRef = useRef<HTMLInputElement>(null);
+
+  // Day-level actions
+  const [confirmingDeleteDayId, setConfirmingDeleteDayId] = useState<
+    string | null
+  >(null);
 
   // Auto-dismiss error banner after 6 seconds
   useEffect(() => {
@@ -971,6 +978,29 @@ export function MealPlanEditor({ days }: Props) {
     });
   }
 
+  function handleAddDay() {
+    startTransition(async () => {
+      const result = await addDayToMealPlanAction({ mealPlanId: planId });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao adicionar dia");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleDeleteDay(dayId: string) {
+    setConfirmingDeleteDayId(null);
+    startTransition(async () => {
+      const result = await deleteMealPlanDayAction(dayId);
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao remover dia");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   if (localDays.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
@@ -1012,7 +1042,7 @@ export function MealPlanEditor({ days }: Props) {
               key={day.id}
               className="rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]"
             >
-              <header className="border-b border-border-subtle bg-bg-subtle px-5 py-3">
+              <header className="group/dayheader border-b border-border-subtle bg-bg-subtle px-5 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 className="group/daylabel flex items-center gap-2 text-h3 font-semibold text-text-primary">
                     <CalendarDays
@@ -1092,6 +1122,44 @@ export function MealPlanEditor({ days }: Props) {
                         · arraste para reordenar
                       </span>
                     )}
+
+                    {/* Delete day — guard: only when >1 day */}
+                    {localDays.length > 1 &&
+                      (confirmingDeleteDayId === day.id ? (
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-tiny text-danger">
+                            Excluir dia?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDay(day.id)}
+                            disabled={pending}
+                            className="inline-flex items-center gap-0.5 rounded bg-danger px-2 py-0.5 text-tiny font-medium text-white hover:opacity-90 disabled:opacity-50"
+                          >
+                            Excluir
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingDeleteDayId(null)}
+                            disabled={pending}
+                            className="inline-flex items-center rounded p-0.5 text-text-muted hover:text-text-primary disabled:opacity-50"
+                            aria-label="Cancelar"
+                          >
+                            <X className="h-3.5 w-3.5" strokeWidth={2} />
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingDeleteDayId(day.id)}
+                          disabled={pending}
+                          aria-label={`Excluir ${day.dayLabel}`}
+                          title="Excluir dia"
+                          className="inline-flex h-6 w-6 items-center justify-center rounded text-text-muted opacity-0 transition-all hover:bg-danger-bg hover:text-danger disabled:opacity-50 group-hover/dayheader:opacity-100"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        </button>
+                      ))}
                   </div>
                 </div>
 
@@ -1239,6 +1307,19 @@ export function MealPlanEditor({ days }: Props) {
             </section>
           );
         })}
+      </div>
+
+      {/* Add day */}
+      <div className="pt-2">
+        <button
+          type="button"
+          onClick={handleAddDay}
+          disabled={pending}
+          className="inline-flex items-center gap-2 rounded-lg border border-dashed border-border-default px-4 py-2.5 text-tiny text-text-muted transition-colors hover:border-brand-primary hover:bg-brand-primary-bg hover:text-brand-primary disabled:pointer-events-none"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+          Adicionar dia
+        </button>
       </div>
     </div>
   );
