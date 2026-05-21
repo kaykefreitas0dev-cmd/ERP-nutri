@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #110-#113)
+last_updated: 2026-05-20 (autônomo cont. — PRs #115-#116)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -135,6 +135,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #111 | `cde20d5` | Chore — SPRINT_STATE.md atualizado (PRs #108-#109: notas de preparo inline, day label rename em CI)                                                                                                                                                                                                       |
 | #112 | `25713ea` | Feat(web) — renomear nome da refeição inline no editor de planos: nome clicável → input pré-preenchido, Enter/blur salva, Escape cancela, Pencil icon group/mealname-hover; updateMealNameAction (max 80 chars)                                                                                           |
 | #113 | `56d0e23` | Feat(web) — adicionar e deletar refeições dentro de um dia: addMealToDayAction (nome 1-80 chars + HH:MM opcional), deleteMealAction (cascade); SortableMeal com ghost Trash2 + confirmação inline (guard canDelete quando dia tem >1 refeição); formulário inline "+ Adicionar refeição" com Enter/Escape |
+| #114 | `b3ac03c` | Chore — SPRINT_STATE.md atualizado (PRs #110-#113: day label rename, sprint state, meal name rename, add/delete meals)                                                                                                                                                                                    |
+| #115 | `40c9257` | Feat(web) — editar horário da refeição inline: badge HH:MM clicável → time input, Enter/blur salva, Escape cancela; ghost Clock icon group-hover quando sem horário; updateMealScheduledTimeAction (HH:MM ou null para limpar)                                                                            |
+| #116 | `590fb5e` | Feat(web) — adicionar e deletar dias no plano alimentar: addDayToMealPlanAction (auto-label "Dia N"), deleteMealPlanDayAction (cascade + guard ≥2 dias); botão dashed "+ Adicionar dia" abaixo das seções; Trash2 ghost no header do dia (group/dayheader hover) + confirm inline                         |
 
 ---
 
@@ -203,6 +206,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Chore — SPRINT_STATE.md atualizado (PRs #108-#109) (PR #111)
 - [x] Feat(web) — Renomear nome da refeição inline no editor de planos: nome clicável → input pré-preenchido, Enter/blur salva, Escape cancela, Pencil icon group/mealname-hover; updateMealNameAction (max 80 chars) (PR #112)
 - [x] Feat(web) — Adicionar e deletar refeições dentro de um dia: addMealToDayAction + deleteMealAction (cascade); SortableMeal com Trash2 + confirm inline (canDelete guard ≥2 meals); formulário "+ Adicionar refeição" inline com Enter/Escape (PR #113)
+- [x] Chore — SPRINT_STATE.md atualizado (PRs #110-#113) (PR #114)
+- [x] Feat(web) — Editar horário da refeição inline: badge HH:MM clicável → time input, Enter/blur salva, Escape cancela; ghost Clock icon group-hover quando sem horário; updateMealScheduledTimeAction (PR #115)
+- [x] Feat(web) — Adicionar e deletar dias no plano alimentar: addDayToMealPlanAction (auto-label "Dia N") + deleteMealPlanDayAction (cascade + guard server-side ≥2); botão dashed "+ Adicionar dia"; Trash2 ghost no header com group/dayheader + confirm inline (PR #116)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -243,3 +249,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #103-#107 merged: SPRINT_STATE update, delete medição antropometria, duplicar plano alimentar (deep copy), ações status plano (Ativar/Concluir/Arquivar + PT-BR labels), editar quantidade item inline (recalcula macros)
 - 2026-05-20 (autônomo, cont.) — PR #108-#109 merged: SPRINT_STATE update, editar notas de preparo inline nos itens do plano (+ nota ghost btn, 500 chars max, null on empty)
 - 2026-05-20 (autônomo, cont.) — PR #110-#113 merged: day label rename inline (optimistic update), SPRINT_STATE update, meal name rename inline, add/delete meals (inline form + Trash2 confirm guard)
+- 2026-05-20 (autônomo, cont.) — PR #114-#116 merged: SPRINT_STATE update, meal scheduled time inline edit (Clock ghost + time input), add/delete plan days (dashed button + Trash2 header guard + server-side cascade guard)
