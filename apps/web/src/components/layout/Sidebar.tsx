@@ -7,6 +7,7 @@ import {
   Users,
   UserPlus,
   UtensilsCrossed,
+  BookOpen,
   Download,
   Wallet,
   Settings,
@@ -104,9 +105,10 @@ export function Sidebar() {
         <SidebarSection title="Ferramentas" />
         <SidebarItem
           href="/app/alimentos"
-          label="Alimentos & Receitas"
+          label="Alimentos"
           Icon={UtensilsCrossed}
         />
+        <SidebarItem href="/app/receitas" label="Receitas" Icon={BookOpen} />
         <SidebarItem
           href="/app/imports"
           label="Importar pacientes"
