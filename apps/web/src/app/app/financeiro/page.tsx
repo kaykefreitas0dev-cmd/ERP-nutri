@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { RegisterPaymentButton } from "./RegisterPaymentButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Financeiro — NutriCore" };
@@ -209,13 +210,18 @@ export default async function FinanceiroPage({ searchParams }: Props) {
             <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
             Dashboard
           </Link>
-          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
-            Financeiro
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Consultas realizadas e pagamentos registrados no período
-            selecionado.
-          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-h1 font-semibold tracking-tight text-text-primary">
+                Financeiro
+              </h1>
+              <p className="mt-1 text-caption text-text-secondary">
+                Consultas realizadas e pagamentos registrados no período
+                selecionado.
+              </p>
+            </div>
+            <RegisterPaymentButton />
+          </div>
         </header>
 
         {/* KPIs */}
@@ -373,8 +379,9 @@ export default async function FinanceiroPage({ searchParams }: Props) {
           </header>
           {data.payments.length === 0 ? (
             <p className="p-5 text-body text-text-muted">
-              Nenhum pagamento no período. Quando você concluir uma consulta com
-              recibo, ela aparecerá aqui.
+              Nenhum pagamento no período. Use o botão{" "}
+              <strong>Registrar pagamento</strong> ou conclua uma consulta na
+              agenda para que os pagamentos apareçam aqui.
             </p>
           ) : (
             <div className="overflow-x-auto">
