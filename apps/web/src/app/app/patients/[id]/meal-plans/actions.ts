@@ -1,8 +1,11 @@
 "use server";
 
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
+import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
 const DEFAULT_MEALS = [
   { name: "Café da manhã", time: "07:00" },
@@ -862,6 +865,277 @@ export async function updateMealPlanMetaAction(input: {
     return {
       ok: false,
       message: err instanceof Error ? err.message : "Erro ao atualizar o plano",
+    };
+  }
+}
+
+const DOC_BUCKET = "clinical-documents";
+
+const STATUS_LABEL_PT: Record<string, string> = {
+  DRAFT: "Rascunho",
+  ACTIVE: "Ativo",
+  COMPLETED: "Concluído",
+  REPLACED: "Substituído",
+  ARCHIVED: "Arquivado",
+};
+
+function fmt(n: number): string {
+  return n.toFixed(0);
+}
+
+/**
+ * Gera um ClinicalDocument do tipo PLANO_ALIMENTAR para o plano dado.
+ * Cria um snapshot do estado atual (days/meals/items com macros).
+ * Salva em Storage + ClinicalDocument + DigitalSignature.
+ */
+export async function generateMealPlanPdfAction(input: {
+  mealPlanId: string;
+  patientId: string;
+}): Promise<{ ok: boolean; documentId?: string; message?: string }> {
+  let pdfRender: { buffer: Buffer; sha256: string } | null = null;
+  let storageKey = "";
+  let docId = "";
+
+  try {
+    const result = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        // 1. Fetch plan with all data
+        const plan = await tx.mealPlan.findFirst({
+          where: {
+            id: input.mealPlanId,
+            patientId: input.patientId,
+            organizationId,
+          },
+          include: {
+            days: {
+              orderBy: { sortOrder: "asc" },
+              include: {
+                meals: {
+                  orderBy: { sortOrder: "asc" },
+                  include: {
+                    items: {
+                      orderBy: { sortOrder: "asc" },
+                      include: { food: { select: { name: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (!plan) throw new Error("Plano não encontrado");
+
+        // 2. Patient snapshot
+        const patient = await tx.patient.findFirst({
+          where: { id: input.patientId, organizationId },
+          select: { fullName: true, cpf: true },
+        });
+        if (!patient) throw new Error("Paciente não encontrado");
+
+        // 3. Issuer info (from BookingPage if configured, else from User profile)
+        const bookingPage = await tx.bookingPage.findFirst({
+          where: { professionalUserId: userId, organizationId },
+          select: { displayName: true, crn: true, crnUf: true },
+        });
+        const issuerName = bookingPage?.displayName ?? "Nutricionista";
+
+        // 4. Build bodyMarkdown from plan structure
+        const lines: string[] = [];
+        lines.push(`**${plan.name}**`);
+        const statusLabel = STATUS_LABEL_PT[plan.status] ?? plan.status;
+        const metaLine = plan.targetKcal
+          ? `Status: ${statusLabel} · Meta: ${fmt(Number(plan.targetKcal))} kcal/dia`
+          : `Status: ${statusLabel}`;
+        lines.push(metaLine);
+        lines.push("");
+
+        let grandKcal = 0,
+          grandP = 0,
+          grandC = 0,
+          grandF = 0;
+
+        for (const day of plan.days) {
+          lines.push(`**${day.dayLabel}**`);
+          lines.push("");
+
+          let dayKcal = 0,
+            dayP = 0,
+            dayC = 0,
+            dayF = 0;
+
+          for (const meal of day.meals) {
+            const timeStr = meal.scheduledTime
+              ? ` · ${meal.scheduledTime}`
+              : "";
+            lines.push(`**${meal.name}${timeStr}**`);
+
+            let mealKcal = 0,
+              mealP = 0,
+              mealC = 0,
+              mealF = 0;
+            for (const item of meal.items) {
+              const k = Number(item.kcal ?? 0);
+              const p = Number(item.proteinG ?? 0);
+              const c = Number(item.carbG ?? 0);
+              const f = Number(item.fatG ?? 0);
+              mealKcal += k;
+              mealP += p;
+              mealC += c;
+              mealF += f;
+              const macroStr = `${fmt(k)} kcal (PTN: ${fmt(p)}g / CHO: ${fmt(c)}g / LIP: ${fmt(f)}g)`;
+              lines.push(
+                `• ${item.food.name} · ${fmt(Number(item.quantityG))}g · ${macroStr}`,
+              );
+            }
+            if (meal.items.length > 1) {
+              lines.push(
+                `Subtotal: ${fmt(mealKcal)} kcal · PTN: ${fmt(mealP)}g · CHO: ${fmt(mealC)}g · LIP: ${fmt(mealF)}g`,
+              );
+            }
+            dayKcal += mealKcal;
+            dayP += mealP;
+            dayC += mealC;
+            dayF += mealF;
+            lines.push("");
+          }
+
+          if (plan.days.length > 1) {
+            lines.push(
+              `Total ${day.dayLabel}: ${fmt(dayKcal)} kcal · PTN: ${fmt(dayP)}g · CHO: ${fmt(dayC)}g · LIP: ${fmt(dayF)}g`,
+            );
+            lines.push("");
+          }
+          grandKcal += dayKcal;
+          grandP += dayP;
+          grandC += dayC;
+          grandF += dayF;
+        }
+
+        lines.push("---");
+        lines.push("");
+        lines.push("**Total do plano**");
+        lines.push(
+          `Energia: ${fmt(grandKcal)} kcal · Proteínas: ${fmt(grandP)}g · Carboidratos: ${fmt(grandC)}g · Lipídeos: ${fmt(grandF)}g`,
+        );
+        if (plan.targetKcal) {
+          const pct = Math.round((grandKcal / Number(plan.targetKcal)) * 100);
+          lines.push(
+            `Meta calórica: ${pct}% da meta (${fmt(Number(plan.targetKcal))} kcal/dia)`,
+          );
+        }
+
+        const bodyMarkdown = lines.join("\n");
+
+        // 5. Generate PDF
+        const issuedAt = new Date();
+        const secret = process.env.DOC_SIGNATURE_SECRET ?? "dev-mock-secret";
+        const signatureValue = createHash("sha256")
+          .update(
+            [
+              bodyMarkdown,
+              issuedAt.toISOString(),
+              bookingPage?.crn ?? "",
+              issuerName,
+              secret,
+            ].join("|"),
+          )
+          .digest("hex");
+
+        pdfRender = await renderClinicalDocumentPdf({
+          title: `Plano alimentar — ${plan.name}`,
+          documentType: "PLANO_ALIMENTAR",
+          issuerName,
+          issuerCrn: bookingPage?.crn ?? null,
+          issuerCrnUf: bookingPage?.crnUf ?? null,
+          patientNameSnapshot: patient.fullName,
+          patientCpfSnapshot: patient.cpf,
+          bodyMarkdown,
+          cids: [],
+          issuedAt,
+          validUntil: null,
+          signatureValue,
+        });
+
+        // 6. Create ClinicalDocument
+        const doc = await tx.clinicalDocument.create({
+          data: {
+            organizationId,
+            patientId: patient.id,
+            issuedByUserId: userId,
+            documentType: "PLANO_ALIMENTAR",
+            title: `Plano alimentar — ${plan.name}`,
+            bodyMarkdown,
+            issuerName,
+            issuerCrn: bookingPage?.crn ?? null,
+            issuerCrnUf: bookingPage?.crnUf ?? null,
+            patientNameSnapshot: patient.fullName,
+            patientCpfSnapshot: patient.cpf,
+            mealPlanId: plan.id,
+            status: "ISSUED",
+            issuedAt,
+            pdfHash: pdfRender.sha256,
+            pdfGeneratedAt: issuedAt,
+          },
+        });
+
+        const key = `${organizationId}/${patient.id}/${doc.id}.pdf`;
+        await tx.clinicalDocument.update({
+          where: { id: doc.id },
+          data: { pdfStorageKey: key },
+        });
+
+        await tx.digitalSignature.create({
+          data: {
+            documentId: doc.id,
+            signatureValue,
+            signedAt: issuedAt,
+            signerName: issuerName,
+            signerCrn: bookingPage?.crn ?? null,
+            signerCrnUf: bookingPage?.crnUf ?? null,
+            algorithm: "SHA256-MOCK",
+          },
+        });
+
+        await tx.$executeRaw`
+          SELECT audit.append_log(
+            ${organizationId}::uuid, ${userId}::uuid,
+            'nutritionist'::text, NULL::inet, NULL::text,
+            'clinical_document.issue'::text, 'ClinicalDocument'::text,
+            ${doc.id}::text, ${patient.id}::uuid,
+            ARRAY['status','pdfHash','mealPlanId']::text[],
+            ${JSON.stringify({ source: "meal_plan_export", mealPlanId: plan.id })}::jsonb
+          )
+        `;
+
+        return { documentId: doc.id, storageKey: key };
+      },
+    );
+
+    // 7. Upload PDF outside TX (non-fatal)
+    storageKey = result.storageKey;
+    docId = result.documentId;
+    const renderedPdf = pdfRender as { buffer: Buffer; sha256: string } | null;
+    if (renderedPdf && storageKey) {
+      const supabaseAdmin = createSupabaseServiceClient();
+      const { error: upErr } = await supabaseAdmin.storage
+        .from(DOC_BUCKET)
+        .upload(storageKey, renderedPdf.buffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+      if (upErr) {
+        console.error("[meal_plan_pdf] upload failed:", upErr.message);
+      }
+    }
+
+    revalidatePath(`/app/patients/${input.patientId}/documents`);
+    return { ok: true, documentId: docId };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao gerar PDF",
     };
   }
 }
