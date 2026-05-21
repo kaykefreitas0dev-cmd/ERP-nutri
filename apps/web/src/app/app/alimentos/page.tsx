@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { NewCustomFoodForm } from "./NewCustomFoodForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Biblioteca de Alimentos" };
@@ -92,8 +93,8 @@ export default async function FoodsPage({ searchParams }: Props) {
             Biblioteca de Alimentos
           </h1>
           <p className="mt-1 text-caption text-text-secondary tabular-nums">
-            {data.foods.length} alimentos · Fontes: TACO (UNICAMP), POF (IBGE),
-            suas receitas
+            {data.foods.length} alimento{data.foods.length !== 1 ? "s" : ""} ·
+            Fontes: TACO (UNICAMP), POF (IBGE), personalizados
           </p>
         </header>
 
@@ -126,7 +127,7 @@ export default async function FoodsPage({ searchParams }: Props) {
             <option value="TACO">TACO</option>
             <option value="POF">POF (IBGE)</option>
             <option value="USDA">USDA</option>
-            <option value="CUSTOM">Minhas receitas</option>
+            <option value="CUSTOM">Personalizados</option>
           </select>
           <button
             type="submit"
@@ -135,6 +136,11 @@ export default async function FoodsPage({ searchParams }: Props) {
             Filtrar
           </button>
         </form>
+
+        {/* Add custom food */}
+        <div className="mb-6">
+          <NewCustomFoodForm />
+        </div>
 
         {data.foods.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-12 text-center">
@@ -196,10 +202,16 @@ export default async function FoodsPage({ searchParams }: Props) {
                             ? "bg-brand-primary-bg text-brand-primary"
                             : f.source === "POF"
                               ? "bg-info-bg text-info"
-                              : "bg-bg-muted text-text-secondary"
+                              : f.source === "CUSTOM"
+                                ? "bg-success-bg text-success"
+                                : "bg-bg-muted text-text-secondary"
                         }`}
                       >
-                        {f.source}
+                        {f.source === "CUSTOM"
+                          ? "Personalizado"
+                          : f.source === "POF"
+                            ? "POF (IBGE)"
+                            : f.source}
                       </span>
                     </td>
                   </tr>
