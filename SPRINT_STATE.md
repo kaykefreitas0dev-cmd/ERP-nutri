@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #115-#116)
+last_updated: 2026-05-20 (autônomo cont. — PRs #118-#119)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -138,6 +138,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #114 | `b3ac03c` | Chore — SPRINT_STATE.md atualizado (PRs #110-#113: day label rename, sprint state, meal name rename, add/delete meals)                                                                                                                                                                                    |
 | #115 | `40c9257` | Feat(web) — editar horário da refeição inline: badge HH:MM clicável → time input, Enter/blur salva, Escape cancela; ghost Clock icon group-hover quando sem horário; updateMealScheduledTimeAction (HH:MM ou null para limpar)                                                                            |
 | #116 | `590fb5e` | Feat(web) — adicionar e deletar dias no plano alimentar: addDayToMealPlanAction (auto-label "Dia N"), deleteMealPlanDayAction (cascade + guard ≥2 dias); botão dashed "+ Adicionar dia" abaixo das seções; Trash2 ghost no header do dia (group/dayheader hover) + confirm inline                         |
+| #117 | `e32370c` | Chore — SPRINT_STATE.md atualizado (PRs #115-#116: meal time edit, add/delete days)                                                                                                                                                                                                                       |
+| #118 | `48840e1` | Feat(web) — Editar nome e meta calórica do plano inline no header: PlanHeaderEditable client component; nome H1 clicável → text input; meta kcal clicável → number input (null ao apagar); status badge PT-BR; updateMealPlanMetaAction (name 2-120 chars, targetKcal 600-6000 ou null)                   |
+| #119 | (open)    | Feat(web) — Busca alimentos: exibe kcal/100g no resultado; debounce 300ms (searchTimerRef); food name truncado min-w-0 flex-1; searchFoodsAction seleciona kcalPer100g                                                                                                                                    |
 
 ---
 
@@ -209,6 +212,9 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - [x] Chore — SPRINT_STATE.md atualizado (PRs #110-#113) (PR #114)
 - [x] Feat(web) — Editar horário da refeição inline: badge HH:MM clicável → time input, Enter/blur salva, Escape cancela; ghost Clock icon group-hover quando sem horário; updateMealScheduledTimeAction (PR #115)
 - [x] Feat(web) — Adicionar e deletar dias no plano alimentar: addDayToMealPlanAction (auto-label "Dia N") + deleteMealPlanDayAction (cascade + guard server-side ≥2); botão dashed "+ Adicionar dia"; Trash2 ghost no header com group/dayheader + confirm inline (PR #116)
+- [x] Chore — SPRINT_STATE.md atualizado (PRs #115-#116) (PR #117)
+- [x] Feat(web) — PlanHeaderEditable: nome H1 e meta kcal do plano editáveis inline no header do editor; optimistic update com revert; status badge PT-BR; updateMealPlanMetaAction (name 2-120 chars, targetKcal 600-6000 ou null) (PR #118)
+- [x] Feat(web) — Busca alimentos: kcal/100g exibida no resultado; debounce 300ms; food name truncado; searchFoodsAction seleciona kcalPer100g (PR #119)
 - [ ] Migration 023 aplicada (PM: Supabase Studio → `packages/db/prisma/migrations/post-prisma/023_s21_nps_feedback_rls.sql`)
 
 ---
@@ -250,3 +256,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #108-#109 merged: SPRINT_STATE update, editar notas de preparo inline nos itens do plano (+ nota ghost btn, 500 chars max, null on empty)
 - 2026-05-20 (autônomo, cont.) — PR #110-#113 merged: day label rename inline (optimistic update), SPRINT_STATE update, meal name rename inline, add/delete meals (inline form + Trash2 confirm guard)
 - 2026-05-20 (autônomo, cont.) — PR #114-#116 merged: SPRINT_STATE update, meal scheduled time inline edit (Clock ghost + time input), add/delete plan days (dashed button + Trash2 header guard + server-side cascade guard)
+- 2026-05-20 (autônomo, cont.) — PR #117-#118 merged: SPRINT_STATE update, plan header inline edit (nome + meta kcal + status PT-BR). PR #119 open: busca alimentos kcal/100g + debounce 300ms
