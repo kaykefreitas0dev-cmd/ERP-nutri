@@ -6,9 +6,11 @@ import {
   Palette,
   TriangleAlert,
   ChevronLeft,
+  UserCircle,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { OrgSettingsForm } from "./OrgSettingsForm";
+import { ProfessionalProfileForm } from "./ProfessionalProfileForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Configurações da organização" };
@@ -21,12 +23,20 @@ export default async function SettingsPage() {
       primaryColor: string | null;
       emailFromName: string | null;
     } | null;
+    bookingPage: {
+      slug: string;
+      displayName: string;
+      crn: string | null;
+      crnUf: string | null;
+      bio: string | null;
+      specialties: string[];
+    } | null;
     role: string;
   } | null = null;
 
   try {
     data = await withTenantAction(async ({ tx, organizationId, userId }) => {
-      const [org, branding, membership] = await Promise.all([
+      const [org, branding, membership, bookingPage] = await Promise.all([
         tx.organization.findUnique({
           where: { id: organizationId },
           select: { id: true, name: true, slug: true, plan: true },
@@ -43,9 +53,25 @@ export default async function SettingsPage() {
           where: { userId, organizationId },
           select: { role: true },
         }),
+        tx.bookingPage.findFirst({
+          where: { professionalUserId: userId, organizationId },
+          select: {
+            slug: true,
+            displayName: true,
+            crn: true,
+            crnUf: true,
+            bio: true,
+            specialties: true,
+          },
+        }),
       ]);
       if (!org) return null;
-      return { org, branding, role: membership?.role ?? "member" };
+      return {
+        org,
+        branding,
+        bookingPage: bookingPage ?? null,
+        role: membership?.role ?? "member",
+      };
     });
   } catch (err) {
     if (err instanceof ActionTenantError && err.code === "NO_ORG") {
@@ -172,6 +198,41 @@ export default async function SettingsPage() {
                 emailFromName: data.branding?.emailFromName ?? data.org.name,
               }}
               disabled={!canEdit}
+            />
+          </div>
+        </section>
+
+        {/* Professional profile */}
+        <section className="mt-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
+          <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+            <UserCircle
+              className="h-4 w-4 text-text-secondary"
+              strokeWidth={1.75}
+            />
+            Perfil profissional
+          </h2>
+          <p className="mt-1 text-caption text-text-secondary">
+            Nome, CRN e especialidades usados nos recibos, documentos clínicos e
+            página pública de agendamento.
+          </p>
+          {!data.bookingPage && (
+            <div className="mt-3 flex items-start gap-2 rounded-md border border-info-border bg-info-bg p-3 text-caption text-info">
+              <span>
+                Perfil não configurado. Preencha abaixo para que seu CRN apareça
+                nos recibos e documentos.
+              </span>
+            </div>
+          )}
+          <div className="mt-4">
+            <ProfessionalProfileForm
+              initial={{
+                displayName: data.bookingPage?.displayName ?? "",
+                crn: data.bookingPage?.crn ?? "",
+                crnUf: data.bookingPage?.crnUf ?? "",
+                bio: data.bookingPage?.bio ?? "",
+                specialtiesRaw: data.bookingPage?.specialties.join(", ") ?? "",
+                slug: data.bookingPage?.slug ?? null,
+              }}
             />
           </div>
         </section>
