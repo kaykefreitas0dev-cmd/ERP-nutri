@@ -808,3 +808,60 @@ export async function updateMealItemNotesAction(input: {
     };
   }
 }
+
+/**
+ * Updates the plan's name and/or targetKcal.
+ * Either field is optional — omit to leave unchanged.
+ */
+export async function updateMealPlanMetaAction(input: {
+  planId: string;
+  name?: string;
+  targetKcal?: number | null;
+}): Promise<{ ok: boolean; message?: string }> {
+  const name = input.name?.trim();
+  if (name !== undefined) {
+    if (!name || name.length < 2) {
+      return { ok: false, message: "Nome muito curto (mín. 2 caracteres)" };
+    }
+    if (name.length > 120) {
+      return { ok: false, message: "Nome muito longo (máx. 120 caracteres)" };
+    }
+  }
+  if (input.targetKcal !== undefined && input.targetKcal !== null) {
+    if (input.targetKcal < 600 || input.targetKcal > 6000) {
+      return {
+        ok: false,
+        message: "Meta calórica deve estar entre 600 e 6000 kcal",
+      };
+    }
+  }
+
+  const data: { name?: string; targetKcal?: number | null } = {};
+  if (name !== undefined) data.name = name;
+  if ("targetKcal" in input) data.targetKcal = input.targetKcal ?? null;
+  if (Object.keys(data).length === 0) return { ok: true };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const plan = await tx.mealPlan.findFirst({
+        where: { id: input.planId },
+        select: { id: true },
+      });
+      if (!plan) throw new Error("Plano não encontrado");
+
+      await tx.mealPlan.update({
+        where: { id: input.planId },
+        data,
+      });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao atualizar o plano",
+    };
+  }
+}
