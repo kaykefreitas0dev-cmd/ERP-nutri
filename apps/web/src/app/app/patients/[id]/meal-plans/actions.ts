@@ -533,6 +533,48 @@ export async function updateMealPlanDayLabelAction(input: {
 }
 
 /**
+ * Renomeia uma refeição dentro de um dia do plano alimentar.
+ * Máx 80 caracteres; string vazia não é aceita.
+ */
+export async function updateMealNameAction(input: {
+  mealId: string;
+  name: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const name = input.name.trim();
+  if (!name || name.length < 1) {
+    return { ok: false, message: "Nome não pode ser vazio" };
+  }
+  if (name.length > 80) {
+    return { ok: false, message: "Nome muito longo (máx. 80 caracteres)" };
+  }
+  if (!input.mealId) return { ok: false, message: "Refeição inválida" };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const meal = await tx.meal.findFirst({
+        where: { id: input.mealId },
+        select: { id: true },
+      });
+      if (!meal) throw new Error("Refeição não encontrada");
+
+      await tx.meal.update({
+        where: { id: input.mealId },
+        data: { name },
+      });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao renomear refeição",
+    };
+  }
+}
+
+/**
  * Atualiza as notas de preparo de um MealItem.
  * String vazia → null (remove as notas). Máx 500 caracteres.
  */
