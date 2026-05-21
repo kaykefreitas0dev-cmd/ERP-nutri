@@ -179,6 +179,74 @@ export async function removeMealItemAction(
   }
 }
 
+const UpdateItemQtySchema = z.object({
+  itemId: z.string().uuid(),
+  quantityG: z.coerce.number().positive().max(5000),
+});
+
+/**
+ * Recalculates macros from the current food snapshot and updates the item.
+ * Uses the snapshotted foodId to look up the food's per-100g values (Lock 15:
+ * macros are stored on MealItem but the food's kcal/protein/carb/fat values are
+ * used for recalculation — this is safe because the item still references the
+ * same foodId and version; only quantity changed).
+ */
+export async function updateMealItemQuantityAction(input: {
+  itemId: string;
+  quantityG: number;
+}): Promise<{ ok: boolean; message?: string }> {
+  const parsed = UpdateItemQtySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Quantidade inválida" };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      // Fetch item to get foodId
+      const item = await tx.mealItem.findFirst({
+        where: { id: parsed.data.itemId },
+        select: { id: true, foodId: true },
+      });
+      if (!item) throw new Error("Item não encontrado");
+
+      // Fetch current food macros for recalculation
+      const food = await tx.food.findFirst({
+        where: { id: item.foodId },
+        select: {
+          kcalPer100g: true,
+          proteinG: true,
+          carbG: true,
+          fatG: true,
+        },
+      });
+      if (!food) throw new Error("Alimento não encontrado");
+
+      const factor = parsed.data.quantityG / 100;
+      const kcal = food.kcalPer100g ? Number(food.kcalPer100g) * factor : null;
+      const protein = food.proteinG ? Number(food.proteinG) * factor : null;
+      const carb = food.carbG ? Number(food.carbG) * factor : null;
+      const fat = food.fatG ? Number(food.fatG) * factor : null;
+
+      await tx.mealItem.update({
+        where: { id: parsed.data.itemId },
+        data: {
+          quantityG: parsed.data.quantityG,
+          kcal: kcal ? Math.round(kcal * 100) / 100 : null,
+          proteinG: protein ? Math.round(protein * 100) / 100 : null,
+          carbG: carb ? Math.round(carb * 100) / 100 : null,
+          fatG: fat ? Math.round(fat * 100) / 100 : null,
+        },
+      });
+    });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao atualizar",
+    };
+  }
+}
+
 export async function searchFoodsAction(input: {
   query: string;
   limit?: number;

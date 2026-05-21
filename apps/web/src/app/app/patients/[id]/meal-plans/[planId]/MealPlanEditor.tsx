@@ -31,6 +31,7 @@ import {
 import {
   addMealItemAction,
   removeMealItemAction,
+  updateMealItemQuantityAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -72,10 +73,12 @@ function SortableMealItem({
   item,
   pending,
   onRemove,
+  onUpdateQuantity,
 }: {
   item: MealItemView;
   pending: boolean;
   onRemove: (id: string) => void;
+  onUpdateQuantity: (itemId: string, quantityG: number) => void;
 }) {
   const {
     attributes,
@@ -85,6 +88,36 @@ function SortableMealItem({
     transition,
     isDragging,
   } = useSortable({ id: item.id });
+
+  // Inline quantity editing
+  const [editingQty, setEditingQty] = useState(false);
+  const [qtyValue, setQtyValue] = useState(item.quantityG.toString());
+  const qtyInputRef = useRef<HTMLInputElement>(null);
+
+  function startEditing() {
+    setQtyValue(item.quantityG.toString());
+    setEditingQty(true);
+    // focus after render
+    setTimeout(() => qtyInputRef.current?.select(), 20);
+  }
+
+  function commitEdit() {
+    const n = parseFloat(qtyValue);
+    setEditingQty(false);
+    if (
+      !isNaN(n) &&
+      n > 0 &&
+      n <= 5000 &&
+      n !== parseFloat(item.quantityG.toString())
+    ) {
+      onUpdateQuantity(item.id, n);
+    }
+  }
+
+  function cancelEdit() {
+    setQtyValue(item.quantityG.toString());
+    setEditingQty(false);
+  }
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -119,10 +152,41 @@ function SortableMealItem({
       {/* Content */}
       <div className="min-w-0 flex-1">
         <span className="font-medium text-text-primary">{item.food.name}</span>
-        <span className="ml-2 text-caption text-text-muted tabular-nums">
-          {item.quantityG.toString()}g
-        </span>
-        {item.preparationNotes && (
+        {editingQty ? (
+          <input
+            ref={qtyInputRef}
+            type="number"
+            min={1}
+            max={5000}
+            step={1}
+            value={qtyValue}
+            onChange={(e) => setQtyValue(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commitEdit();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                cancelEdit();
+              }
+            }}
+            className="ml-1.5 w-16 rounded border border-brand-primary bg-bg-surface px-1.5 py-0.5 text-caption tabular-nums text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+            aria-label="Quantidade em gramas"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={startEditing}
+            disabled={pending}
+            title="Clique para editar a quantidade"
+            className="ml-2 rounded px-0.5 text-caption text-text-muted tabular-nums transition-colors hover:bg-bg-subtle hover:text-text-primary disabled:pointer-events-none"
+          >
+            {item.quantityG.toString()}g
+          </button>
+        )}
+        {item.preparationNotes && !editingQty && (
           <span className="ml-1 text-caption text-text-subtle">
             ({item.preparationNotes})
           </span>
@@ -156,6 +220,7 @@ function SortableMeal({
   onToggleOpen,
   onAddItem,
   onRemoveItem,
+  onUpdateQuantity,
 }: {
   meal: MealView;
   pendingGlobal: boolean;
@@ -163,6 +228,7 @@ function SortableMeal({
   onToggleOpen: (mealId: string) => void;
   onAddItem: (mealId: string, foodId: string, quantityG: number) => void;
   onRemoveItem: (itemId: string) => void;
+  onUpdateQuantity: (itemId: string, quantityG: number) => void;
 }) {
   const {
     attributes,
@@ -359,6 +425,7 @@ function SortableMeal({
                     item={item}
                     pending={pendingGlobal}
                     onRemove={(id) => onRemoveItem(id)}
+                    onUpdateQuantity={(id, qty) => onUpdateQuantity(id, qty)}
                   />
                 ))}
               </ul>
@@ -518,6 +585,17 @@ export function MealPlanEditor({ days }: Props) {
     });
   }
 
+  function handleUpdateQuantity(itemId: string, quantityG: number) {
+    startTransition(async () => {
+      const result = await updateMealItemQuantityAction({ itemId, quantityG });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao atualizar quantidade");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   if (localDays.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
@@ -657,6 +735,7 @@ export function MealPlanEditor({ days }: Props) {
                         }
                         onAddItem={handleAddItem}
                         onRemoveItem={handleRemoveItem}
+                        onUpdateQuantity={handleUpdateQuantity}
                       />
                     ))}
                   </div>
