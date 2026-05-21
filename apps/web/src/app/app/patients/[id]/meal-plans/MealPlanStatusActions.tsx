@@ -63,7 +63,7 @@ const STATUS_ACTIONS: Partial<Record<MealPlanStatus, ActionConfig[]>> = {
  * Buttons are hidden at rest (group-hover), revealed on hover.
  * Each button shows a one-step inline confirm before executing.
  */
-export function MealPlanStatusActions({ planId, patientId, status }: Props) {
+export function MealPlanStatusActions({ planId, status }: Props) {
   const router = useRouter();
   const [confirmingTarget, setConfirmingTarget] =
     useState<MealPlanStatus | null>(null);

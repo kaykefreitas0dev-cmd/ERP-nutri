@@ -32,6 +32,7 @@ import {
   addMealItemAction,
   removeMealItemAction,
   updateMealItemQuantityAction,
+  updateMealItemNotesAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -74,11 +75,13 @@ function SortableMealItem({
   pending,
   onRemove,
   onUpdateQuantity,
+  onUpdateNotes,
 }: {
   item: MealItemView;
   pending: boolean;
   onRemove: (id: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
+  onUpdateNotes: (itemId: string, notes: string) => void;
 }) {
   const {
     attributes,
@@ -93,6 +96,11 @@ function SortableMealItem({
   const [editingQty, setEditingQty] = useState(false);
   const [qtyValue, setQtyValue] = useState(item.quantityG.toString());
   const qtyInputRef = useRef<HTMLInputElement>(null);
+
+  // Inline notes editing
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState(item.preparationNotes ?? "");
+  const notesInputRef = useRef<HTMLInputElement>(null);
 
   function startEditing() {
     setQtyValue(item.quantityG.toString());
@@ -117,6 +125,29 @@ function SortableMealItem({
   function cancelEdit() {
     setQtyValue(item.quantityG.toString());
     setEditingQty(false);
+  }
+
+  function startNotesEdit() {
+    if (editingQty) return; // don't allow both at once
+    setNotesValue(item.preparationNotes ?? "");
+    setEditingNotes(true);
+    setTimeout(() => {
+      notesInputRef.current?.focus();
+      notesInputRef.current?.select();
+    }, 20);
+  }
+
+  function commitNotesEdit() {
+    const next = notesValue.trim();
+    setEditingNotes(false);
+    if (next !== (item.preparationNotes ?? "")) {
+      onUpdateNotes(item.id, next);
+    }
+  }
+
+  function cancelNotesEdit() {
+    setNotesValue(item.preparationNotes ?? "");
+    setEditingNotes(false);
   }
 
   const style: React.CSSProperties = {
@@ -186,11 +217,51 @@ function SortableMealItem({
             {item.quantityG.toString()}g
           </button>
         )}
-        {item.preparationNotes && !editingQty && (
-          <span className="ml-1 text-caption text-text-subtle">
-            ({item.preparationNotes})
-          </span>
-        )}
+        {!editingQty &&
+          (editingNotes ? (
+            <input
+              ref={notesInputRef}
+              type="text"
+              maxLength={500}
+              placeholder="Modo de preparo…"
+              value={notesValue}
+              onChange={(e) => setNotesValue(e.target.value)}
+              onBlur={commitNotesEdit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitNotesEdit();
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelNotesEdit();
+                }
+              }}
+              className="ml-1.5 w-36 rounded border border-brand-primary bg-bg-surface px-1.5 py-0.5 text-caption text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+              aria-label="Notas de preparo"
+            />
+          ) : item.preparationNotes ? (
+            <button
+              type="button"
+              onClick={startNotesEdit}
+              disabled={pending}
+              title="Clique para editar as notas de preparo"
+              className="ml-1 rounded px-0.5 text-caption text-text-subtle transition-colors hover:bg-bg-subtle hover:text-text-secondary disabled:pointer-events-none"
+            >
+              ({item.preparationNotes})
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={startNotesEdit}
+              disabled={pending}
+              title="Adicionar nota de preparo"
+              aria-label="Adicionar nota de preparo"
+              className="ml-1 rounded px-0.5 text-caption text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-bg-subtle hover:text-text-secondary disabled:pointer-events-none"
+            >
+              + nota
+            </button>
+          ))}
       </div>
 
       {/* Macros + remove */}
@@ -221,6 +292,7 @@ function SortableMeal({
   onAddItem,
   onRemoveItem,
   onUpdateQuantity,
+  onUpdateNotes,
 }: {
   meal: MealView;
   pendingGlobal: boolean;
@@ -229,6 +301,7 @@ function SortableMeal({
   onAddItem: (mealId: string, foodId: string, quantityG: number) => void;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
+  onUpdateNotes: (itemId: string, notes: string) => void;
 }) {
   const {
     attributes,
@@ -426,6 +499,7 @@ function SortableMeal({
                     pending={pendingGlobal}
                     onRemove={(id) => onRemoveItem(id)}
                     onUpdateQuantity={(id, qty) => onUpdateQuantity(id, qty)}
+                    onUpdateNotes={(id, notes) => onUpdateNotes(id, notes)}
                   />
                 ))}
               </ul>
@@ -596,6 +670,17 @@ export function MealPlanEditor({ days }: Props) {
     });
   }
 
+  function handleUpdateNotes(itemId: string, notes: string) {
+    startTransition(async () => {
+      const result = await updateMealItemNotesAction({ itemId, notes });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao salvar nota");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   if (localDays.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
@@ -736,6 +821,7 @@ export function MealPlanEditor({ days }: Props) {
                         onAddItem={handleAddItem}
                         onRemoveItem={handleRemoveItem}
                         onUpdateQuantity={handleUpdateQuantity}
+                        onUpdateNotes={handleUpdateNotes}
                       />
                     ))}
                   </div>
