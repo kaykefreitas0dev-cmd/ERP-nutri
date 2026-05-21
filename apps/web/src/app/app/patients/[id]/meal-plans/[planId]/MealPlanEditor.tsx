@@ -29,6 +29,7 @@ import {
   TriangleAlert,
   Pencil,
   Trash2,
+  Clock,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -37,6 +38,7 @@ import {
   updateMealItemNotesAction,
   updateMealPlanDayLabelAction,
   updateMealNameAction,
+  updateMealScheduledTimeAction,
   addMealToDayAction,
   deleteMealAction,
   searchFoodsAction,
@@ -301,6 +303,7 @@ function SortableMeal({
   onUpdateQuantity,
   onUpdateNotes,
   onUpdateName,
+  onUpdateScheduledTime,
   onDelete,
 }: {
   meal: MealView;
@@ -313,6 +316,7 @@ function SortableMeal({
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
   onUpdateNotes: (itemId: string, notes: string) => void;
   onUpdateName: (mealId: string, name: string) => void;
+  onUpdateScheduledTime: (mealId: string, scheduledTime: string | null) => void;
   onDelete: (mealId: string) => void;
 }) {
   const {
@@ -352,6 +356,30 @@ function SortableMeal({
 
   // Inline delete confirm
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  // Inline scheduled time editing
+  const [editingTime, setEditingTime] = useState(false);
+  const [timeValue, setTimeValue] = useState(meal.scheduledTime ?? "");
+  const timeInputRef = useRef<HTMLInputElement>(null);
+
+  function startTimeEdit() {
+    setTimeValue(meal.scheduledTime ?? "");
+    setEditingTime(true);
+    setTimeout(() => timeInputRef.current?.focus(), 20);
+  }
+
+  function commitTimeEdit() {
+    const next = timeValue.trim() || null;
+    setEditingTime(false);
+    if (next !== meal.scheduledTime) {
+      onUpdateScheduledTime(meal.id, next);
+    }
+  }
+
+  function cancelTimeEdit() {
+    setTimeValue(meal.scheduledTime ?? "");
+    setEditingTime(false);
+  }
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -496,10 +524,51 @@ function SortableMeal({
                     />
                   </button>
                 )}
-                {meal.scheduledTime && (
-                  <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-tiny font-medium text-text-secondary tabular-nums">
+                {editingTime ? (
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    value={timeValue}
+                    onChange={(e) => setTimeValue(e.target.value)}
+                    onBlur={commitTimeEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitTimeEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelTimeEdit();
+                      }
+                    }}
+                    className="h-6 w-28 rounded border border-brand-primary bg-bg-surface px-1.5 text-tiny tabular-nums text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                    aria-label="Horário da refeição"
+                  />
+                ) : meal.scheduledTime ? (
+                  <button
+                    type="button"
+                    onClick={startTimeEdit}
+                    disabled={pendingGlobal}
+                    title="Clique para editar o horário"
+                    className="inline-flex items-center gap-0.5 rounded-full bg-bg-subtle px-2 py-0.5 text-tiny font-medium text-text-secondary tabular-nums transition-colors hover:bg-bg-surface-hover hover:text-text-primary disabled:pointer-events-none"
+                  >
                     {meal.scheduledTime}
-                  </span>
+                    <Pencil
+                      className="h-2.5 w-2.5 opacity-0 transition-opacity group-hover/mealname:opacity-70"
+                      strokeWidth={1.75}
+                    />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startTimeEdit}
+                    disabled={pendingGlobal}
+                    title="Definir horário"
+                    aria-label="Definir horário da refeição"
+                    className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-tiny text-text-muted opacity-0 transition-all hover:bg-bg-subtle hover:text-text-secondary disabled:pointer-events-none group-hover/mealname:opacity-100"
+                  >
+                    <Clock className="h-3 w-3" strokeWidth={1.75} />
+                  </button>
                 )}
               </h3>
               {localItems.length > 0 ? (
@@ -858,6 +927,23 @@ export function MealPlanEditor({ days }: Props) {
     });
   }
 
+  function handleUpdateMealScheduledTime(
+    mealId: string,
+    scheduledTime: string | null,
+  ) {
+    startTransition(async () => {
+      const result = await updateMealScheduledTimeAction({
+        mealId,
+        scheduledTime,
+      });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao atualizar horário");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   function handleDeleteMeal(mealId: string) {
     startTransition(async () => {
       const result = await deleteMealAction(mealId);
@@ -1063,6 +1149,7 @@ export function MealPlanEditor({ days }: Props) {
                         onUpdateQuantity={handleUpdateQuantity}
                         onUpdateNotes={handleUpdateNotes}
                         onUpdateName={handleUpdateMealName}
+                        onUpdateScheduledTime={handleUpdateMealScheduledTime}
                         onDelete={handleDeleteMeal}
                       />
                     ))}
