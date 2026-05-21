@@ -27,12 +27,14 @@ import {
   X,
   Search,
   TriangleAlert,
+  Pencil,
 } from "lucide-react";
 import {
   addMealItemAction,
   removeMealItemAction,
   updateMealItemQuantityAction,
   updateMealItemNotesAction,
+  updateMealPlanDayLabelAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -591,6 +593,11 @@ export function MealPlanEditor({ days }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Day label inline editing
+  const [editingDayId, setEditingDayId] = useState<string | null>(null);
+  const [dayLabelValue, setDayLabelValue] = useState("");
+  const dayLabelInputRef = useRef<HTMLInputElement>(null);
+
   // Auto-dismiss error banner after 6 seconds
   useEffect(() => {
     if (!errorMsg) return;
@@ -681,6 +688,46 @@ export function MealPlanEditor({ days }: Props) {
     });
   }
 
+  function startDayLabelEdit(day: DayView) {
+    setDayLabelValue(day.dayLabel);
+    setEditingDayId(day.id);
+    setTimeout(() => {
+      dayLabelInputRef.current?.select();
+    }, 20);
+  }
+
+  function commitDayLabelEdit(dayId: string) {
+    const originalDay = localDays.find((d) => d.id === dayId);
+    const next = dayLabelValue.trim();
+    setEditingDayId(null);
+    if (!next || !originalDay || next === originalDay.dayLabel) return;
+
+    // Optimistic local update
+    setLocalDays((prev) =>
+      prev.map((d) => (d.id === dayId ? { ...d, dayLabel: next } : d)),
+    );
+
+    startTransition(async () => {
+      const result = await updateMealPlanDayLabelAction({
+        dayId,
+        dayLabel: next,
+      });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao renomear o dia");
+        // Revert optimistic update
+        setLocalDays((prev) =>
+          prev.map((d) =>
+            d.id === dayId ? { ...d, dayLabel: originalDay.dayLabel } : d,
+          ),
+        );
+      }
+    });
+  }
+
+  function cancelDayLabelEdit() {
+    setEditingDayId(null);
+  }
+
   if (localDays.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
@@ -724,12 +771,47 @@ export function MealPlanEditor({ days }: Props) {
             >
               <header className="border-b border-border-subtle bg-bg-subtle px-5 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+                  <h2 className="group/daylabel flex items-center gap-2 text-h3 font-semibold text-text-primary">
                     <CalendarDays
-                      className="h-4 w-4 text-text-muted"
+                      className="h-4 w-4 shrink-0 text-text-muted"
                       strokeWidth={1.75}
                     />
-                    {day.dayLabel}
+                    {editingDayId === day.id ? (
+                      <input
+                        ref={dayLabelInputRef}
+                        type="text"
+                        maxLength={60}
+                        value={dayLabelValue}
+                        onChange={(e) => setDayLabelValue(e.target.value)}
+                        onBlur={() => commitDayLabelEdit(day.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            commitDayLabelEdit(day.id);
+                          }
+                          if (e.key === "Escape") {
+                            e.preventDefault();
+                            cancelDayLabelEdit();
+                          }
+                        }}
+                        className="rounded border border-brand-primary bg-bg-surface px-2 py-0.5 text-h3 font-semibold text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                        aria-label="Rótulo do dia"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startDayLabelEdit(day)}
+                        disabled={pending}
+                        title="Clique para renomear o dia"
+                        className="flex items-center gap-1 rounded px-0.5 transition-colors hover:bg-bg-subtle disabled:pointer-events-none"
+                      >
+                        {day.dayLabel}
+                        <Pencil
+                          className="h-3 w-3 text-text-muted opacity-0 transition-opacity group-hover/daylabel:opacity-100"
+                          strokeWidth={1.75}
+                        />
+                      </button>
+                    )}
                   </h2>
 
                   <div className="flex flex-wrap items-center gap-2">

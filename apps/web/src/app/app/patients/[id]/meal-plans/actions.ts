@@ -491,6 +491,48 @@ export async function reorderMealsAction(input: {
 }
 
 /**
+ * Renomeia o rótulo de um dia do plano alimentar (ex: "Dia 1" → "Segunda-feira").
+ * Máx 60 caracteres; string vazia não é aceita.
+ */
+export async function updateMealPlanDayLabelAction(input: {
+  dayId: string;
+  dayLabel: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const label = input.dayLabel.trim();
+  if (!label || label.length < 1) {
+    return { ok: false, message: "Rótulo não pode ser vazio" };
+  }
+  if (label.length > 60) {
+    return { ok: false, message: "Rótulo muito longo (máx. 60 caracteres)" };
+  }
+  if (!input.dayId) return { ok: false, message: "Dia inválido" };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const day = await tx.mealPlanDay.findFirst({
+        where: { id: input.dayId },
+        select: { id: true },
+      });
+      if (!day) throw new Error("Dia não encontrado");
+
+      await tx.mealPlanDay.update({
+        where: { id: input.dayId },
+        data: { dayLabel: label },
+      });
+    });
+    revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao renomear o dia",
+    };
+  }
+}
+
+/**
  * Atualiza as notas de preparo de um MealItem.
  * String vazia → null (remove as notas). Máx 500 caracteres.
  */
