@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Activity,
   Flame,
+  ClipboardList,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -89,6 +90,12 @@ export default async function PatientDetailPage({ params }: Props) {
       longestStreak: number;
       totalCheckins: number;
       lastCheckinDate: Date | null;
+    } | null;
+    activeMealPlan: {
+      id: string;
+      name: string;
+      targetKcal: { toString: () => string } | null;
+      _count: { days: number };
     } | null;
   } | null = null;
 
@@ -172,38 +179,50 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      // Última medição de antropometria + streak de check-ins (paralelo)
-      const [lastAnthropometry, checkinStreak] = await Promise.all([
-        tx.anthropometry.findFirst({
-          where: { patientId: p.id },
-          orderBy: { measuredAt: "desc" },
-          select: {
-            measuredAt: true,
-            weightKg: true,
-            heightCm: true,
-            bodyMassIndex: true,
-            bodyFatPctCalc: true,
-            basalMetabolismMifflin: true,
-          },
-        }),
-        p.userId
-          ? tx.userHealthStreak.findUnique({
-              where: { userId: p.userId },
-              select: {
-                currentStreak: true,
-                longestStreak: true,
-                totalCheckins: true,
-                lastCheckinDate: true,
-              },
-            })
-          : Promise.resolve(null),
-      ]);
+      // Última medição de antropometria + streak de check-ins + plano ativo (paralelo)
+      const [lastAnthropometry, checkinStreak, activeMealPlan] =
+        await Promise.all([
+          tx.anthropometry.findFirst({
+            where: { patientId: p.id },
+            orderBy: { measuredAt: "desc" },
+            select: {
+              measuredAt: true,
+              weightKg: true,
+              heightCm: true,
+              bodyMassIndex: true,
+              bodyFatPctCalc: true,
+              basalMetabolismMifflin: true,
+            },
+          }),
+          p.userId
+            ? tx.userHealthStreak.findUnique({
+                where: { userId: p.userId },
+                select: {
+                  currentStreak: true,
+                  longestStreak: true,
+                  totalCheckins: true,
+                  lastCheckinDate: true,
+                },
+              })
+            : Promise.resolve(null),
+          tx.mealPlan.findFirst({
+            where: { patientId: p.id, status: "ACTIVE" },
+            orderBy: { updatedAt: "desc" },
+            select: {
+              id: true,
+              name: true,
+              targetKcal: true,
+              _count: { select: { days: true } },
+            },
+          }),
+        ]);
 
       return {
         ...p,
         upcomingAppointments: [...upcoming, ...past],
         lastAnthropometry: lastAnthropometry ?? null,
         checkinStreak: checkinStreak ?? null,
+        activeMealPlan: activeMealPlan ?? null,
       };
     });
   } catch (err) {
@@ -412,6 +431,67 @@ export default async function PatientDetailPage({ params }: Props) {
                 </div>
               )}
             </Section>
+
+            {/* Plano alimentar em vigor */}
+            {patient.activeMealPlan ? (
+              <Section title="Plano em vigor">
+                <Link
+                  href={`/app/patients/${patient.id}/meal-plans/${patient.activeMealPlan.id}`}
+                  className="group flex items-start gap-3 rounded-md border border-brand-200 bg-brand-primary-bg p-3 transition-colors hover:border-brand-primary/50 hover:bg-brand-primary-bg"
+                >
+                  <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-primary/10 text-brand-primary">
+                    <ClipboardList className="h-4 w-4" strokeWidth={1.75} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-body font-semibold text-text-primary group-hover:text-brand-primary">
+                      {patient.activeMealPlan.name}
+                    </p>
+                    <p className="mt-0.5 text-tiny text-text-muted tabular-nums">
+                      {patient.activeMealPlan._count.days}{" "}
+                      {patient.activeMealPlan._count.days === 1
+                        ? "dia"
+                        : "dias"}
+                      {patient.activeMealPlan.targetKcal != null && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          {Math.round(
+                            Number(patient.activeMealPlan.targetKcal),
+                          )}{" "}
+                          kcal/dia
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <ChevronRight
+                    className="mt-0.5 h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-brand-primary"
+                    strokeWidth={1.75}
+                  />
+                </Link>
+                <Link
+                  href={`/app/patients/${patient.id}/meal-plans`}
+                  className="mt-2 inline-flex items-center gap-1 text-tiny text-brand-primary transition-colors hover:text-brand-primary-hover"
+                >
+                  <Utensils className="h-3 w-3" strokeWidth={1.75} />
+                  Ver todos os planos
+                  <ChevronRight className="h-3 w-3" strokeWidth={2} />
+                </Link>
+              </Section>
+            ) : (
+              <Section title="Plano em vigor">
+                <p className="text-caption text-text-muted">
+                  Nenhum plano ativo.
+                </p>
+                <Link
+                  href={`/app/patients/${patient.id}/meal-plans`}
+                  className="mt-2 inline-flex items-center gap-1 text-tiny text-brand-primary transition-colors hover:text-brand-primary-hover"
+                >
+                  <ClipboardList className="h-3 w-3" strokeWidth={1.75} />
+                  Criar plano
+                  <ChevronRight className="h-3 w-3" strokeWidth={2} />
+                </Link>
+              </Section>
+            )}
 
             <Section title="Contato">
               <dl className="space-y-2.5 text-body">
