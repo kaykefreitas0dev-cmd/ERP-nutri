@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MealPlanEditor } from "./MealPlanEditor";
+import { PlanHeaderEditable } from "./PlanHeaderEditable";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Editor plano alimentar" };
@@ -124,29 +125,14 @@ export default async function MealPlanEditorPage({ params }: Props) {
         </Link>
 
         <header className="mt-3 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-              Plano alimentar
-            </p>
-            <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
-              {data.plan.name}
-            </h1>
-            <p className="mt-1 inline-flex items-center gap-2 text-caption text-text-secondary">
-              {data.patient.fullName}
-              <span
-                className={
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset " +
-                  (data.plan.status === "ACTIVE"
-                    ? "bg-success-bg text-success ring-success-border"
-                    : data.plan.status === "DRAFT"
-                      ? "bg-warning-bg text-warning ring-warning-border"
-                      : "bg-bg-subtle text-text-secondary ring-border-subtle")
-                }
-              >
-                {data.plan.status}
-              </span>
-            </p>
-          </div>
+          <PlanHeaderEditable
+            planId={planId}
+            initialName={data.plan.name}
+            initialTargetKcal={
+              data.plan.targetKcal ? Number(data.plan.targetKcal) : null
+            }
+            status={data.plan.status}
+          />
 
           <div className="min-w-[280px] rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]">
             <div className="flex items-baseline justify-between">
