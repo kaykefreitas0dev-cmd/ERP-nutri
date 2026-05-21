@@ -35,6 +35,7 @@ import {
   updateMealItemQuantityAction,
   updateMealItemNotesAction,
   updateMealPlanDayLabelAction,
+  updateMealNameAction,
   searchFoodsAction,
   reorderMealItemsAction,
   reorderMealsAction,
@@ -295,6 +296,7 @@ function SortableMeal({
   onRemoveItem,
   onUpdateQuantity,
   onUpdateNotes,
+  onUpdateName,
 }: {
   meal: MealView;
   pendingGlobal: boolean;
@@ -304,6 +306,7 @@ function SortableMeal({
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
   onUpdateNotes: (itemId: string, notes: string) => void;
+  onUpdateName: (mealId: string, name: string) => void;
 }) {
   const {
     attributes,
@@ -313,6 +316,32 @@ function SortableMeal({
     transition,
     isDragging,
   } = useSortable({ id: meal.id });
+
+  // Inline meal name editing
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(meal.name);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  function startNameEdit() {
+    setNameValue(meal.name);
+    setEditingName(true);
+    setTimeout(() => {
+      nameInputRef.current?.select();
+    }, 20);
+  }
+
+  function commitNameEdit() {
+    const next = nameValue.trim();
+    setEditingName(false);
+    if (next && next !== meal.name) {
+      onUpdateName(meal.id, next);
+    }
+  }
+
+  function cancelNameEdit() {
+    setNameValue(meal.name);
+    setEditingName(false);
+  }
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -417,11 +446,46 @@ function SortableMeal({
             </button>
 
             <div className="min-w-0 flex-1">
-              <h3 className="flex flex-wrap items-center gap-2 text-body font-semibold text-text-primary">
+              <h3 className="group/mealname flex flex-wrap items-center gap-2 text-body font-semibold text-text-primary">
                 <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-primary-bg text-brand-primary">
                   <UtensilsCrossed className="h-3.5 w-3.5" strokeWidth={1.75} />
                 </span>
-                {meal.name}
+                {editingName ? (
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    maxLength={80}
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    onBlur={commitNameEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitNameEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelNameEdit();
+                      }
+                    }}
+                    className="rounded border border-brand-primary bg-bg-surface px-2 py-0.5 text-body font-semibold text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                    aria-label="Nome da refeição"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startNameEdit}
+                    disabled={pendingGlobal}
+                    title="Clique para renomear a refeição"
+                    className="flex items-center gap-1 rounded px-0.5 transition-colors hover:bg-bg-subtle disabled:pointer-events-none"
+                  >
+                    {meal.name}
+                    <Pencil
+                      className="h-3 w-3 text-text-muted opacity-0 transition-opacity group-hover/mealname:opacity-100"
+                      strokeWidth={1.75}
+                    />
+                  </button>
+                )}
                 {meal.scheduledTime && (
                   <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-tiny font-medium text-text-secondary tabular-nums">
                     {meal.scheduledTime}
@@ -728,6 +792,17 @@ export function MealPlanEditor({ days }: Props) {
     setEditingDayId(null);
   }
 
+  function handleUpdateMealName(mealId: string, name: string) {
+    startTransition(async () => {
+      const result = await updateMealNameAction({ mealId, name });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao renomear refeição");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   if (localDays.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border-default p-12 text-center text-text-muted">
@@ -904,6 +979,7 @@ export function MealPlanEditor({ days }: Props) {
                         onRemoveItem={handleRemoveItem}
                         onUpdateQuantity={handleUpdateQuantity}
                         onUpdateNotes={handleUpdateNotes}
+                        onUpdateName={handleUpdateMealName}
                       />
                     ))}
                   </div>
