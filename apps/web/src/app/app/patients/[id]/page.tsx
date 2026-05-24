@@ -15,6 +15,11 @@ import {
   ChevronRight,
   Activity,
   Flame,
+  Banknote,
+  CreditCard,
+  Smartphone,
+  Landmark,
+  HelpCircle,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -90,6 +95,14 @@ export default async function PatientDetailPage({ params }: Props) {
       totalCheckins: number;
       lastCheckinDate: Date | null;
     } | null;
+    recentPayments: Array<{
+      id: string;
+      amountCents: number;
+      externalPaymentMethod: string | null;
+      paymentDate: Date;
+      status: string;
+    }>;
+    paymentTotalCents: number;
   } | null = null;
 
   try {
@@ -172,8 +185,13 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      // Última medição de antropometria + streak de check-ins (paralelo)
-      const [lastAnthropometry, checkinStreak] = await Promise.all([
+      // Última medição + streak + pagamentos (paralelo)
+      const [
+        lastAnthropometry,
+        checkinStreak,
+        recentPayments,
+        paymentAggregate,
+      ] = await Promise.all([
         tx.anthropometry.findFirst({
           where: { patientId: p.id },
           orderBy: { measuredAt: "desc" },
@@ -197,6 +215,28 @@ export default async function PatientDetailPage({ params }: Props) {
               },
             })
           : Promise.resolve(null),
+        tx.patientPayment.findMany({
+          where: {
+            patientId: p.id,
+            status: { in: ["PAID", "EXTERNAL_RECORDED"] },
+          },
+          orderBy: { paymentDate: "desc" },
+          take: 3,
+          select: {
+            id: true,
+            amountCents: true,
+            externalPaymentMethod: true,
+            paymentDate: true,
+            status: true,
+          },
+        }),
+        tx.patientPayment.aggregate({
+          where: {
+            patientId: p.id,
+            status: { in: ["PAID", "EXTERNAL_RECORDED"] },
+          },
+          _sum: { amountCents: true },
+        }),
       ]);
 
       return {
@@ -204,6 +244,8 @@ export default async function PatientDetailPage({ params }: Props) {
         upcomingAppointments: [...upcoming, ...past],
         lastAnthropometry: lastAnthropometry ?? null,
         checkinStreak: checkinStreak ?? null,
+        recentPayments,
+        paymentTotalCents: paymentAggregate._sum.amountCents ?? 0,
       };
     });
   } catch (err) {
@@ -676,6 +718,59 @@ export default async function PatientDetailPage({ params }: Props) {
               </Link>
             </Section>
 
+            {/* Financeiro */}
+            <Section title="Financeiro">
+              <div className="flex items-baseline justify-between">
+                <p className="text-tiny text-text-muted">Total recebido</p>
+                <p className="text-body font-semibold tabular-nums text-text-primary">
+                  {formatCents(patient.paymentTotalCents)}
+                </p>
+              </div>
+              {patient.recentPayments.length === 0 ? (
+                <p className="mt-2 text-caption text-text-muted">
+                  Nenhum pagamento registrado ainda.
+                </p>
+              ) : (
+                <ul className="mt-2 space-y-1.5">
+                  {patient.recentPayments.map((pay) => {
+                    const MethodIcon = paymentMethodIcon(
+                      pay.externalPaymentMethod,
+                    );
+                    return (
+                      <li
+                        key={pay.id}
+                        className="flex items-center justify-between gap-2 text-tiny"
+                      >
+                        <span className="flex items-center gap-1.5 text-text-secondary">
+                          <MethodIcon
+                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                            strokeWidth={1.75}
+                            aria-label={
+                              pay.externalPaymentMethod ?? "Pagamento"
+                            }
+                          />
+                          {new Date(pay.paymentDate).toLocaleDateString(
+                            "pt-BR",
+                          )}
+                        </span>
+                        <span className="font-medium tabular-nums text-text-primary">
+                          {formatCents(pay.amountCents)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <Link
+                href={`/app/agenda?patientId=${patient.id}`}
+                className="mt-3 inline-flex items-center gap-1 text-tiny text-brand-primary transition-colors hover:text-brand-primary-hover"
+              >
+                <Calendar className="h-3 w-3" strokeWidth={1.75} />
+                Agendar + registrar pagamento
+                <ChevronRight className="h-3 w-3" strokeWidth={2} />
+              </Link>
+            </Section>
+
             {patient.notes && (
               <Section title="Notas administrativas">
                 <p className="whitespace-pre-wrap text-body text-text-primary">
@@ -712,6 +807,29 @@ export default async function PatientDetailPage({ params }: Props) {
       </div>
     </main>
   );
+}
+
+function formatCents(cents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function paymentMethodIcon(method: string | null) {
+  switch (method) {
+    case "PIX":
+      return Smartphone;
+    case "CARD_EXTERNAL":
+      return CreditCard;
+    case "CASH":
+      return Banknote;
+    case "BANK_TRANSFER":
+      return Landmark;
+    default:
+      return HelpCircle;
+  }
 }
 
 function Section({

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Flame,
   Droplets,
@@ -114,9 +115,17 @@ export default async function CheckinPage() {
       {/* Histórico últimos 7 dias */}
       {last7.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Últimos check-ins
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+              Últimos check-ins
+            </h2>
+            <Link
+              href="/app/checkin/historico"
+              className="text-tiny font-medium text-brand-primary hover:underline"
+            >
+              Ver histórico completo →
+            </Link>
+          </div>
           <ul className="mt-2 space-y-1">
             {last7.map((c) => {
               const MoodIcon = c.mood ? MOOD_ICONS[c.mood - 1] : null;
