@@ -7,6 +7,7 @@ import {
   Users,
   UserPlus,
   UtensilsCrossed,
+  LayoutTemplate,
   Download,
   Wallet,
   Settings,
@@ -106,6 +107,11 @@ export function Sidebar() {
           href="/app/alimentos"
           label="Alimentos & Receitas"
           Icon={UtensilsCrossed}
+        />
+        <SidebarItem
+          href="/app/modelos"
+          label="Modelos de plano"
+          Icon={LayoutTemplate}
         />
         <SidebarItem
           href="/app/imports"
