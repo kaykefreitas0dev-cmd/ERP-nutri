@@ -1,11 +1,23 @@
 "use server";
 
+// Server Actions de Documentos Clínicos (CFN 599/2018 + Lei 13.787/2018)
+//
+// CORREÇÃO QA Rodada 4:
+//   #38 — DOC_SIGNATURE_SECRET obrigatório em prod (não usa fallback inseguro)
+//   #39 — appendAuditLog helper em vez de raw $executeRaw (3 ocorrências)
+//   #40+#44 — defense-in-depth: where clause inclui organizationId
+//   #41+#42 — searchCids rate limit + maxLength input
+//   #47 — assinatura usa HMAC-SHA256 (não hash com secret prefix)
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
+import { headers } from "next/headers";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+import { appendAuditLog } from "@nutricore/db/audit";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const DOC_BUCKET = "clinical-documents";
 
@@ -13,6 +25,26 @@ export interface DocActionResult {
   ok: boolean;
   message?: string;
   documentId?: string;
+}
+
+/** CORREÇÃO QA #38: secret deve ser explicitamente setado em prod.
+ * Sem isso, todas as "assinaturas" emitidas seriam forjáveis por qualquer
+ * pessoa com acesso ao código-fonte (= público no MVP open-source-friendly). */
+function getDocSecret(): string {
+  const secret = process.env.DOC_SIGNATURE_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "DOC_SIGNATURE_SECRET missing or too short (min 32 chars)",
+      );
+    }
+    // Dev only — warn loud
+    console.warn(
+      "[clinical-documents] WARNING: DOC_SIGNATURE_SECRET not configured. Using insecure dev placeholder.",
+    );
+    return "dev-only-do-not-use-in-production-min-32-chars";
+  }
+  return secret;
 }
 
 // -------- CREATE (rascunho) --------
@@ -62,11 +94,26 @@ export async function createDocumentAction(
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #40: explicit organizationId check (defense-in-depth).
         const patient = await tx.patient.findFirst({
-          where: { id: d.patientId },
+          where: { id: d.patientId, organizationId },
           select: { id: true, fullName: true, cpf: true },
         });
-        if (!patient) throw new Error("Paciente não encontrado");
+        if (!patient)
+          throw new Error("Paciente não encontrado nesta organização");
+
+        // Se mealPlanId fornecido, validar que pertence à mesma org/paciente.
+        if (d.mealPlanId) {
+          const mp = await tx.mealPlan.findFirst({
+            where: {
+              id: d.mealPlanId,
+              organizationId,
+              patientId: d.patientId,
+            },
+            select: { id: true },
+          });
+          if (!mp) throw new Error("Plano alimentar inválido");
+        }
 
         const user = await tx.user.findFirst({
           where: { id: userId },
@@ -104,16 +151,18 @@ export async function createDocumentAction(
           });
         }
 
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'clinical_document.create'::text, 'ClinicalDocument'::text,
-            ${doc.id}::text, ${d.patientId}::uuid,
-            ARRAY['documentType','title']::text[],
-            '{}'::jsonb
-          )
-        `;
+        // CORREÇÃO QA #39: appendAuditLog helper (parameter binding correto).
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "clinical_document.create",
+          entityType: "ClinicalDocument",
+          entityId: doc.id,
+          patientId: d.patientId,
+          fieldsAccessed: ["documentType", "title"],
+          payload: { documentType: d.documentType },
+        });
 
         return doc;
       },
@@ -132,14 +181,24 @@ export async function createDocumentAction(
 export async function issueDocumentAction(
   documentId: string,
 ): Promise<DocActionResult> {
+  // CORREÇÃO QA #39 (UUID validation antes do withTenantAction)
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      documentId,
+    )
+  ) {
+    return { ok: false, message: "documentId inválido" };
+  }
+
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #44: organizationId explícito no where.
         const doc = await tx.clinicalDocument.findFirst({
-          where: { id: documentId },
+          where: { id: documentId, organizationId },
           include: { cidCodes: { include: { cid: true } } },
         });
-        if (!doc) throw new Error("Documento não encontrado");
+        if (!doc) throw new Error("Documento não encontrado nesta organização");
         if (doc.status !== "DRAFT") {
           throw new Error(
             `Status atual ${doc.status} — não pode ser emitido novamente`,
@@ -151,7 +210,6 @@ export async function issueDocumentAction(
 
         const issuedAt = new Date();
 
-        // 1. Render PDF (sem assinatura ainda) — só para obter hash do conteúdo
         const cidsForPdf = doc.cidCodes.map(
           (c: { cid: { code: string; description: string } }) => ({
             code: c.cid.code,
@@ -159,21 +217,22 @@ export async function issueDocumentAction(
           }),
         );
 
-        // 2. Gerar signature mock (SHA-256(bodyMarkdown + issuedAt + crn + secret))
-        const secret = process.env.DOC_SIGNATURE_SECRET ?? "dev-mock-secret";
-        const signatureValue = createHash("sha256")
+        // CORREÇÃO QA #47: HMAC-SHA256 (não hash com secret prefix).
+        // Hash(secret || data) vulnerável a length-extension; HMAC é o
+        // construct correto para autenticação de mensagem com chave secreta.
+        const secret = getDocSecret();
+        const signatureValue = createHmac("sha256", secret)
           .update(
             [
               doc.bodyMarkdown,
               issuedAt.toISOString(),
               doc.issuerCrn ?? "",
               doc.issuerName,
-              secret,
+              doc.id,
             ].join("|"),
           )
           .digest("hex");
 
-        // 3. Render PDF final com assinatura
         const { buffer, sha256 } = await renderClinicalDocumentPdf({
           title: doc.title,
           documentType: doc.documentType,
@@ -189,7 +248,6 @@ export async function issueDocumentAction(
           signatureValue,
         });
 
-        // 4. Upload Supabase Storage (bucket privado)
         const supabaseAdmin = createSupabaseServiceClient();
         const storageKey = `${organizationId}/${doc.patientId}/${doc.id}.pdf`;
         const { error: upErr } = await supabaseAdmin.storage
@@ -200,7 +258,6 @@ export async function issueDocumentAction(
           });
         if (upErr) throw new Error(`Upload PDF falhou: ${upErr.message}`);
 
-        // 5. Atualizar documento → ISSUED + hash + storage key
         await tx.clinicalDocument.update({
           where: { id: doc.id },
           data: {
@@ -212,7 +269,6 @@ export async function issueDocumentAction(
           },
         });
 
-        // 6. Persistir signature
         await tx.digitalSignature.create({
           data: {
             documentId: doc.id,
@@ -221,20 +277,21 @@ export async function issueDocumentAction(
             signerName: doc.issuerName,
             signerCrn: doc.issuerCrn,
             signerCrnUf: doc.issuerCrnUf,
-            algorithm: "SHA256-MOCK",
+            algorithm: "HMAC-SHA256-MOCK",
           },
         });
 
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'clinical_document.issue'::text, 'ClinicalDocument'::text,
-            ${doc.id}::text, ${doc.patientId}::uuid,
-            ARRAY['status','pdfHash','signatureValue']::text[],
-            ${JSON.stringify({ pdfHash: sha256 })}::jsonb
-          )
-        `;
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "clinical_document.issue",
+          entityType: "ClinicalDocument",
+          entityId: doc.id,
+          patientId: doc.patientId,
+          fieldsAccessed: ["status", "pdfHash", "signatureValue"],
+          payload: { pdfHash: sha256 },
+        });
 
         return doc;
       },
@@ -255,17 +312,25 @@ export async function revokeDocumentAction(
   documentId: string,
   reason: string,
 ): Promise<DocActionResult> {
-  if (!reason || reason.trim().length < 3) {
-    return { ok: false, message: "Motivo obrigatório (mínimo 3 chars)" };
+  if (!reason || reason.trim().length < 3 || reason.length > 500) {
+    return { ok: false, message: "Motivo obrigatório (3-500 chars)" };
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      documentId,
+    )
+  ) {
+    return { ok: false, message: "documentId inválido" };
   }
 
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #44: organizationId explícito.
         const doc = await tx.clinicalDocument.findFirst({
-          where: { id: documentId },
+          where: { id: documentId, organizationId },
         });
-        if (!doc) throw new Error("Documento não encontrado");
+        if (!doc) throw new Error("Documento não encontrado nesta organização");
         if (doc.status !== "ISSUED") {
           throw new Error("Apenas documentos ISSUED podem ser revogados");
         }
@@ -279,16 +344,17 @@ export async function revokeDocumentAction(
           },
         });
 
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'clinical_document.revoke'::text, 'ClinicalDocument'::text,
-            ${doc.id}::text, ${doc.patientId}::uuid,
-            ARRAY['status','revokedReason']::text[],
-            ${JSON.stringify({ reason })}::jsonb
-          )
-        `;
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "clinical_document.revoke",
+          entityType: "ClinicalDocument",
+          entityId: doc.id,
+          patientId: doc.patientId,
+          fieldsAccessed: ["status", "revokedReason"],
+          payload: { reason: reason.trim() },
+        });
 
         return doc;
       },
@@ -305,6 +371,11 @@ export async function revokeDocumentAction(
 }
 
 // -------- SEARCH CIDs --------
+const SearchCidsSchema = z.object({
+  query: z.string().min(1).max(64),
+  limit: z.number().int().min(1).max(50).optional(),
+});
+
 export async function searchCidsAction(input: {
   query: string;
   limit?: number;
@@ -313,20 +384,49 @@ export async function searchCidsAction(input: {
   cids?: Array<{ id: string; code: string; description: string }>;
   message?: string;
 }> {
-  if (input.query.length < 1) return { ok: true, cids: [] };
+  // CORREÇÃO QA #41+#42: validação Zod (maxLen) + rate limit per-IP.
+  const parsed = SearchCidsSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: "Query inválida" };
+  }
+  // Rate limit barato: 60 buscas / min / IP (UI faz 1 por keystroke debounced).
+  try {
+    const h = await headers();
+    const ip =
+      h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      h.get("x-real-ip") ??
+      "unknown";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fauxReq = {
+      headers: { get: (_: string) => null },
+      cookies: { get: () => undefined },
+    } as any;
+    const limit = await checkRateLimit(fauxReq, "cid:search:ip", {
+      max: 60,
+      windowSec: 60,
+      identifier: ip,
+    });
+    if (!limit.ok) {
+      return { ok: false, message: "Muitas buscas. Aguarde 1 minuto." };
+    }
+  } catch {
+    // headers() pode falhar em build — ignorar
+  }
 
   try {
     const cids = await withTenantAction(async ({ tx }) => {
-      const q = input.query.toUpperCase();
+      const q = parsed.data.query.toUpperCase();
       return tx.cid10Code.findMany({
         where: {
           OR: [
             { code: { startsWith: q, mode: "insensitive" } },
-            { description: { contains: input.query, mode: "insensitive" } },
+            {
+              description: { contains: parsed.data.query, mode: "insensitive" },
+            },
           ],
         },
         orderBy: [{ isCommonInNutrition: "desc" }, { code: "asc" }],
-        take: input.limit ?? 15,
+        take: parsed.data.limit ?? 15,
         select: { id: true, code: true, description: true },
       });
     });

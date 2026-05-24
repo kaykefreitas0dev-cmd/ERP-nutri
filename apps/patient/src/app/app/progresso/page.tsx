@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import {
   Scale,
   Ruler,
@@ -64,10 +65,16 @@ export default async function ProgressoPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // CORREÇÃO QA #55: middleware normalmente redireciona, mas defense-in-depth
+  // contra race entre middleware e render (cookie expirar in-flight).
+  if (!user) {
+    redirect("/login?redirectTo=/app/progresso");
+  }
+
   const measurements = await prisma.anthropometry.findMany({
     where: {
       patient: {
-        userId: user!.id,
+        userId: user.id,
         status: { not: "ANONYMIZED" },
       },
     },

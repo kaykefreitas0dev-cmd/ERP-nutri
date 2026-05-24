@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Frown,
   Annoyed,
@@ -67,8 +68,13 @@ export default async function CheckinHistoricoPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // CORREÇÃO QA #55: defense-in-depth contra cookie expirar in-flight.
+  if (!user) {
+    redirect("/login?redirectTo=/app/checkin/historico");
+  }
+
   const checkins = await prisma.userHealthCheckin.findMany({
-    where: { userId: user!.id },
+    where: { userId: user.id },
     orderBy: { checkinDate: "desc" },
     take: 90,
     select: {
