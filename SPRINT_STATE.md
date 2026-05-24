@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #115-#116)
+last_updated: 2026-05-24 (autônomo cont. — PRs #119-#136)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -138,6 +138,33 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 | #114 | `b3ac03c` | Chore — SPRINT_STATE.md atualizado (PRs #110-#113: day label rename, sprint state, meal name rename, add/delete meals)                                                                                                                                                                                    |
 | #115 | `40c9257` | Feat(web) — editar horário da refeição inline: badge HH:MM clicável → time input, Enter/blur salva, Escape cancela; ghost Clock icon group-hover quando sem horário; updateMealScheduledTimeAction (HH:MM ou null para limpar)                                                                            |
 | #116 | `590fb5e` | Feat(web) — adicionar e deletar dias no plano alimentar: addDayToMealPlanAction (auto-label "Dia N"), deleteMealPlanDayAction (cascade + guard ≥2 dias); botão dashed "+ Adicionar dia" abaixo das seções; Trash2 ghost no header do dia (group/dayheader hover) + confirm inline                         |
+| #117 | `e32370c` | Chore — SPRINT_STATE.md atualizado (PRs #115-#116)                                                                                                                                                                                                                                                        |
+| #118 | `48840e1` | Feat(web) — edição inline de nome e meta kcal no header do editor de planos: PlanHeaderEditable client component; Pencil icon group-hover; optimistic update com revert; updateMealPlanMetaAction (name + targetKcal nullable Decimal)                                                                    |
+
+---
+
+## PRs aguardando merge (abertos)
+
+| PR   | Branch                                 | Tema                                                                                |
+| ---- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| #119 | feat/food-search-ux-improvements       | Meal plan — kcal/100g em resultados de busca de alimentos + debounce search         |
+| #120 | chore/sprint-state-119                 | Chore — SPRINT_STATE atualizado (#117-#119)                                         |
+| #121 | feat/duplicate-meal-plan-day           | Meal plan — duplicar um dia dentro do plano (deep copy meals + items)               |
+| #122 | fix/patient-plan-daily-totals          | Fix(patient) — totais do plano por dia (kcal + avg) corrigidos no PWA               |
+| #123 | feat/custom-food-create                | Alimentos — formulário de criação de alimento personalizado                         |
+| #124 | feat/patient-detail-active-plan-widget | Patient detail — widget do plano alimentar ativo                                    |
+| #125 | feat/financeiro-standalone-payment     | Financeiro — modal de registro de pagamento standalone                              |
+| #126 | feat/settings-professional-profile     | Settings — seção perfil profissional (CRN, especialidades, bio)                     |
+| #127 | chore/sprint-state-126                 | Chore — SPRINT_STATE atualizado (#117-#126)                                         |
+| #128 | feat/recipe-in-meal-plan               | Meal plan — buscar e adicionar receita completa como itens de refeição              |
+| #129 | feat/meal-plan-pdf                     | Meal plan — exportar PDF estruturado via botão "Gerar PDF"                          |
+| #130 | feat/receitas-management               | Receitas — listagem, criação, detalhe e editor de ingredientes                      |
+| #131 | chore/sprint-state-130                 | Chore — SPRINT_STATE atualizado (#117-#130)                                         |
+| #132 | feat/meal-plan-templates               | Meal plan — salvar como modelo + criar plano a partir de modelo                     |
+| #133 | feat/templates-management              | Meal plan — página /app/modelos com listagem, renomear, deletar modelos             |
+| #134 | chore/sprint-state-133                 | Chore — SPRINT_STATE atualizado (#117-#133)                                         |
+| #135 | feat/dashboard-expiring-plans          | Dashboard — widget "Planos prestes a vencer" (planos ativos encerrando em ≤7 dias)  |
+| #136 | feat/dashboard-birthday-widget         | Dashboard — widget "Aniversários esta semana" (pacientes com aniversário em 7 dias) |
 
 ---
 
@@ -250,3 +277,5 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #108-#109 merged: SPRINT_STATE update, editar notas de preparo inline nos itens do plano (+ nota ghost btn, 500 chars max, null on empty)
 - 2026-05-20 (autônomo, cont.) — PR #110-#113 merged: day label rename inline (optimistic update), SPRINT_STATE update, meal name rename inline, add/delete meals (inline form + Trash2 confirm guard)
 - 2026-05-20 (autônomo, cont.) — PR #114-#116 merged: SPRINT_STATE update, meal scheduled time inline edit (Clock ghost + time input), add/delete plan days (dashed button + Trash2 header guard + server-side cascade guard)
+- 2026-05-21 (autônomo) — PR #117-#118 merged: SPRINT_STATE update, PlanHeaderEditable inline name+targetKcal edit
+- 2026-05-24 (autônomo, cont.) — PRs #119-#136 abertos: food search UX, duplicate day, patient plan totals fix, custom food, patient detail active plan, financeiro modal, professional profile, receitas management, meal plan templates, templates management page, expiring plans widget, birthday widget
