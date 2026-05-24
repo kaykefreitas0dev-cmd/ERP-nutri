@@ -15,6 +15,7 @@ import {
   Phone,
   ChevronRight,
   AlertTriangle,
+  Cake,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
@@ -70,6 +71,15 @@ export default async function AppDashboard() {
       /** Days since last check-in, or null if they've never checked in. */
       daysSince: number | null;
     }>;
+    /** Active patients with a birthday in the next 7 days (inclusive). */
+    birthdayPatients: Array<{
+      id: string;
+      fullName: string;
+      /** 0 = today, 1 = tomorrow, etc. */
+      daysUntil: number;
+      /** Age they are turning on their birthday. */
+      turnsAge: number;
+    }>;
   } | null = null;
 
   try {
@@ -112,6 +122,14 @@ export default async function AppDashboard() {
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+      // Build birthday window: set of "M-D" strings for the next 7 days
+      const birthdayWindow = new Set<string>();
+      for (let i = 0; i <= 6; i++) {
+        const d = new Date(startOfToday);
+        d.setDate(d.getDate() + i);
+        birthdayWindow.add(`${d.getMonth() + 1}-${d.getDate()}`);
+      }
+
       const [
         activePatients,
         apptsToday,
@@ -124,6 +142,7 @@ export default async function AppDashboard() {
         docs30dRaw,
         agendaHojeRaw,
         inactivePatientsResult,
+        patientsWithBirthday,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -254,6 +273,11 @@ export default async function AppDashboard() {
               },
             );
         })(),
+        // Fetch active patients with a known birthDate — filter by window in JS
+        tx.patient.findMany({
+          where: { status: "ACTIVE", birthDate: { not: null } },
+          select: { id: true, fullName: true, birthDate: true },
+        }),
       ]);
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
@@ -311,6 +335,40 @@ export default async function AppDashboard() {
           ),
         },
         inactivePatients: inactivePatientsResult,
+        birthdayPatients: (
+          patientsWithBirthday as Array<{
+            id: string;
+            fullName: string;
+            birthDate: Date;
+          }>
+        )
+          .filter((p) => {
+            const bd = p.birthDate;
+            return birthdayWindow.has(`${bd.getMonth() + 1}-${bd.getDate()}`);
+          })
+          .map((p) => {
+            const bd = p.birthDate;
+            // Compute daysUntil using "this year's birthday" (or next year at Dec/Jan crossover)
+            let birthday = new Date(
+              now.getFullYear(),
+              bd.getMonth(),
+              bd.getDate(),
+            );
+            // If birthday already passed this year, check next year
+            if (birthday < startOfToday) {
+              birthday = new Date(
+                now.getFullYear() + 1,
+                bd.getMonth(),
+                bd.getDate(),
+              );
+            }
+            const daysUntil = Math.round(
+              (birthday.getTime() - startOfToday.getTime()) / 86_400_000,
+            );
+            const turnsAge = birthday.getFullYear() - bd.getFullYear();
+            return { id: p.id, fullName: p.fullName, daysUntil, turnsAge };
+          })
+          .sort((a, b) => a.daysUntil - b.daysUntil),
         agendaHoje: agendaHojeRaw.map(
           (a: {
             id: string;
@@ -677,6 +735,77 @@ export default async function AppDashboard() {
                         ].join(" ")}
                       >
                         {daysLabel}
+                      </span>
+
+                      <ChevronRight
+                        className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                        strokeWidth={2}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Aniversários esta semana */}
+        {data.birthdayPatients.length > 0 && (
+          <section aria-label="Aniversários esta semana" className="mt-10">
+            <div className="mb-4 flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-h2 font-semibold text-text-primary">
+                  Aniversários esta semana
+                </h2>
+                <span className="rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary ring-1 ring-inset ring-brand-primary-border">
+                  {data.birthdayPatients.length}
+                </span>
+              </div>
+            </div>
+
+            <ul className="space-y-2">
+              {data.birthdayPatients.map((patient) => {
+                const isToday = patient.daysUntil === 0;
+                const isTomorrow = patient.daysUntil === 1;
+                const whenLabel = isToday
+                  ? "hoje!"
+                  : isTomorrow
+                    ? "amanhã"
+                    : `em ${patient.daysUntil} dias`;
+
+                return (
+                  <li key={patient.id}>
+                    <Link
+                      href={`/app/patients/${patient.id}`}
+                      className="flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]"
+                    >
+                      <Cake
+                        className="h-4 w-4 shrink-0"
+                        strokeWidth={1.75}
+                        style={{
+                          color: isToday
+                            ? "var(--color-brand-primary)"
+                            : "var(--color-text-secondary)",
+                        }}
+                      />
+
+                      <span className="min-w-0 flex-1 truncate text-body font-medium text-text-primary">
+                        {patient.fullName}
+                      </span>
+
+                      <span className="shrink-0 text-tiny text-text-secondary">
+                        {patient.turnsAge} anos
+                      </span>
+
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset",
+                          isToday
+                            ? "bg-brand-primary-bg text-brand-primary ring-brand-primary-border"
+                            : "bg-bg-subtle text-text-secondary ring-border-subtle",
+                        ].join(" ")}
+                      >
+                        {whenLabel}
                       </span>
 
                       <ChevronRight
