@@ -323,6 +323,13 @@ export default async function PatientDetailPage({ params }: Props) {
               Check-ins
             </Link>
             <Link
+              href={`/app/patients/${patient.id}/appointments`}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
+            >
+              <Calendar className="h-4 w-4" strokeWidth={1.75} />
+              Consultas
+            </Link>
+            <Link
               href={`/app/patients/${patient.id}/documents`}
               className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
             >
