@@ -3,20 +3,20 @@
 // Padrão obrigatório em Route Handlers tenant-aware do apps/web.
 // Lock 6 (Global Identity) — User existe fora de tenant; Patient é tenant-scoped.
 //
-// Semgrep custom rule `no-route-without-with-tenant` enforça uso em CI.
+// CORREÇÃO QA #1 (CRÍTICO ZERO-DAY) — duas vulnerabilidades combinadas:
+//   1. JWT era apenas base64-decoded SEM validar assinatura.
+//   2. Valores extraídos iam para SQL via $executeRawUnsafe (template strings)
+//      permitindo SQL injection trivial via header Authorization forjado.
 //
-// CORREÇÃO QA #1 (CRÍTICO ZERO-DAY):
-//   Versão anterior decodificava o JWT sem validar assinatura E interpolava
-//   `organizationId`/`userId` em SQL via $executeRawUnsafe → SQL injection
-//   trivial via header `Authorization: Bearer <jwt_forjado>`.
-//
-//   Mitigações desta versão:
-//   1. JWT validado com `jose.jwtVerify()` contra SUPABASE_JWT_SECRET.
-//   2. UUID format validation (defense-in-depth).
-//   3. Substituição de $executeRawUnsafe por $executeRaw (tagged template
-//      do Prisma faz parameter binding via $1, $2 — 100% safe).
+// Mitigações desta versão:
+//   - Token validado REMOTAMENTE via `supabase.auth.getUser(token)` —
+//     elimina necessidade de SUPABASE_JWT_SECRET local. Compatível com
+//     rotação de chaves Supabase (JWKS, HS→ES).
+//   - UUID regex validation defense-in-depth nas claims.
+//   - $executeRaw (tagged template) com parameter binding via $1/$2 — Postgres
+//     trata como literal mesmo se a claim fosse hostile.
 
-import { jwtVerify, errors as joseErrors } from "jose";
+import { createClient } from "@supabase/supabase-js";
 import { prisma } from "./client";
 import type { PrismaClient } from "./client";
 
@@ -27,7 +27,6 @@ interface MinimalRequest {
   cookies: { get(name: string): { value: string } | undefined };
 }
 
-// Prisma 7 tx client (subset funcional, exclui métodos de gestão de conexão)
 type TxClient = Omit<
   PrismaClient,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
@@ -36,10 +35,6 @@ type TxClient = Omit<
 export interface TenantContext {
   organizationId: string;
   userId: string;
-  /**
-   * Prisma transaction client com SET LOCAL app.current_org/app.current_user já aplicados.
-   * Use APENAS este client dentro do handler (RLS depende).
-   */
   prisma: TxClient;
 }
 
@@ -55,8 +50,6 @@ export class TenantContextError extends Error {
 
 // ── Validadores ──────────────────────────────────────────────────────────
 
-// UUID v1-v5 strict (lowercase hex). Defense-in-depth: mesmo que o JWT seja
-// válido, se um claim vier malformado abortamos antes de tocar o DB.
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -67,42 +60,47 @@ function assertUuid(value: unknown, label: string): string {
   return value;
 }
 
-// JWT secret cached (lazy init para não quebrar em build-time sem env).
-// `jose` HS256 aceita Uint8Array como chave — TextEncoder.encode é a
-// forma canônica recomendada na doc oficial v5.
-let _jwtKey: Uint8Array | null = null;
+// ── Validação JWT via Supabase Auth (remote) ─────────────────────────────
 
-function getJwtKey(): Uint8Array {
-  if (_jwtKey) return _jwtKey;
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (!secret || secret.length < 32) {
+/**
+ * Supabase client cacheado para validação de tokens.
+ * Usa anon key (público) — o endpoint /auth/v1/user valida assinatura JWT
+ * server-side e retorna user data se válido.
+ */
+let _supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient(): ReturnType<typeof createClient> {
+  if (_supabase) return _supabase;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
     throw new TenantContextError(
-      "Server misconfigured: SUPABASE_JWT_SECRET missing or too short",
+      "Server misconfigured: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY missing",
       500,
     );
   }
-  _jwtKey = new TextEncoder().encode(secret);
-  return _jwtKey;
+  _supabase = createClient(url, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  return _supabase;
 }
-
-// ── Extração e validação do JWT ──────────────────────────────────────────
 
 /**
  * Extrai e VALIDA o JWT Supabase do request.
  *
- * Versão anterior só fazia base64-decode do payload, permitindo um atacante
- * forjar claims arbitrárias. Esta versão:
- *   - Verifica assinatura HS256 contra SUPABASE_JWT_SECRET
- *   - Verifica claims `exp`, `iat`
- *   - Valida formato UUID de `sub` e `app_metadata.current_org`
+ * Versão anterior fazia base64-decode do payload SEM verificar assinatura,
+ * permitindo claims forjadas. Esta versão delega validação ao Supabase Auth
+ * via getUser(token) — endpoint /auth/v1/user valida assinatura HS256/ES256/
+ * JWKS automaticamente e retorna 401 se inválido.
+ *
+ * Trade-off: ~50-150ms de latência por request (network roundtrip).
+ * Otimização futura: cache em Redis com TTL curto (5-15s).
  */
 export async function extractTenantFromRequest(
   request: MinimalRequest,
 ): Promise<{ organizationId: string; userId: string }> {
   const authHeader = request.headers.get("authorization");
-  // Cookies Supabase: nomes possíveis variam por versão do @supabase/ssr.
-  // Em produção é `sb-<project-ref>-auth-token` (JSON-encoded em base64).
-  // Mantemos `sb-access-token` por compat com testes/legacy.
+  // Cookies Supabase variam de nome — `sb-access-token` cobre legacy/tests.
   const cookieToken = request.cookies.get("sb-access-token")?.value;
   const token = authHeader?.replace(/^Bearer\s+/i, "").trim() || cookieToken;
 
@@ -110,30 +108,19 @@ export async function extractTenantFromRequest(
     throw new TenantContextError("Missing authentication token", 401);
   }
 
-  // Verificar assinatura + claims padrão (exp, iat)
-  let payload: Record<string, unknown>;
-  try {
-    const result = await jwtVerify(token, getJwtKey(), {
-      // Supabase usa "authenticated" como audience para users logados
-      // e algorithm HS256. Se isso mudar (ES256/JWKS), atualizar aqui.
-      algorithms: ["HS256"],
-    });
-    payload = result.payload as Record<string, unknown>;
-  } catch (err) {
-    if (err instanceof joseErrors.JWTExpired) {
-      throw new TenantContextError("Token expired", 401);
-    }
-    if (err instanceof joseErrors.JWSSignatureVerificationFailed) {
-      throw new TenantContextError("Invalid token signature", 401);
-    }
-    if (err instanceof TenantContextError) throw err; // re-lança erro de config
-    throw new TenantContextError("Invalid token", 401);
+  // Validação REMOTA — Supabase rejeita JWT forjado/expirado.
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) {
+    throw new TenantContextError(
+      error?.message ?? "Invalid or expired token",
+      401,
+    );
   }
 
-  const appMetadata = payload.app_metadata as
-    | { current_org?: unknown }
-    | undefined;
-  const currentOrg = appMetadata?.current_org;
+  const user = data.user;
+  const appMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
+  const currentOrg = appMetadata.current_org;
 
   if (!currentOrg) {
     throw new TenantContextError(
@@ -142,9 +129,10 @@ export async function extractTenantFromRequest(
     );
   }
 
-  // UUID validation defense-in-depth (já validados pelo JWT signing,
-  // mas se algum dia o claim virar parametrizado por user, não vaza).
-  const userId = assertUuid(payload.sub, "JWT sub claim");
+  // UUID validation defense-in-depth (Supabase já valida assinatura, mas
+  // claims customizadas como app_metadata.current_org podem conter
+  // qualquer formato — garantimos UUID antes de tocar SQL).
+  const userId = assertUuid(user.id, "user.id");
   const organizationId = assertUuid(currentOrg, "current_org claim");
 
   return { organizationId, userId };
@@ -165,7 +153,7 @@ export async function extractTenantFromRequest(
  *   }
  *
  * Pipeline:
- *   1. Valida JWT (assinatura + exp) e extrai org_id + user_id.
+ *   1. Valida JWT remotamente via Supabase (extrai org_id + user_id).
  *   2. Verifica Membership ATIVA na org.
  *   3. Inicia transação Prisma.
  *   4. Define GUCs app.current_org / app.current_user via PARAMETER BINDING.
@@ -177,7 +165,6 @@ export async function withTenant<T>(
 ): Promise<T> {
   const { organizationId, userId } = await extractTenantFromRequest(request);
 
-  // Validação de membership ativa
   const membership = await prisma.membership.findUnique({
     where: { userId_organizationId: { userId, organizationId } },
     select: { status: true, role: true },
@@ -191,10 +178,8 @@ export async function withTenant<T>(
   }
 
   return prisma.$transaction(async (tx) => {
-    // CORREÇÃO: $executeRaw (tagged template) faz parameter binding via $1, $2.
-    // SQL gerado: SELECT set_config('app.current_org', $1, $2)
-    // Mesmo que organizationId fosse hostile, o Postgres trata como literal.
-    // O cast ::text é defensivo para evitar coerção inesperada.
+    // CORREÇÃO: $executeRaw (tagged template) faz parameter binding via $1/$2.
+    // Mesmo que organizationId fosse hostile, Postgres trata como literal.
     await tx.$executeRaw`SELECT set_config('app.current_org', ${organizationId}::text, ${true}::boolean)`;
     await tx.$executeRaw`SELECT set_config('app.current_user', ${userId}::text, ${true}::boolean)`;
     return handler({ organizationId, userId, prisma: tx });
@@ -214,7 +199,6 @@ export async function withTenantUnsafe<T>(
   userId: string,
   handler: (ctx: TenantContext) => Promise<T>,
 ): Promise<T> {
-  // UUID validation defense-in-depth — mesmo em uso interno.
   assertUuid(organizationId, "organizationId");
   assertUuid(userId, "userId");
 

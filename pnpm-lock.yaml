@@ -137,6 +137,12 @@ importers:
       "@repo/ui":
         specifier: workspace:*
         version: link:../../packages/ui
+      "@upstash/ratelimit":
+        specifier: ^2.0.8
+        version: 2.0.8(@upstash/redis@1.38.0)
+      "@upstash/redis":
+        specifier: ^1.38.0
+        version: 1.38.0
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.4)
@@ -439,9 +445,9 @@ importers:
       "@prisma/client":
         specifier: ^7.8.0
         version: 7.8.0(prisma@7.8.0(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(magicast@0.5.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.2))(typescript@5.9.2)
-      jose:
-        specifier: ^5.10.0
-        version: 5.10.0
+      "@supabase/supabase-js":
+        specifier: ^2.105.4
+        version: 2.105.4
       next:
         specifier: ^16.0.0
         version: 16.2.6(@babel/core@7.29.0)(@playwright/test@1.60.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
