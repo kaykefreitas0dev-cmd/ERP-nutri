@@ -15,6 +15,7 @@ import {
   Phone,
   ChevronRight,
   AlertTriangle,
+  CalendarClock,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
@@ -70,6 +71,15 @@ export default async function AppDashboard() {
       /** Days since last check-in, or null if they've never checked in. */
       daysSince: number | null;
     }>;
+    /** Active meal plans expiring within the next 7 days. */
+    expiringPlans: Array<{
+      id: string;
+      name: string;
+      /** Days remaining until endDate (0 = today, 1 = tomorrow, etc.). */
+      daysLeft: number;
+      patientId: string;
+      patientName: string;
+    }>;
   } | null = null;
 
   try {
@@ -112,6 +122,10 @@ export default async function AppDashboard() {
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+      const sevenDaysFromNow = new Date(now);
+      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+      sevenDaysFromNow.setHours(23, 59, 59, 999);
+
       const [
         activePatients,
         apptsToday,
@@ -124,6 +138,7 @@ export default async function AppDashboard() {
         docs30dRaw,
         agendaHojeRaw,
         inactivePatientsResult,
+        expiringPlansRaw,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -254,6 +269,22 @@ export default async function AppDashboard() {
               },
             );
         })(),
+        // Planos ativos com endDate nos próximos 7 dias
+        tx.mealPlan.findMany({
+          where: {
+            status: "ACTIVE",
+            endDate: { gte: startOfToday, lte: sevenDaysFromNow },
+          },
+          orderBy: { endDate: "asc" },
+          take: 10,
+          select: {
+            id: true,
+            name: true,
+            endDate: true,
+            patientId: true,
+            patient: { select: { fullName: true } },
+          },
+        }),
       ]);
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
@@ -311,6 +342,23 @@ export default async function AppDashboard() {
           ),
         },
         inactivePatients: inactivePatientsResult,
+        expiringPlans: (
+          expiringPlansRaw as Array<{
+            id: string;
+            name: string;
+            endDate: Date;
+            patientId: string;
+            patient: { fullName: string } | null;
+          }>
+        ).map((p) => ({
+          id: p.id,
+          name: p.name,
+          daysLeft: Math.ceil(
+            (p.endDate.getTime() - now.getTime()) / 86_400_000,
+          ),
+          patientId: p.patientId,
+          patientName: p.patient?.fullName ?? "Paciente",
+        })),
         agendaHoje: agendaHojeRaw.map(
           (a: {
             id: string;
@@ -672,6 +720,83 @@ export default async function AppDashboard() {
                         className={[
                           "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset tabular-nums",
                           isVeryInactive
+                            ? "bg-danger-bg text-danger ring-danger-border"
+                            : "bg-warning-bg text-warning ring-warning-border",
+                        ].join(" ")}
+                      >
+                        {daysLabel}
+                      </span>
+
+                      <ChevronRight
+                        className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                        strokeWidth={2}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Planos prestes a vencer — endDate nos próximos 7 dias */}
+        {data.expiringPlans.length > 0 && (
+          <section aria-label="Planos prestes a vencer" className="mt-10">
+            <div className="mb-4 flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-h2 font-semibold text-text-primary">
+                  Planos prestes a vencer
+                </h2>
+                <span className="rounded-full bg-warning-bg px-2 py-0.5 text-tiny font-medium text-warning ring-1 ring-inset ring-warning-border">
+                  {data.expiringPlans.length}
+                </span>
+              </div>
+            </div>
+            <p className="mb-3 text-tiny text-text-muted">
+              Planos ativos com data de término nos próximos 7 dias. Considere
+              renovar ou substituir.
+            </p>
+
+            <ul className="space-y-2">
+              {data.expiringPlans.map((plan) => {
+                const daysLeft = plan.daysLeft;
+                const isUrgent = daysLeft <= 2;
+                const daysLabel =
+                  daysLeft <= 0
+                    ? "vence hoje"
+                    : daysLeft === 1
+                      ? "vence amanhã"
+                      : `vence em ${daysLeft} dias`;
+
+                return (
+                  <li key={plan.id}>
+                    <Link
+                      href={`/app/patients/${plan.patientId}/meal-plans/${plan.id}`}
+                      className="flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]"
+                    >
+                      <CalendarClock
+                        className="h-4 w-4 shrink-0"
+                        strokeWidth={1.75}
+                        style={{
+                          color: isUrgent
+                            ? "var(--color-danger)"
+                            : "var(--color-warning)",
+                        }}
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-body font-medium text-text-primary">
+                          {plan.patientName}
+                        </span>
+                        <span className="block truncate text-caption text-text-secondary">
+                          {plan.name}
+                        </span>
+                      </div>
+
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-0.5 text-tiny font-medium ring-1 ring-inset tabular-nums",
+                          isUrgent
                             ? "bg-danger-bg text-danger ring-danger-border"
                             : "bg-warning-bg text-warning ring-warning-border",
                         ].join(" ")}
