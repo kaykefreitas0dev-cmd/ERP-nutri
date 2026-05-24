@@ -4,24 +4,30 @@
 // Lock 6 (Global Identity) — User existe fora de tenant; Patient é tenant-scoped.
 //
 // Semgrep custom rule `no-route-without-with-tenant` enforça uso em CI.
+//
+// CORREÇÃO QA #1 (CRÍTICO ZERO-DAY):
+//   Versão anterior decodificava o JWT sem validar assinatura E interpolava
+//   `organizationId`/`userId` em SQL via $executeRawUnsafe → SQL injection
+//   trivial via header `Authorization: Bearer <jwt_forjado>`.
+//
+//   Mitigações desta versão:
+//   1. JWT validado com `jose.jwtVerify()` contra SUPABASE_JWT_SECRET.
+//   2. UUID format validation (defense-in-depth).
+//   3. Substituição de $executeRawUnsafe por $executeRaw (tagged template
+//      do Prisma faz parameter binding via $1, $2 — 100% safe).
 
+import { jwtVerify, errors as joseErrors } from "jose";
 import { prisma } from "./client";
 import type { PrismaClient } from "./client";
 
-// Tipo minimal — não importa NextRequest direto pra evitar conflito de
-// versões de next no monorepo (pnpm pode instalar 2 paths .pnpm distintos
-// quando há peer deps transitivas — ex: @playwright/test).
-// Cobre o subset que withTenant precisa.
+// ── Tipos ────────────────────────────────────────────────────────────────
+
 interface MinimalRequest {
-  headers: {
-    get(name: string): string | null;
-  };
-  cookies: {
-    get(name: string): { value: string } | undefined;
-  };
+  headers: { get(name: string): string | null };
+  cookies: { get(name: string): { value: string } | undefined };
 }
-// Prisma 7 tem tipos complexos para tx client; usamos PrismaClient (subset funcional)
-// Em runtime, o tx tem todos os métodos query + $executeRaw + $queryRaw
+
+// Prisma 7 tx client (subset funcional, exclui métodos de gestão de conexão)
 type TxClient = Omit<
   PrismaClient,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
@@ -47,62 +53,109 @@ export class TenantContextError extends Error {
   }
 }
 
+// ── Validadores ──────────────────────────────────────────────────────────
+
+// UUID v1-v5 strict (lowercase hex). Defense-in-depth: mesmo que o JWT seja
+// válido, se um claim vier malformado abortamos antes de tocar o DB.
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function assertUuid(value: unknown, label: string): string {
+  if (typeof value !== "string" || !UUID_REGEX.test(value)) {
+    throw new TenantContextError(`Invalid ${label} format`, 401);
+  }
+  return value;
+}
+
+// JWT secret cached (lazy init para não quebrar em build-time sem env).
+// `jose` HS256 aceita Uint8Array como chave — TextEncoder.encode é a
+// forma canônica recomendada na doc oficial v5.
+let _jwtKey: Uint8Array | null = null;
+
+function getJwtKey(): Uint8Array {
+  if (_jwtKey) return _jwtKey;
+  const secret = process.env.SUPABASE_JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new TenantContextError(
+      "Server misconfigured: SUPABASE_JWT_SECRET missing or too short",
+      500,
+    );
+  }
+  _jwtKey = new TextEncoder().encode(secret);
+  return _jwtKey;
+}
+
+// ── Extração e validação do JWT ──────────────────────────────────────────
+
 /**
- * Extrai organization_id e user_id do JWT Supabase do request.
+ * Extrai e VALIDA o JWT Supabase do request.
  *
- * O JWT Supabase tem custom claim `app_metadata.current_org` injetado durante
- * /api/auth/select-org (após login). Sem essa claim → 401.
+ * Versão anterior só fazia base64-decode do payload, permitindo um atacante
+ * forjar claims arbitrárias. Esta versão:
+ *   - Verifica assinatura HS256 contra SUPABASE_JWT_SECRET
+ *   - Verifica claims `exp`, `iat`
+ *   - Valida formato UUID de `sub` e `app_metadata.current_org`
  */
 export async function extractTenantFromRequest(
   request: MinimalRequest,
 ): Promise<{ organizationId: string; userId: string }> {
   const authHeader = request.headers.get("authorization");
+  // Cookies Supabase: nomes possíveis variam por versão do @supabase/ssr.
+  // Em produção é `sb-<project-ref>-auth-token` (JSON-encoded em base64).
+  // Mantemos `sb-access-token` por compat com testes/legacy.
   const cookieToken = request.cookies.get("sb-access-token")?.value;
-  const token = authHeader?.replace(/^Bearer\s+/i, "") ?? cookieToken;
+  const token = authHeader?.replace(/^Bearer\s+/i, "").trim() || cookieToken;
 
   if (!token) {
     throw new TenantContextError("Missing authentication token", 401);
   }
 
-  // Decode JWT payload (validation acontece via Supabase Auth middleware)
-  // Aqui apenas extraímos claims já validadas.
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    throw new TenantContextError("Malformed JWT", 401);
-  }
-
+  // Verificar assinatura + claims padrão (exp, iat)
   let payload: Record<string, unknown>;
   try {
-    payload = JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf-8"));
-  } catch {
-    throw new TenantContextError("Cannot decode JWT payload", 401);
+    const result = await jwtVerify(token, getJwtKey(), {
+      // Supabase usa "authenticated" como audience para users logados
+      // e algorithm HS256. Se isso mudar (ES256/JWKS), atualizar aqui.
+      algorithms: ["HS256"],
+    });
+    payload = result.payload as Record<string, unknown>;
+  } catch (err) {
+    if (err instanceof joseErrors.JWTExpired) {
+      throw new TenantContextError("Token expired", 401);
+    }
+    if (err instanceof joseErrors.JWSSignatureVerificationFailed) {
+      throw new TenantContextError("Invalid token signature", 401);
+    }
+    if (err instanceof TenantContextError) throw err; // re-lança erro de config
+    throw new TenantContextError("Invalid token", 401);
   }
 
-  const userId = payload.sub as string | undefined;
   const appMetadata = payload.app_metadata as
-    | { current_org?: string }
+    | { current_org?: unknown }
     | undefined;
-  const organizationId = appMetadata?.current_org;
+  const currentOrg = appMetadata?.current_org;
 
-  if (!userId) {
-    throw new TenantContextError("JWT missing sub claim", 401);
-  }
-  if (!organizationId) {
+  if (!currentOrg) {
     throw new TenantContextError(
       "No organization selected — call /api/auth/select-org first",
       403,
     );
   }
 
+  // UUID validation defense-in-depth (já validados pelo JWT signing,
+  // mas se algum dia o claim virar parametrizado por user, não vaza).
+  const userId = assertUuid(payload.sub, "JWT sub claim");
+  const organizationId = assertUuid(currentOrg, "current_org claim");
+
   return { organizationId, userId };
 }
+
+// ── Wrapper principal ────────────────────────────────────────────────────
 
 /**
  * Wrapper para Route Handlers tenant-aware.
  *
  * Uso em apps/web/src/app/api/v1/{resource}/route.ts:
- *
- *   import { withTenant } from "@nutricore/db/with-tenant";
  *
  *   export async function GET(req: NextRequest) {
  *     return withTenant(req, async ({ prisma, organizationId }) => {
@@ -111,13 +164,12 @@ export async function extractTenantFromRequest(
  *     });
  *   }
  *
- * O wrapper:
- * 1. Extrai org_id + user_id do JWT Supabase.
- * 2. Valida que o user tem Membership ATIVA na org.
- * 3. Inicia uma transação Prisma.
- * 4. Executa SET LOCAL app.current_org = $1 + app.current_user = $2.
- * 5. Chama o handler com prisma transactional client.
- * 6. RLS policies se ativam automaticamente baseadas nos GUCs.
+ * Pipeline:
+ *   1. Valida JWT (assinatura + exp) e extrai org_id + user_id.
+ *   2. Verifica Membership ATIVA na org.
+ *   3. Inicia transação Prisma.
+ *   4. Define GUCs app.current_org / app.current_user via PARAMETER BINDING.
+ *   5. Chama handler com prisma transactional client. RLS automático.
  */
 export async function withTenant<T>(
   request: MinimalRequest,
@@ -139,41 +191,36 @@ export async function withTenant<T>(
   }
 
   return prisma.$transaction(async (tx) => {
-    // SET LOCAL é transacional — não vaza entre transações
-    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
-    // `current_user` é palavra reservada do Postgres.
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_org', '${organizationId}', true)`,
-    );
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_user', '${userId}', true)`,
-    );
+    // CORREÇÃO: $executeRaw (tagged template) faz parameter binding via $1, $2.
+    // SQL gerado: SELECT set_config('app.current_org', $1, $2)
+    // Mesmo que organizationId fosse hostile, o Postgres trata como literal.
+    // O cast ::text é defensivo para evitar coerção inesperada.
+    await tx.$executeRaw`SELECT set_config('app.current_org', ${organizationId}::text, ${true}::boolean)`;
+    await tx.$executeRaw`SELECT set_config('app.current_user', ${userId}::text, ${true}::boolean)`;
     return handler({ organizationId, userId, prisma: tx });
   });
 }
 
 /**
- * Variante para casos onde precisamos do contexto mas SEM iniciar transação
- * (ex: streaming reads grandes, jobs internos).
+ * Variante para workers internos onde já temos org/user resolvidos de outra
+ * fonte autoritativa (DB join, fila com tenant scope, etc).
  *
- * ATENÇÃO: usa connection com SET (não LOCAL) — connection-bound.
- * Deve ser usado apenas em workers internos, NUNCA em Route Handlers
- * que rodam em pool compartilhado.
+ * ATENÇÃO: Caller é responsável por garantir que os UUIDs vieram de fonte
+ * confiável (não de input direto de cliente). Nunca passe valores que
+ * trafegaram sem validação.
  */
 export async function withTenantUnsafe<T>(
   organizationId: string,
   userId: string,
   handler: (ctx: TenantContext) => Promise<T>,
 ): Promise<T> {
+  // UUID validation defense-in-depth — mesmo em uso interno.
+  assertUuid(organizationId, "organizationId");
+  assertUuid(userId, "userId");
+
   return prisma.$transaction(async (tx) => {
-    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
-    // `current_user` é palavra reservada do Postgres.
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_org', '${organizationId}', true)`,
-    );
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_user', '${userId}', true)`,
-    );
+    await tx.$executeRaw`SELECT set_config('app.current_org', ${organizationId}::text, ${true}::boolean)`;
+    await tx.$executeRaw`SELECT set_config('app.current_user', ${userId}::text, ${true}::boolean)`;
     return handler({ organizationId, userId, prisma: tx });
   });
 }
