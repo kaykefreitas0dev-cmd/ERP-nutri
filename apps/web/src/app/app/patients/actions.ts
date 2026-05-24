@@ -309,3 +309,53 @@ export async function archivePatientAction(
     return { ok: false, message: "Erro ao arquivar" };
   }
 }
+
+// ─── Inline notes update ─────────────────────────────────────────────────────
+
+const UpdateNotesSchema = z.object({
+  patientId: z.string().uuid(),
+  notes: z.string().max(2000).nullable(),
+});
+
+export async function updatePatientNotesAction(input: {
+  patientId: string;
+  notes: string | null;
+}): Promise<ActionResult> {
+  const parsed = UpdateNotesSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: "Dados inválidos (max 2000 chars)" };
+  }
+
+  try {
+    await withTenantAction(async ({ tx, organizationId, userId }) => {
+      const updated = await tx.patient.update({
+        where: { id: parsed.data.patientId },
+        data: { notes: parsed.data.notes },
+      });
+
+      await tx.$executeRaw`
+        SELECT audit.append_log(
+          ${organizationId}::uuid,
+          ${userId}::uuid,
+          'nutritionist'::text,
+          NULL::inet, NULL::text,
+          'patient.notes.update'::text,
+          'Patient'::text,
+          ${updated.id}::text,
+          ${updated.id}::uuid,
+          ARRAY['notes']::text[],
+          '{}'::jsonb
+        )
+      `;
+    });
+
+    revalidatePath(`/app/patients/${parsed.data.patientId}`);
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError) {
+      return { ok: false, message: err.message };
+    }
+    console.error("[patients/notes-update]", err);
+    return { ok: false, message: "Erro ao salvar observações" };
+  }
+}
