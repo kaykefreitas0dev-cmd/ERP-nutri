@@ -8,7 +8,7 @@ import {
   Utensils,
   Calendar,
   FileText,
-  Wallet,
+  Scale,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,7 +18,7 @@ const NAV_ITEMS: Array<{ href: string; label: string; Icon: LucideIcon }> = [
   { href: "/app/meu-plano", label: "Plano", Icon: Utensils },
   { href: "/app/consultas", label: "Consultas", Icon: Calendar },
   { href: "/app/documentos", label: "Docs", Icon: FileText },
-  { href: "/app/pagamentos", label: "Pagto", Icon: Wallet },
+  { href: "/app/progresso", label: "Progresso", Icon: Scale },
 ];
 
 export function NavBar() {
