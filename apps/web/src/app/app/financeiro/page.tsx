@@ -9,6 +9,9 @@ import {
   BarChart3,
   FileText,
   ChevronLeft,
+  TrendingUp,
+  TrendingDown,
+  Minus,
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
@@ -98,6 +101,7 @@ export default async function FinanceiroPage({ searchParams }: Props) {
       byMethod: Record<string, { count: number; totalCents: number }>;
     };
     monthsRollup: Array<{ month: string; totalCents: number; count: number }>;
+    prevMonth: { totalCents: number; count: number };
   } | null = null;
 
   try {
@@ -148,6 +152,28 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         byMethod[m].totalCents += p.amountCents;
       }
 
+      // Mês anterior (para comparação MoM) — independente do filtro
+      const nowForPrev = new Date();
+      const prevMonthStart = new Date(
+        nowForPrev.getFullYear(),
+        nowForPrev.getMonth() - 1,
+        1,
+      );
+      const prevMonthEnd = new Date(
+        nowForPrev.getFullYear(),
+        nowForPrev.getMonth(),
+        0,
+        23,
+        59,
+        59,
+        999,
+      );
+      const prevMonthAgg = await tx.patientPayment.aggregate({
+        where: { paymentDate: { gte: prevMonthStart, lte: prevMonthEnd } },
+        _count: true,
+        _sum: { amountCents: true },
+      });
+
       // Últimos 6 meses (rolling) — independente do filtro
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -183,6 +209,10 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         payments,
         totals: { count, totalCents, avgCents, byMethod },
         monthsRollup,
+        prevMonth: {
+          totalCents: (prevMonthAgg._sum.amountCents as number | null) ?? 0,
+          count: prevMonthAgg._count as number,
+        },
       };
     });
   } catch (err) {
@@ -197,6 +227,14 @@ export default async function FinanceiroPage({ searchParams }: Props) {
     ...data.monthsRollup.map((m) => m.totalCents),
     1,
   );
+
+  // Month-over-month delta (this month KPIs vs previous calendar month)
+  const thisMonthTotal = data.totals.totalCents;
+  const prevMonthTotal = data.prevMonth.totalCents;
+  const momPct =
+    prevMonthTotal === 0
+      ? null
+      : Math.round(((thisMonthTotal - prevMonthTotal) / prevMonthTotal) * 100);
 
   return (
     <main className="p-4 md:p-8">
@@ -224,6 +262,8 @@ export default async function FinanceiroPage({ searchParams }: Props) {
             label="Total no período"
             value={brMoney(data.totals.totalCents)}
             sub={`${data.totals.count} pagamento(s)`}
+            delta={momPct}
+            deltaLabel="vs mês anterior"
           />
           <KpiCard
             label="Ticket médio"
@@ -476,11 +516,25 @@ function KpiCard({
   label,
   value,
   sub,
+  delta,
+  deltaLabel,
 }: {
   label: string;
   value: string;
   sub: string;
+  /** % change vs comparison period. Positive = up, negative = down, null = no data. */
+  delta?: number | null;
+  deltaLabel?: string;
 }) {
+  const DeltaIcon =
+    delta == null ? Minus : delta > 0 ? TrendingUp : TrendingDown;
+  const deltaColor =
+    delta == null
+      ? "text-text-muted"
+      : delta > 0
+        ? "text-success"
+        : "text-danger";
+
   return (
     <div className="rounded-lg border border-border-subtle bg-bg-surface p-3 [box-shadow:var(--shadow-xs)]">
       <p className="text-tiny text-text-muted">{label}</p>
@@ -488,6 +542,19 @@ function KpiCard({
         {value}
       </p>
       {sub && <p className="text-[10px] text-text-muted">{sub}</p>}
+      {delta !== undefined && (
+        <div className={`mt-1.5 flex items-center gap-1 ${deltaColor}`}>
+          <DeltaIcon className="h-3 w-3 shrink-0" strokeWidth={2} />
+          <span className="text-[10px] font-medium tabular-nums">
+            {delta == null ? "sem dados" : `${delta > 0 ? "+" : ""}${delta}%`}
+            {deltaLabel && (
+              <span className="ml-1 font-normal text-text-muted">
+                {deltaLabel}
+              </span>
+            )}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
