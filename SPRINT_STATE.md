@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #115-#116)
+last_updated: 2026-05-24 (autônomo cont. — PRs #117-#145 em aberto)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -141,6 +141,42 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 
 ---
 
+## PRs em aberto (aguardando merge PM)
+
+| PR   | Tema                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------- |
+| #117 | feat(meal-plan): edit header inline (nome + datas + objetivo)                               |
+| #118 | feat(meal-plan): delete food item from meal (Trash2 icon + confirm guard)                   |
+| #119 | feat(meal-plan): show kcal/100g in food search + debounce search                            |
+| #120 | chore: sprint state #117-#119                                                               |
+| #121 | feat(meal-plan): duplicate a day within a plan (deep copy)                                  |
+| #122 | fix(patient): correct meal plan daily totals — per-day kcal + avg summary                   |
+| #123 | feat(alimentos): add custom food creation form to food library                              |
+| #124 | feat(patient): active meal plan widget on patient detail page                               |
+| #125 | feat(financeiro): standalone payment registration modal                                     |
+| #126 | feat(settings): professional profile section — CRN, specialties, bio                        |
+| #127 | chore: sprint state #117-#126                                                               |
+| #128 | feat(meal-plan): recipe search tab in food picker — add whole recipe as meal items          |
+| #129 | feat(meal-plan): generate structured PDF snapshot with Gerar PDF button                     |
+| #130 | feat(web): receitas management — list, create, detail, ingredient editor                    |
+| #131 | chore: sprint state #117-#130                                                               |
+| #132 | feat(meal-plan): meal plan templates — save & apply                                         |
+| #133 | feat(meal-plan): templates management — save, list, rename, delete + new plan from template |
+| #134 | chore: sprint state #117-#133                                                               |
+| #135 | feat(dashboard): expiring plans widget — active meal plans ending within 7 days             |
+| #136 | feat(dashboard): birthday widget — patients with birthdays in next 7 days                   |
+| #137 | chore: sprint state #117-#136                                                               |
+| #138 | feat(dashboard): widget — pacientes sem plano alimentar ativo                               |
+| #139 | feat(patient): inline editable observações + PatientNotesEditor component                   |
+| #140 | feat(patient): payment history section on patient detail page                               |
+| #141 | feat(financeiro): month-over-month comparison badge on KPI cards                            |
+| #142 | feat(financeiro): csv export of filtered payments (BOM UTF-8, Excel PT-BR)                  |
+| #143 | feat(patient): appointment history page /patients/[id]/appointments + nav button            |
+| #144 | feat(command-palette): dynamic patient search with debounce + AbortController               |
+| #145 | feat(relatorios): reports page — engagement, clinical output, revenue + sidebar item        |
+
+---
+
 ## S22 — Estado atual
 
 ### Bloqueios PM (ação necessária antes de S22 avançar)
@@ -250,3 +286,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #108-#109 merged: SPRINT_STATE update, editar notas de preparo inline nos itens do plano (+ nota ghost btn, 500 chars max, null on empty)
 - 2026-05-20 (autônomo, cont.) — PR #110-#113 merged: day label rename inline (optimistic update), SPRINT_STATE update, meal name rename inline, add/delete meals (inline form + Trash2 confirm guard)
 - 2026-05-20 (autônomo, cont.) — PR #114-#116 merged: SPRINT_STATE update, meal scheduled time inline edit (Clock ghost + time input), add/delete plan days (dashed button + Trash2 header guard + server-side cascade guard)
+- 2026-05-24 (autônomo, cont.) — PRs #117-#145 abertos (aguardando merge PM): meal plan edits, food/recipe management, dashboard widgets, patient notes/payments, financeiro MoM + CSV export, patient appointments history, command palette patient search, relatórios page
