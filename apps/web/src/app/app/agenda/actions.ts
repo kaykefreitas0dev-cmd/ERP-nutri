@@ -1,9 +1,12 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6: appendAuditLog helper em 3 ocorrências.
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { prisma } from "@nutricore/db";
+import { appendAuditLog } from "@nutricore/db/audit";
 import {
   sendAppointmentScheduledEmail,
   sendAppointmentRescheduledEmail,
@@ -130,17 +133,18 @@ export async function scheduleAppointmentAction(
             },
           });
 
-          // Audit
-          await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'appointment.create'::text, 'Appointment'::text,
-            ${appt.id}::text, ${d.patientId ?? null}::uuid,
-            ARRAY['startsAt','endsAt','patientId']::text[],
-            '{}'::jsonb
-          )
-        `;
+          // CORREÇÃO QA #78: appendAuditLog helper.
+          await appendAuditLog({
+            organizationId,
+            actorUserId: userId,
+            actorRole: "nutritionist",
+            action: "appointment.create",
+            entityType: "Appointment",
+            entityId: appt.id,
+            patientId: d.patientId ?? null,
+            fieldsAccessed: ["startsAt", "endsAt", "patientId"],
+            payload: {},
+          });
 
           return appt;
         } catch (err) {
@@ -256,17 +260,18 @@ export async function updateAppointmentAction(
           },
         });
 
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'appointment.update'::text, 'Appointment'::text,
-            ${d.appointmentId}::text,
-            ${current.patientId}::uuid,
-            ARRAY['startsAt','endsAt','modality','notes']::text[],
-            '{}'::jsonb
-          )
-        `;
+        // CORREÇÃO QA #78: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "appointment.update",
+          entityType: "Appointment",
+          entityId: d.appointmentId,
+          patientId: current.patientId,
+          fieldsAccessed: ["startsAt", "endsAt", "modality", "notes"],
+          payload: {},
+        });
 
         reschedulePatientId = current.patientId ?? null;
       } catch (err) {
@@ -408,18 +413,18 @@ export async function updateAppointmentStatusAction(input: {
         },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          ${`appointment.status.${parsed.data.toStatus.toLowerCase()}`}::text,
-          'Appointment'::text,
-          ${parsed.data.appointmentId}::text,
-          ${current.patientId}::uuid,
-          ARRAY['status']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #78: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: `appointment.status.${parsed.data.toStatus.toLowerCase()}`,
+        entityType: "Appointment",
+        entityId: parsed.data.appointmentId,
+        patientId: current.patientId,
+        fieldsAccessed: ["status"],
+        payload: { toStatus: parsed.data.toStatus },
+      });
 
       // Capturar dados para email pós-transação
       if (

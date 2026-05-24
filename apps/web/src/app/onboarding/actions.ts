@@ -1,9 +1,12 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6: appendAuditLog helper.
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@nutricore/db";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const StepDataSchema = z.object({
   step: z.number().int().min(1).max(5),
@@ -181,23 +184,19 @@ export async function completeOnboardingAction(
     console.error("[onboarding] DEK provisioning failed", err);
   }
 
-  // Audit log
+  // CORREÇÃO QA #84: appendAuditLog helper.
   try {
-    await prisma.$executeRaw`
-      SELECT audit.append_log(
-        ${org.id}::uuid,
-        ${user.id}::uuid,
-        'org_owner'::text,
-        NULL::inet,
-        NULL::text,
-        'onboarding.completed'::text,
-        'Organization'::text,
-        ${org.id}::text,
-        NULL::uuid,
-        ARRAY[]::text[],
-        '{}'::jsonb
-      )
-    `;
+    await appendAuditLog({
+      organizationId: org.id,
+      actorUserId: user.id,
+      actorRole: "org_owner",
+      action: "onboarding.completed",
+      entityType: "Organization",
+      entityId: org.id,
+      patientId: null,
+      fieldsAccessed: [],
+      payload: {},
+    });
   } catch (err) {
     // Audit não pode bloquear UX — log e segue
     console.error("[onboarding] audit failed", err);

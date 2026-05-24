@@ -22,6 +22,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 import { Avatar } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
 import { StatusDot } from "@repo/ui/status-dot";
@@ -131,20 +132,18 @@ export default async function PatientDetailPage({ params }: Props) {
       if (!p) return null;
 
       // Audit log: leitura de PHI
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid,
-          ${userId}::uuid,
-          'nutritionist'::text,
-          NULL::inet, NULL::text,
-          'patient.read'::text,
-          'Patient'::text,
-          ${p.id}::text,
-          ${p.id}::uuid,
-          ARRAY['fullName','email','phone','cpf']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #85: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.read",
+        entityType: "Patient",
+        entityId: p.id,
+        patientId: p.id,
+        fieldsAccessed: ["fullName", "email", "phone", "cpf"],
+        payload: {},
+      });
 
       // Próximas consultas deste paciente (janela: agora + 90d), ou passadas recentes se vazio
       const now = new Date();

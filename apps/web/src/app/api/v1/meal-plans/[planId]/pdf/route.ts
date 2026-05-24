@@ -7,8 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+// CORREÇÃO QA Rodada 6: appendAuditLog helper.
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { renderMealPlanPdf } from "@/lib/pdf/meal-plan-pdf";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -65,17 +67,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
         const issuerCrn = bookingPage?.crn ?? null;
         const issuerCrnUf = bookingPage?.crnUf ?? null;
 
-        // 3. Audit log (leitura de PHI do plano)
-        await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'meal_plan.pdf_download'::text, 'MealPlan'::text,
-          ${plan.id}::text, ${plan.patientId}::uuid,
-          ARRAY['days','meals','items']::text[],
-          '{}'::jsonb
-        )
-      `;
+        // CORREÇÃO QA #87: appendAuditLog helper (read PHI = audit detalhado).
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "meal_plan.pdf_download",
+          entityType: "MealPlan",
+          entityId: plan.id,
+          patientId: plan.patientId,
+          fieldsAccessed: ["days", "meals", "items"],
+          payload: {},
+        });
 
         return { plan, issuerName, issuerCrn, issuerCrnUf };
       },

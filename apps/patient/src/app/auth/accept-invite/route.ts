@@ -17,6 +17,7 @@ import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInviteAcceptedEmail } from "@/lib/email/send-invite-accepted";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -123,17 +124,18 @@ export async function GET(req: NextRequest) {
         });
       }
 
-      // Audit log (com org context manual)
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${invite.organizationId}::uuid, ${user.id}::uuid,
-          'patient'::text, NULL::inet, NULL::text,
-          'patient_invite.accept'::text, 'PatientInvite'::text,
-          ${invite.id}::text, ${invite.patientId}::uuid,
-          ARRAY['acceptedAt','acceptedByUserId']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #88: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId: invite.organizationId,
+        actorUserId: user.id,
+        actorRole: "patient",
+        action: "patient_invite.accept",
+        entityType: "PatientInvite",
+        entityId: invite.id,
+        patientId: invite.patientId,
+        fieldsAccessed: ["acceptedAt", "acceptedByUserId"],
+        payload: {},
+      });
     });
   } catch {
     return NextResponse.redirect(new URL("/?error=accept_failed", url.origin));
