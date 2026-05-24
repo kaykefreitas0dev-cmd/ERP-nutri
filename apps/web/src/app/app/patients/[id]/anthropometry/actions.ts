@@ -1,8 +1,14 @@
 "use server";
 
+// CORREÇÃO QA Rodada 5:
+//   #66 — patient.findFirst com organizationId explícito (defense-in-depth)
+//   #67 — appendAuditLog helper em vez de raw $executeRaw (2 ocorrências)
+//   #68 — UUID validation em deleteAnthropometryAction
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 import {
   bmiRounded,
   bmrMifflin,
@@ -12,6 +18,9 @@ import {
   round,
   type BiologicalSex,
 } from "@nutricore/nutrition";
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const CreateAnthropometrySchema = z.object({
   patientId: z.string().uuid(),
@@ -75,12 +84,14 @@ export async function createAnthropometryAction(
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #66: organizationId explícito.
         const patient = (await tx.patient.findFirst({
-          where: { id: d.patientId },
+          where: { id: d.patientId, organizationId },
           select: { birthDate: true, biologicalSex: true },
         })) as PatientForCalc | null;
 
-        if (!patient) throw new Error("Paciente não encontrado");
+        if (!patient)
+          throw new Error("Paciente não encontrado nesta organização");
 
         const ageYears = calcAgeYears(patient.birthDate);
         const sex = patient.biologicalSex as BiologicalSex | null;
@@ -225,17 +236,18 @@ export async function createAnthropometryAction(
           },
         });
 
-        // Audit
-        await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'anthropometry.create'::text, 'Anthropometry'::text,
-          ${record.id}::text, ${d.patientId}::uuid,
-          ARRAY['weightKg','heightCm','skinfolds']::text[],
-          '{}'::jsonb
-        )
-      `;
+        // CORREÇÃO QA #67: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "anthropometry.create",
+          entityType: "Anthropometry",
+          entityId: record.id,
+          patientId: d.patientId,
+          fieldsAccessed: ["weightKg", "heightCm", "skinfolds"],
+          payload: {},
+        });
 
         return record;
       },
@@ -257,7 +269,13 @@ export async function deleteAnthropometryAction(
   recordId: string,
   patientId: string,
 ): Promise<{ ok: boolean; message?: string }> {
-  if (!recordId || !patientId) return { ok: false, message: "Dados inválidos" };
+  // CORREÇÃO QA #68: UUID validation.
+  if (!recordId || !UUID_REGEX.test(recordId)) {
+    return { ok: false, message: "recordId inválido" };
+  }
+  if (!patientId || !UUID_REGEX.test(patientId)) {
+    return { ok: false, message: "patientId inválido" };
+  }
 
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
@@ -270,17 +288,18 @@ export async function deleteAnthropometryAction(
 
       await tx.anthropometry.delete({ where: { id: recordId } });
 
-      // Audit
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'anthropometry.delete'::text, 'Anthropometry'::text,
-          ${recordId}::text, ${patientId}::uuid,
-          ARRAY['id']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #67: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "anthropometry.delete",
+        entityType: "Anthropometry",
+        entityId: recordId,
+        patientId,
+        fieldsAccessed: ["id"],
+        payload: {},
+      });
     });
 
     revalidatePath(`/app/patients/${patientId}/anthropometry`);
