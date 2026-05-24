@@ -2,7 +2,7 @@
 
 current_sprint: S22
 status: blocked_on_pm
-last_updated: 2026-05-20 (autônomo cont. — PRs #115-#116)
+last_updated: 2026-05-24 (autônomo cont. — PRs #117-#150)
 mode: autonomous (S22 aguarda PM: Asaas BaaS prod + convites beta S21)
 
 ---
@@ -141,6 +141,47 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 
 ---
 
+## PRs em aberto aguardando PM review (main não atualizado)
+
+| PR   | Tema                                                                                                                                                                                          |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #117 | Feat(web) — pesquisa de alimentos no editor de planos: busca em tempo real via /api/v1/foods?q=, debounce 300ms, dropdown com macros, addFoodToMealAction                                     |
+| #118 | Feat(web) — dashboard widget "Taxa de adesão": % pacientes ativos com check-in na última semana, badge colorido success/warning/danger, cálculo por userId cross-tenant                       |
+| #119 | Feat(web) — agenda: confirmar consulta SCHEDULED→CONFIRMED com botão inline na AppointmentList (confirmAppointmentAction + email)                                                             |
+| #120 | Feat(web) — alimentos: histórico de versões de alimento com link Ver versão anterior → versão pai                                                                                             |
+| #121 | Fix(web) — corrigir links do dashboard e sidebar para páginas que ainda não existiam                                                                                                          |
+| #122 | Feat(patient) — página de detalhes de documento clínico com download de PDF via link temporário                                                                                               |
+| #123 | Feat(web) — alimentos: filtro por categoria (proteína/carboidrato/vegetal/etc.) na lista de alimentos                                                                                         |
+| #124 | Feat(web) — financeiro: KPI cards de inadimplência e taxa de conversão                                                                                                                        |
+| #125 | Feat(web) — pacientes: exportar lista em CSV com filtros ativos                                                                                                                               |
+| #126 | Feat(patient) — notificação de novo plano alimentar disponível (polling + banner in-app)                                                                                                      |
+| #127 | Feat(web) — agenda: filtro por status na lista de consultas (todas/confirmadas/pendentes)                                                                                                     |
+| #128 | Fix(patient) — correção de layout em telas pequenas (375px) nas páginas de check-in e plano                                                                                                   |
+| #129 | Feat(web) — onboarding wizard: passo de boas-vindas com checklist de configuração inicial                                                                                                     |
+| #130 | Feat(web) — pacientes: seção de alergias e restrições alimentares na página de detalhe                                                                                                        |
+| #131 | Feat(web) — agenda: suporte a consultas recorrentes (RRULE) na criação via NewAppointmentForm                                                                                                 |
+| #132 | Feat(web) — meal plan: botão "Gerar PDF" do plano alimentar com react-pdf (layout A4)                                                                                                         |
+| #133 | Feat(patient) — página de perfil do paciente com edição de preferredName e foto                                                                                                               |
+| #134 | Feat(web) — antropometria: gráfico de evolução de circunferências (cintura/quadril/etc.)                                                                                                      |
+| #135 | Feat(web) — documentos: template de receita de suplementação com campos CRN e assinatura mock                                                                                                 |
+| #136 | Fix(web) — isolamento de tenant em AppointmentList (verificar professionalUserId)                                                                                                             |
+| #137 | Feat(web) — financeiro: gráfico de receita mensal com Recharts (12 meses, barras)                                                                                                             |
+| #138 | Feat(patient) — página de detalhes de consulta individual com status, notas e link Meet                                                                                                       |
+| #139 | Feat(web) — pacientes: importação de pacientes via integração Dietbox (webhook básico)                                                                                                        |
+| #140 | Feat(web) — settings: gerenciamento de membros da organização (convidar/remover)                                                                                                              |
+| #141 | Feat(web) — dashboard: widget de próximas consultas de todos os pacientes (próximas 48h)                                                                                                      |
+| #142 | Feat(web) — financeiro: exportar CSV filtrado (route GET /app/financeiro/export, BOM, até 5000 pagamentos)                                                                                    |
+| #143 | Feat(web) — pacientes: histórico completo de consultas por paciente (stats, tabela, link agenda)                                                                                              |
+| #144 | Feat(web) — command palette: busca dinâmica de pacientes com debounce 300ms e AbortController                                                                                                 |
+| #145 | Feat(web) — relatórios: página /app/relatorios com 3 seções (engajamento 30d, produção clínica, receita mensal e breakdown por método de pagamento)                                           |
+| #146 | Chore — SPRINT_STATE.md atualizado (PRs #117-#145 listados como em aberto + histórico 2026-05-24)                                                                                             |
+| #147 | Feat(patient) — página de progresso /app/progresso: histórico de antropometria com cards (peso/IMC/altura/GEB), delta vs anterior, tabela de medições, classificação IMC por cores            |
+| #148 | Feat(patient) — Progresso no NavBar (substitui Pagto) + card teaser de peso na home com trend                                                                                                 |
+| #149 | Feat(patient) — histórico de check-ins: calendário de humor 5×7 semanas, stats cards (streak/total/adesão/humor médio), lista detalhada últimos 90 dias; link "Ver histórico" na checkin page |
+| #150 | Feat(web) — widget financeiro na página de detalhe do paciente: total recebido + últimos 3 pagamentos com ícone de método; link "Agendar + registrar pagamento"                               |
+
+---
+
 ## S22 — Estado atual
 
 ### Bloqueios PM (ação necessária antes de S22 avançar)
@@ -250,3 +291,4 @@ Em **mode: autonomous**, PM autorizou defaults agênticos. Claude Code marca `[X
 - 2026-05-20 (autônomo, cont.) — PR #108-#109 merged: SPRINT_STATE update, editar notas de preparo inline nos itens do plano (+ nota ghost btn, 500 chars max, null on empty)
 - 2026-05-20 (autônomo, cont.) — PR #110-#113 merged: day label rename inline (optimistic update), SPRINT_STATE update, meal name rename inline, add/delete meals (inline form + Trash2 confirm guard)
 - 2026-05-20 (autônomo, cont.) — PR #114-#116 merged: SPRINT_STATE update, meal scheduled time inline edit (Clock ghost + time input), add/delete plan days (dashed button + Trash2 header guard + server-side cascade guard)
+- 2026-05-24 (autônomo cont. — sessão resumida) — PRs #117-#146 abertos aguardando PM merge. PRs #147-#150 abertos: patient progresso page (antropometria histórico + BMI), NavBar Progresso + home weight teaser, checkin history (calendario humor 5×7 + stats), financial widget no patient detail (total recebido + últimos 3 pagamentos)
