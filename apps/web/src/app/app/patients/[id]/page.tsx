@@ -24,6 +24,7 @@ import { ClinicalNotesSection } from "./ClinicalNotesSection";
 import { InvitePatientButton } from "./invites/InvitePatientButton";
 import { AnonymizeButton } from "./anonymize/AnonymizeButton";
 import { ExportDataButton } from "./export/ExportButton";
+import { PatientNotesEditor } from "./PatientNotesEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -676,13 +677,12 @@ export default async function PatientDetailPage({ params }: Props) {
               </Link>
             </Section>
 
-            {patient.notes && (
-              <Section title="Notas administrativas">
-                <p className="whitespace-pre-wrap text-body text-text-primary">
-                  {patient.notes}
-                </p>
-              </Section>
-            )}
+            <Section title="Observações">
+              <PatientNotesEditor
+                patientId={patient.id}
+                initialNotes={patient.notes}
+              />
+            </Section>
 
             {/* Privacidade / LGPD */}
             <section className="rounded-lg border border-border-subtle bg-bg-subtle p-4">
