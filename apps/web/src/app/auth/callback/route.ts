@@ -1,13 +1,17 @@
 // GET /auth/callback — magic link redirect target
 // Supabase Auth troca o code do query string por session cookie
+//
+// CORREÇÃO QA #10: validação de `next` contra open redirect (phishing).
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeNextRedirect } from "@/lib/safe-redirect";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/app";
+  // CORREÇÃO QA #10: bloqueia ?next=https://evil.com.
+  const next = safeNextRedirect(searchParams.get("next"), "/app");
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=missing_code", origin));

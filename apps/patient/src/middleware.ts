@@ -78,9 +78,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && pathname.startsWith("/app")) {
+  // CORREÇÃO QA #6: startsWith("/app") matchava /applications etc.
+  // Aceita só /app ou /app/...
+  const isProtected = pathname === "/app" || pathname.startsWith("/app/");
+  if (!user && isProtected) {
     const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   return response;

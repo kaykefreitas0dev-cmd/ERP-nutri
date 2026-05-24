@@ -1,5 +1,11 @@
 // Next.js middleware — refresh sessão Supabase + redirect protegido + headers segurança
 // ADR 0045 — Helmet equivalente via middleware + CSP report-only
+//
+// CORREÇÃO QA #6 + #7:
+//   #6 — `pathname.startsWith("/app")` matchava /applications, /appointments etc.
+//        Agora usa matchProtected() com prefixo exato.
+//   #7 — Headers de segurança eram duplicados 3 vezes (drift garantido a cada
+//        mudança). Extraídos para applySecurityHeaders().
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -30,13 +36,11 @@ const CSP_REPORT_ONLY = [
   "report-uri /api/csp-report",
 ].join("; ");
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Inicia response com headers de segurança aplicados
-  let response = NextResponse.next({ request });
-
-  // Security headers (Helmet equivalent)
+/**
+ * CORREÇÃO QA #7 — extração do bloco de 6 headers que era repetido 3x.
+ * Idempotente: pode chamar duas vezes no mesmo response sem efeitos colaterais.
+ */
+function applySecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("Content-Security-Policy-Report-Only", CSP_REPORT_ONLY);
   response.headers.set(
     "Strict-Transport-Security",
@@ -49,13 +53,30 @@ export async function middleware(request: NextRequest) {
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()",
   );
+  return response;
+}
+
+/**
+ * CORREÇÃO QA #6 — match exato de prefixo de rota protegida.
+ * `startsWith("/app")` matchava /applications, /appointments, /app-store etc.
+ * Agora aceita só "/app" ou "/app/…".
+ */
+function isProtectedRoute(pathname: string): boolean {
+  return pathname === "/app" || pathname.startsWith("/app/");
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Inicia response com headers de segurança aplicados
+  let response = applySecurityHeaders(NextResponse.next({ request }));
 
   // Public paths: apenas headers, sem auth check
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return response;
   }
 
-  // Auth check para rotas protegidas (/app/*, /(app)/*, etc.)
+  // Auth check para rotas protegidas (/app + /app/*)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -73,28 +94,9 @@ export async function middleware(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );
-        response = NextResponse.next({ request });
+        response = applySecurityHeaders(NextResponse.next({ request }));
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
-        );
-        // Re-aplicar security headers ao novo response
-        response.headers.set(
-          "Content-Security-Policy-Report-Only",
-          CSP_REPORT_ONLY,
-        );
-        response.headers.set(
-          "Strict-Transport-Security",
-          "max-age=63072000; includeSubDomains; preload",
-        );
-        response.headers.set("X-Frame-Options", "DENY");
-        response.headers.set("X-Content-Type-Options", "nosniff");
-        response.headers.set(
-          "Referrer-Policy",
-          "strict-origin-when-cross-origin",
-        );
-        response.headers.set(
-          "Permissions-Policy",
-          "camera=(), microphone=(), geolocation=()",
         );
       },
     },
@@ -106,30 +108,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Rotas que exigem autenticação
-  if (!user && pathname.startsWith("/app")) {
+  if (!user && isProtectedRoute(pathname)) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
-    const redirectResp = NextResponse.redirect(loginUrl);
-    // Re-aplicar security headers no redirect
-    redirectResp.headers.set(
-      "Content-Security-Policy-Report-Only",
-      CSP_REPORT_ONLY,
-    );
-    redirectResp.headers.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload",
-    );
-    redirectResp.headers.set("X-Frame-Options", "DENY");
-    redirectResp.headers.set("X-Content-Type-Options", "nosniff");
-    redirectResp.headers.set(
-      "Referrer-Policy",
-      "strict-origin-when-cross-origin",
-    );
-    redirectResp.headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()",
-    );
-    return redirectResp;
+    return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   return response;

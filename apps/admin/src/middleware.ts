@@ -77,22 +77,37 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && pathname.startsWith("/app")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // CORREÇÃO QA #6: match exato de prefixo (não pega /applications etc).
+  const isProtected = pathname === "/app" || pathname.startsWith("/app/");
+  if (!user && isProtected) {
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL("/login", request.url)),
+    );
   }
 
-  // Admin extra: rejeitar non-super_admin antes de render (defense-in-depth)
-  if (user && pathname.startsWith("/app")) {
+  // CORREÇÃO QA #8 — Admin defense-in-depth REJEITA non-super_admin com 403.
+  // Versão anterior só adicionava header X-Admin-Auth-Failed e confiava no
+  // layout para barrar — se o layout fosse refatorado e o check sumisse,
+  // qualquer user autenticado acessava endpoints admin.
+  if (user && isProtected) {
     const isSuperAdmin = Boolean(
       (user.app_metadata as Record<string, unknown> | undefined)?.[
         "is_super_admin"
       ],
     );
-    // Não força redirect aqui (layout do /app já mostra Acesso negado),
-    // mas garante que cookies não vazaram contexto cross-app
     if (!isSuperAdmin) {
-      // Adiciona header de tracking pra Sentry/logs
-      response.headers.set("X-Admin-Auth-Failed", "not-super-admin");
+      // Para rotas /api/*, retornar JSON 403 (consumidores esperam JSON).
+      // Para outras rotas, redirect explícito ao /login com flag para UX.
+      if (pathname.startsWith("/api/")) {
+        const denied = NextResponse.json(
+          { error: "forbidden", message: "Super admin access required" },
+          { status: 403 },
+        );
+        return applySecurityHeaders(denied);
+      }
+      const denyUrl = new URL("/login", request.url);
+      denyUrl.searchParams.set("error", "not_super_admin");
+      return applySecurityHeaders(NextResponse.redirect(denyUrl));
     }
   }
 

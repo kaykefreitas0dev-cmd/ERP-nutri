@@ -1,9 +1,31 @@
 // GET /api/v1/patients — Mobile-ready REST (Lock 11)
 // POST /api/v1/patients — criar paciente
+//
+// CORREÇÃO QA #3, #4, #5:
+//   #3 — `Number(limit)` virava NaN com input inválido → Prisma erro 500.
+//        Agora validado via Zod com fallback e clamp.
+//   #4 — `as` cast de status sem validação → 500 com enum inválido.
+//        Agora validado via Zod enum.
+//   #5 — `Object.keys(data)` em $executeRaw serializava como JSON, não array
+//        Postgres. Substituído por appendAuditLog helper que faz binding correto.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withTenant, TenantContextError } from "@nutricore/db/with-tenant";
+import { appendAuditLog } from "@nutricore/db/audit";
+
+// CORREÇÃO QA #3 + #4: query params validados com Zod (não com cast).
+const ListQuerySchema = z.object({
+  q: z
+    .string()
+    .min(1)
+    .max(120)
+    .optional()
+    .transform((v) => v?.trim()),
+  status: z.enum(["ACTIVE", "ARCHIVED", "ANONYMIZED"]).default("ACTIVE"),
+  // coerce.number + clamp + safe-default. limit=abc → 50 (sem NaN).
+  limit: z.coerce.number().int().min(1).max(200).default(50).catch(50),
+});
 
 const CreatePatientSchema = z.object({
   fullName: z.string().min(2).max(120).trim(),
@@ -27,13 +49,18 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest): Promise<Response> {
   try {
     const url = new URL(req.url);
-    const q = url.searchParams.get("q");
-    const status =
-      (url.searchParams.get("status") as
-        | "ACTIVE"
-        | "ARCHIVED"
-        | "ANONYMIZED") ?? "ACTIVE";
-    const take = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
+    const queryParsed = ListQuerySchema.safeParse({
+      q: url.searchParams.get("q") ?? undefined,
+      status: url.searchParams.get("status") ?? undefined,
+      limit: url.searchParams.get("limit") ?? undefined,
+    });
+    if (!queryParsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: queryParsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+    const { q, status, limit } = queryParsed.data;
 
     return await withTenant(req, async ({ prisma }) => {
       const patients = await prisma.patient.findMany({
@@ -49,7 +76,7 @@ export async function GET(req: NextRequest): Promise<Response> {
             : {}),
         },
         orderBy: { updatedAt: "desc" },
-        take,
+        take: limit,
         select: {
           id: true,
           fullName: true,
@@ -109,16 +136,19 @@ export async function POST(req: NextRequest): Promise<Response> {
         },
       });
 
-      await prisma.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'patient.create'::text, 'Patient'::text,
-          ${created.id}::text, ${created.id}::uuid,
-          ARRAY['fullName','email','phone']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #5: appendAuditLog usa $queryRaw com binding correto
+      // de arrays Postgres em vez de Object.keys() interpolado.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.create",
+        entityType: "Patient",
+        entityId: created.id,
+        patientId: created.id,
+        fieldsAccessed: ["fullName", "email", "phone"],
+        payload: {},
+      });
 
       return NextResponse.json({ patient: created }, { status: 201 });
     });

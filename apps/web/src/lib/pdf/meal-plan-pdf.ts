@@ -58,7 +58,8 @@ function maskCpf(cpf: string | null): string {
   if (!cpf) return "—";
   const digits = cpf.replace(/\D/g, "");
   if (digits.length !== 11) return cpf;
-  return `${digits.slice(0, 3)}.***.***.${digits.slice(9)}`;
+  // CORREÇÃO QA #9: padrão BR é XXX.XXX.XXX-XX (hífen no DV), não ponto.
+  return `${digits.slice(0, 3)}.***.***-${digits.slice(9)}`;
 }
 
 function formatDate(d: Date): string {
