@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Activity,
   Flame,
+  Wallet,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { Avatar } from "@repo/ui/avatar";
@@ -89,6 +90,18 @@ export default async function PatientDetailPage({ params }: Props) {
       longestStreak: number;
       totalCheckins: number;
       lastCheckinDate: Date | null;
+    } | null;
+    paymentSummary: {
+      totalCents: number;
+      count: number;
+      recentPayments: Array<{
+        id: string;
+        paymentDate: Date;
+        amountCents: number;
+        status: string;
+        externalPaymentMethod: string | null;
+        description: string | null;
+      }>;
     } | null;
   } | null = null;
 
@@ -172,38 +185,76 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      // Última medição de antropometria + streak de check-ins (paralelo)
-      const [lastAnthropometry, checkinStreak] = await Promise.all([
-        tx.anthropometry.findFirst({
-          where: { patientId: p.id },
-          orderBy: { measuredAt: "desc" },
-          select: {
-            measuredAt: true,
-            weightKg: true,
-            heightCm: true,
-            bodyMassIndex: true,
-            bodyFatPctCalc: true,
-            basalMetabolismMifflin: true,
-          },
-        }),
-        p.userId
-          ? tx.userHealthStreak.findUnique({
-              where: { userId: p.userId },
-              select: {
-                currentStreak: true,
-                longestStreak: true,
-                totalCheckins: true,
-                lastCheckinDate: true,
-              },
-            })
-          : Promise.resolve(null),
-      ]);
+      // Última medição de antropometria + streak de check-ins + pagamentos (paralelo)
+      const [lastAnthropometry, checkinStreak, paymentSummary] =
+        await Promise.all([
+          tx.anthropometry.findFirst({
+            where: { patientId: p.id },
+            orderBy: { measuredAt: "desc" },
+            select: {
+              measuredAt: true,
+              weightKg: true,
+              heightCm: true,
+              bodyMassIndex: true,
+              bodyFatPctCalc: true,
+              basalMetabolismMifflin: true,
+            },
+          }),
+          p.userId
+            ? tx.userHealthStreak.findUnique({
+                where: { userId: p.userId },
+                select: {
+                  currentStreak: true,
+                  longestStreak: true,
+                  totalCheckins: true,
+                  lastCheckinDate: true,
+                },
+              })
+            : Promise.resolve(null),
+          // Payment summary: aggregate + last 5 payments
+          (async () => {
+            const [agg, recent] = await Promise.all([
+              tx.patientPayment.aggregate({
+                where: { patientId: p.id },
+                _count: true,
+                _sum: { amountCents: true },
+              }),
+              tx.patientPayment.findMany({
+                where: { patientId: p.id },
+                orderBy: { paymentDate: "desc" },
+                take: 5,
+                select: {
+                  id: true,
+                  paymentDate: true,
+                  amountCents: true,
+                  status: true,
+                  externalPaymentMethod: true,
+                  description: true,
+                },
+              }),
+            ]);
+            if ((agg._count as number) === 0) return null;
+            return {
+              totalCents: (agg._sum.amountCents as number | null) ?? 0,
+              count: agg._count as number,
+              recentPayments: recent as Array<{
+                id: string;
+                paymentDate: Date;
+                amountCents: number;
+                status: string;
+                externalPaymentMethod: string | null;
+                description: string | null;
+              }>,
+            };
+          })(),
+        ]);
 
       return {
         ...p,
         upcomingAppointments: [...upcoming, ...past],
         lastAnthropometry: lastAnthropometry ?? null,
         checkinStreak: checkinStreak ?? null,
+        paymentSummary: paymentSummary ?? null,
       };
     });
   } catch (err) {
@@ -681,6 +732,123 @@ export default async function PatientDetailPage({ params }: Props) {
                 <p className="whitespace-pre-wrap text-body text-text-primary">
                   {patient.notes}
                 </p>
+              </Section>
+            )}
+
+            {/* Pagamentos do paciente */}
+            {patient.paymentSummary && (
+              <Section
+                title="Pagamentos"
+                counter={patient.paymentSummary.count}
+              >
+                {/* Aggregate total */}
+                <div className="mb-3 flex items-baseline gap-2">
+                  <Wallet
+                    className="h-4 w-4 shrink-0 text-text-muted"
+                    strokeWidth={1.75}
+                  />
+                  <span className="text-h3 font-semibold tabular-nums text-text-primary">
+                    R${" "}
+                    {(patient.paymentSummary.totalCents / 100).toLocaleString(
+                      "pt-BR",
+                      { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                    )}
+                  </span>
+                  <span className="text-tiny text-text-muted">total pago</span>
+                </div>
+
+                {/* Recent payments list */}
+                <ul className="space-y-1.5">
+                  {patient.paymentSummary.recentPayments.map((pmt) => {
+                    const methodLabels: Record<string, string> = {
+                      PIX: "PIX",
+                      CARD_EXTERNAL: "Cartão",
+                      CASH: "Dinheiro",
+                      BANK_TRANSFER: "Transferência",
+                      OTHER: "Outro",
+                    };
+                    const statusLabel =
+                      pmt.status === "EXTERNAL_RECORDED"
+                        ? "Registrado"
+                        : pmt.status === "PAID"
+                          ? "Pago"
+                          : pmt.status === "REFUNDED"
+                            ? "Estornado"
+                            : pmt.status === "CANCELLED"
+                              ? "Cancelado"
+                              : pmt.status;
+
+                    const isCancelled =
+                      pmt.status === "CANCELLED" || pmt.status === "REFUNDED";
+
+                    return (
+                      <li
+                        key={pmt.id}
+                        className="flex items-center justify-between gap-2 rounded-md bg-bg-subtle px-2.5 py-1.5 text-tiny"
+                      >
+                        <div className="flex min-w-0 flex-col">
+                          <span className="tabular-nums text-text-muted">
+                            {new Date(pmt.paymentDate).toLocaleDateString(
+                              "pt-BR",
+                            )}
+                          </span>
+                          {pmt.description && (
+                            <span className="truncate text-text-secondary">
+                              {pmt.description}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {pmt.externalPaymentMethod && (
+                            <span className="text-text-muted">
+                              {methodLabels[pmt.externalPaymentMethod] ??
+                                pmt.externalPaymentMethod}
+                            </span>
+                          )}
+                          <span
+                            className={[
+                              "font-semibold tabular-nums",
+                              isCancelled
+                                ? "text-text-muted line-through"
+                                : "text-text-primary",
+                            ].join(" ")}
+                          >
+                            R${" "}
+                            {(pmt.amountCents / 100).toLocaleString("pt-BR", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
+                          <span
+                            className={[
+                              "rounded-full px-1.5 py-0.5 text-tiny font-medium ring-1 ring-inset",
+                              isCancelled
+                                ? "bg-danger-bg text-danger ring-danger-border"
+                                : "bg-success-bg text-success ring-success-border",
+                            ].join(" ")}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {patient.paymentSummary.count > 5 && (
+                  <p className="mt-2 text-tiny text-text-muted">
+                    Mostrando os 5 pagamentos mais recentes de{" "}
+                    {patient.paymentSummary.count} no total.
+                  </p>
+                )}
+
+                <Link
+                  href="/app/financeiro"
+                  className="mt-3 inline-flex items-center gap-1 text-tiny text-brand-primary transition-colors hover:text-brand-primary-hover"
+                >
+                  <Wallet className="h-3 w-3" strokeWidth={1.75} />
+                  Ver financeiro completo
+                  <ChevronRight className="h-3 w-3" strokeWidth={2} />
+                </Link>
               </Section>
             )}
 
