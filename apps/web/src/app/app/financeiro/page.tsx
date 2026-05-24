@@ -9,6 +9,7 @@ import {
   BarChart3,
   FileText,
   ChevronLeft,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
@@ -365,11 +366,28 @@ export default async function FinanceiroPage({ searchParams }: Props) {
 
         {/* Table */}
         <section className="mt-4 overflow-hidden rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
-          <header className="border-b border-border-subtle px-5 py-3">
+          <header className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
             <h2 className="text-body font-semibold text-text-primary">
               Pagamentos ({data.payments.length}
               {data.payments.length === 200 && "+"})
             </h2>
+            <Link
+              href={`/app/financeiro/export?${new URLSearchParams(
+                Object.fromEntries(
+                  [
+                    ["from", from],
+                    ["to", to],
+                    ["method", method],
+                    ["q", q],
+                  ].filter((e): e is [string, string] => Boolean(e[1])),
+                ),
+              ).toString()}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-1.5 text-tiny font-medium text-text-secondary transition-colors hover:bg-bg-surface-hover hover:text-text-primary"
+              download
+            >
+              <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Exportar CSV
+            </Link>
           </header>
           {data.payments.length === 0 ? (
             <p className="p-5 text-body text-text-muted">
