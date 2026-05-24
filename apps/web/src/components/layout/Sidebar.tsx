@@ -11,6 +11,7 @@ import {
   Wallet,
   Settings,
   PanelLeft,
+  BarChart3,
 } from "lucide-react";
 import { NutricoreLogoFull, NutricoreLogoMark } from "./Logo";
 import { SidebarItem, SidebarSection } from "./SidebarItem";
@@ -115,6 +116,11 @@ export function Sidebar() {
 
         <SidebarSection title="Configurações" />
         <SidebarItem href="/app/financeiro" label="Financeiro" Icon={Wallet} />
+        <SidebarItem
+          href="/app/relatorios"
+          label="Relatórios"
+          Icon={BarChart3}
+        />
         <SidebarItem
           href="/app/settings"
           label="Configurações"
