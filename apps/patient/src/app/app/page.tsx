@@ -9,6 +9,9 @@ import {
   MapPin,
   Video,
   Phone,
+  Scale,
+  TrendingDown,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { prisma } from "@nutricore/db";
@@ -101,15 +104,20 @@ export default async function PatientHomePage({
   } = await supabase.auth.getUser();
   // Layout já garante auth; aqui apenas leitura
 
-  // Streak + check-in de hoje
+  // Streak + check-in de hoje + última medição
   const todayDate = new Date(todayLocalISO() + "T12:00:00Z");
-  const [streak, todayCheckin] = await Promise.all([
+  const [streak, todayCheckin, latestMeasurement] = await Promise.all([
     prisma.userHealthStreak.findUnique({ where: { userId: user!.id } }),
     prisma.userHealthCheckin.findUnique({
       where: {
         userId_checkinDate: { userId: user!.id, checkinDate: todayDate },
       },
       select: { id: true },
+    }),
+    prisma.anthropometry.findFirst({
+      where: { patient: { userId: user!.id, status: { not: "ANONYMIZED" } } },
+      orderBy: { measuredAt: "desc" },
+      select: { weightKg: true, measuredAt: true },
     }),
   ]);
 
@@ -146,6 +154,18 @@ export default async function PatientHomePage({
       },
     },
   });
+
+  // Segunda medição mais recente para calcular delta de peso
+  const previousMeasurement = latestMeasurement
+    ? await prisma.anthropometry.findFirst({
+        where: {
+          patient: { userId: user!.id, status: { not: "ANONYMIZED" } },
+          measuredAt: { lt: latestMeasurement.measuredAt },
+        },
+        orderBy: { measuredAt: "desc" },
+        select: { weightKg: true },
+      })
+    : null;
 
   // Próximas consultas — máx 3, janela de 30 dias
   const patientIds = patients.map((p) => p.id);
@@ -247,6 +267,72 @@ export default async function PatientHomePage({
           </Link>
         </div>
       </div>
+
+      {/* Progresso — teaser com último peso */}
+      {latestMeasurement?.weightKg &&
+        (() => {
+          const currKg = parseFloat(latestMeasurement.weightKg.toString());
+          const prevKg = previousMeasurement?.weightKg
+            ? parseFloat(previousMeasurement.weightKg.toString())
+            : null;
+          const diff = prevKg !== null ? currKg - prevKg : null;
+          const diffAbs = diff !== null ? Math.abs(diff).toFixed(1) : null;
+          const trend =
+            diff === null || Math.abs(diff) < 0.05
+              ? "same"
+              : diff < 0
+                ? "down"
+                : "up";
+          return (
+            <Link
+              href="/app/progresso"
+              className="mt-4 flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-200 hover:bg-brand-primary-bg/40 active:scale-[0.99]"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-subtle">
+                <Scale
+                  className="h-5 w-5 text-text-secondary"
+                  strokeWidth={1.75}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-tiny text-text-muted">Meu progresso</p>
+                <p className="text-body font-semibold tabular-nums text-text-primary">
+                  {currKg.toFixed(1)} kg
+                  {trend !== "same" && diffAbs && (
+                    <span
+                      className={
+                        "ml-2 text-tiny font-medium " +
+                        (trend === "down" ? "text-success" : "text-warning")
+                      }
+                    >
+                      {trend === "down" ? (
+                        <TrendingDown
+                          className="inline h-3 w-3"
+                          strokeWidth={2}
+                        />
+                      ) : (
+                        <TrendingUp
+                          className="inline h-3 w-3"
+                          strokeWidth={2}
+                        />
+                      )}{" "}
+                      {trend === "down" ? "-" : "+"}
+                      {diffAbs} kg
+                    </span>
+                  )}
+                </p>
+                <p className="text-tiny text-text-muted">
+                  Medido em{" "}
+                  {new Date(latestMeasurement.measuredAt).toLocaleDateString(
+                    "pt-BR",
+                    { day: "2-digit", month: "short" },
+                  )}
+                </p>
+              </div>
+              <span className="text-text-muted">›</span>
+            </Link>
+          );
+        })()}
 
       {/* Próximas consultas */}
       {upcomingAppointments.length > 0 && (
