@@ -15,6 +15,7 @@ import {
   Phone,
   ChevronRight,
   AlertTriangle,
+  ClipboardX,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
@@ -70,6 +71,8 @@ export default async function AppDashboard() {
       /** Days since last check-in, or null if they've never checked in. */
       daysSince: number | null;
     }>;
+    /** Active patients who have no active meal plan assigned. */
+    patientsWithoutActivePlan: Array<{ id: string; fullName: string }>;
   } | null = null;
 
   try {
@@ -124,6 +127,7 @@ export default async function AppDashboard() {
         docs30dRaw,
         agendaHojeRaw,
         inactivePatientsResult,
+        patientsWithoutActivePlanRaw,
       ] = await Promise.all([
         tx.patient.count({ where: { status: "ACTIVE" } }),
         tx.appointment.count({
@@ -254,6 +258,16 @@ export default async function AppDashboard() {
               },
             );
         })(),
+        // Active patients without any active meal plan
+        tx.patient.findMany({
+          where: {
+            status: "ACTIVE",
+            mealPlans: { none: { status: "ACTIVE" } },
+          },
+          select: { id: true, fullName: true },
+          orderBy: { createdAt: "desc" },
+          take: 8,
+        }),
       ]);
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
@@ -311,6 +325,12 @@ export default async function AppDashboard() {
           ),
         },
         inactivePatients: inactivePatientsResult,
+        patientsWithoutActivePlan: (
+          patientsWithoutActivePlanRaw as Array<{
+            id: string;
+            fullName: string;
+          }>
+        ).map((p) => ({ id: p.id, fullName: p.fullName })),
         agendaHoje: agendaHojeRaw.map(
           (a: {
             id: string;
@@ -687,6 +707,64 @@ export default async function AppDashboard() {
                   </li>
                 );
               })}
+            </ul>
+          </section>
+        )}
+
+        {/* Pacientes sem plano alimentar ativo */}
+        {data.patientsWithoutActivePlan.length > 0 && (
+          <section aria-label="Pacientes sem plano ativo" className="mt-10">
+            <div className="mb-4 flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-h2 font-semibold text-text-primary">
+                  Sem plano ativo
+                </h2>
+                <span className="rounded-full bg-info-bg px-2 py-0.5 text-tiny font-medium text-info ring-1 ring-inset ring-info-border">
+                  {data.patientsWithoutActivePlan.length}
+                </span>
+              </div>
+              <Link
+                href="/app/patients"
+                className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
+              >
+                Ver todos os pacientes
+                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+            </div>
+            <p className="mb-3 text-tiny text-text-muted">
+              Pacientes ativos que não possuem plano alimentar em andamento.
+            </p>
+
+            <ul className="space-y-2">
+              {data.patientsWithoutActivePlan.map((patient) => (
+                <li key={patient.id}>
+                  <Link
+                    href={`/app/patients/${patient.id}/meal-plans`}
+                    className="flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]"
+                  >
+                    {/* Icon */}
+                    <ClipboardX
+                      className="h-4 w-4 shrink-0 text-text-muted"
+                      strokeWidth={1.75}
+                    />
+
+                    {/* Patient name */}
+                    <span className="min-w-0 flex-1 truncate text-body font-medium text-text-primary">
+                      {patient.fullName}
+                    </span>
+
+                    {/* CTA badge */}
+                    <span className="shrink-0 rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary ring-1 ring-inset ring-brand-primary/20">
+                      Prescrever plano
+                    </span>
+
+                    <ChevronRight
+                      className="h-3.5 w-3.5 shrink-0 text-text-muted"
+                      strokeWidth={2}
+                    />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </section>
         )}
