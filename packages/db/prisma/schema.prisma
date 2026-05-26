@@ -406,6 +406,7 @@ model Patient {
   clinicalDocuments    ClinicalDocument[]
   invites              PatientInvite[]
   payments             PatientPayment[]
+  appointments         Appointment[]
 
   @@index([organizationId, fullName])
   @@index([organizationId, status, updatedAt(sort: Desc)])
@@ -685,6 +686,7 @@ model Appointment {
 
   bookingPage     BookingPage?             @relation(fields: [bookingPageId], references: [id], onDelete: SetNull)
   serviceOffering ServiceOffering?         @relation(fields: [serviceOfferingId], references: [id], onDelete: SetNull)
+  patient         Patient?                 @relation(fields: [patientId], references: [id], onDelete: SetNull)
   statusEvents    AppointmentStatusEvent[]
   payments        PatientPayment[]
 
