@@ -184,59 +184,56 @@ export default async function PatientDetailPage({ params }: Props) {
             })
           : [];
 
-      // Última medição + streak + pagamentos (paralelo)
-      const [
-        lastAnthropometry,
-        checkinStreak,
-        recentPayments,
-        paymentAggregate,
-      ] = await Promise.all([
-        tx.anthropometry.findFirst({
-          where: { patientId: p.id },
-          orderBy: { measuredAt: "desc" },
-          select: {
-            measuredAt: true,
-            weightKg: true,
-            heightCm: true,
-            bodyMassIndex: true,
-            bodyFatPctCalc: true,
-            basalMetabolismMifflin: true,
-          },
-        }),
-        p.userId
-          ? tx.userHealthStreak.findUnique({
-              where: { userId: p.userId },
-              select: {
-                currentStreak: true,
-                longestStreak: true,
-                totalCheckins: true,
-                lastCheckinDate: true,
-              },
-            })
-          : Promise.resolve(null),
-        tx.patientPayment.findMany({
-          where: {
-            patientId: p.id,
-            status: { in: ["PAID", "EXTERNAL_RECORDED"] },
-          },
-          orderBy: { paymentDate: "desc" },
-          take: 3,
-          select: {
-            id: true,
-            amountCents: true,
-            externalPaymentMethod: true,
-            paymentDate: true,
-            status: true,
-          },
-        }),
-        tx.patientPayment.aggregate({
-          where: {
-            patientId: p.id,
-            status: { in: ["PAID", "EXTERNAL_RECORDED"] },
-          },
-          _sum: { amountCents: true },
-        }),
-      ]);
+      // Última medição + streak + pagamentos.
+      // CORREÇÃO: serializado em vez de Promise.all — dentro de uma transação
+      // o @prisma/adapter-pg compartilha 1 connection; queries paralelas
+      // disparam DeprecationWarning ("Calling client.query() when the client
+      // is already executing a query") e vão virar erro no pg@9.
+      const lastAnthropometry = await tx.anthropometry.findFirst({
+        where: { patientId: p.id },
+        orderBy: { measuredAt: "desc" },
+        select: {
+          measuredAt: true,
+          weightKg: true,
+          heightCm: true,
+          bodyMassIndex: true,
+          bodyFatPctCalc: true,
+          basalMetabolismMifflin: true,
+        },
+      });
+      const checkinStreak = p.userId
+        ? await tx.userHealthStreak.findUnique({
+            where: { userId: p.userId },
+            select: {
+              currentStreak: true,
+              longestStreak: true,
+              totalCheckins: true,
+              lastCheckinDate: true,
+            },
+          })
+        : null;
+      const recentPayments = await tx.patientPayment.findMany({
+        where: {
+          patientId: p.id,
+          status: { in: ["PAID", "EXTERNAL_RECORDED"] },
+        },
+        orderBy: { paymentDate: "desc" },
+        take: 3,
+        select: {
+          id: true,
+          amountCents: true,
+          externalPaymentMethod: true,
+          paymentDate: true,
+          status: true,
+        },
+      });
+      const paymentAggregate = await tx.patientPayment.aggregate({
+        where: {
+          patientId: p.id,
+          status: { in: ["PAID", "EXTERNAL_RECORDED"] },
+        },
+        _sum: { amountCents: true },
+      });
 
       return {
         ...p,

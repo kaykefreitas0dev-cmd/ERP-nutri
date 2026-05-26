@@ -651,14 +651,13 @@ export async function reorderMealItemsAction(input: {
 }): Promise<PlanActionResult> {
   try {
     await withTenantAction(async ({ tx }) => {
-      await Promise.all(
-        input.orderedIds.map((id, index) =>
-          tx.mealItem.update({
-            where: { id },
-            data: { sortOrder: index },
-          }),
-        ),
-      );
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      for (let index = 0; index < input.orderedIds.length; index++) {
+        await tx.mealItem.update({
+          where: { id: input.orderedIds[index]! },
+          data: { sortOrder: index },
+        });
+      }
     });
     revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
     return { ok: true };
@@ -678,14 +677,13 @@ export async function reorderMealsAction(input: {
 }): Promise<PlanActionResult> {
   try {
     await withTenantAction(async ({ tx }) => {
-      await Promise.all(
-        input.orderedIds.map((id, index) =>
-          tx.meal.update({
-            where: { id },
-            data: { sortOrder: index },
-          }),
-        ),
-      );
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      for (let index = 0; index < input.orderedIds.length; index++) {
+        await tx.meal.update({
+          where: { id: input.orderedIds[index]! },
+          data: { sortOrder: index },
+        });
+      }
     });
     revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
     return { ok: true };

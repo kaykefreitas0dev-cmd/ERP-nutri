@@ -50,17 +50,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
         });
         if (!plan) return null;
 
-        // 2. Dados do profissional (nome + CRN)
-        const [user, bookingPage] = await Promise.all([
-          tx.user.findUnique({
-            where: { id: userId },
-            select: { fullName: true },
-          }),
-          tx.bookingPage.findFirst({
-            where: { professionalUserId: userId, organizationId },
-            select: { displayName: true, crn: true, crnUf: true },
-          }),
-        ]);
+        // 2. Dados do profissional (nome + CRN).
+        // CORREÇÃO: serializado em vez de Promise.all — dentro da transação
+        // pg adapter compartilha 1 connection e queries paralelas disparam
+        // DeprecationWarning (vai virar erro no pg@9).
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { fullName: true },
+        });
+        const bookingPage = await tx.bookingPage.findFirst({
+          where: { professionalUserId: userId, organizationId },
+          select: { displayName: true, crn: true, crnUf: true },
+        });
 
         const issuerName =
           bookingPage?.displayName ?? user?.fullName ?? "Nutricionista";

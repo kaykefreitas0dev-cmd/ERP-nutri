@@ -62,34 +62,33 @@ export default async function PatientCheckinsPage({ params }: Props) {
       }
 
       // Lock 6 + RLS policy "user_checkins_nutri_read" permite leitura
-      // pelo nutri se houver Patient na org com user_id casando
-      const [checkins, streak] = await Promise.all([
-        tx.userHealthCheckin.findMany({
-          where: { userId: patient.userId },
-          orderBy: { checkinDate: "desc" },
-          take: 60,
-          select: {
-            id: true,
-            checkinDate: true,
-            mood: true,
-            energyLevel: true,
-            hungerLevel: true,
-            waterMl: true,
-            weightKg: true,
-            followedPlan: true,
-            notes: true,
-          },
-        }),
-        tx.userHealthStreak.findUnique({
-          where: { userId: patient.userId },
-          select: {
-            currentStreak: true,
-            longestStreak: true,
-            totalCheckins: true,
-            lastCheckinDate: true,
-          },
-        }),
-      ]);
+      // pelo nutri se houver Patient na org com user_id casando.
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      const checkins = await tx.userHealthCheckin.findMany({
+        where: { userId: patient.userId },
+        orderBy: { checkinDate: "desc" },
+        take: 60,
+        select: {
+          id: true,
+          checkinDate: true,
+          mood: true,
+          energyLevel: true,
+          hungerLevel: true,
+          waterMl: true,
+          weightKg: true,
+          followedPlan: true,
+          notes: true,
+        },
+      });
+      const streak = await tx.userHealthStreak.findUnique({
+        where: { userId: patient.userId },
+        select: {
+          currentStreak: true,
+          longestStreak: true,
+          totalCheckins: true,
+          lastCheckinDate: true,
+        },
+      });
 
       return { patient, checkins, streak };
     });

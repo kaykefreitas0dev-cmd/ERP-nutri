@@ -26,24 +26,23 @@ export default async function SettingsPage() {
 
   try {
     data = await withTenantAction(async ({ tx, organizationId, userId }) => {
-      const [org, branding, membership] = await Promise.all([
-        tx.organization.findUnique({
-          where: { id: organizationId },
-          select: { id: true, name: true, slug: true, plan: true },
-        }),
-        tx.organizationBranding.findUnique({
-          where: { organizationId },
-          select: {
-            logoUrl: true,
-            primaryColor: true,
-            emailFromName: true,
-          },
-        }),
-        tx.membership.findFirst({
-          where: { userId, organizationId },
-          select: { role: true },
-        }),
-      ]);
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      const org = await tx.organization.findUnique({
+        where: { id: organizationId },
+        select: { id: true, name: true, slug: true, plan: true },
+      });
+      const branding = await tx.organizationBranding.findUnique({
+        where: { organizationId },
+        select: {
+          logoUrl: true,
+          primaryColor: true,
+          emailFromName: true,
+        },
+      });
+      const membership = await tx.membership.findFirst({
+        where: { userId, organizationId },
+        select: { role: true },
+      });
       if (!org) return null;
       return { org, branding, role: membership?.role ?? "member" };
     });
