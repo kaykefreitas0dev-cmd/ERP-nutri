@@ -45,6 +45,36 @@ rules:
     severity: ERROR
     languages: [typescript]
 
+  - id: no-direct-audit-execute-raw
+    patterns:
+      - pattern-either:
+          - pattern: $X.$executeRaw`...audit.append_log...`
+          - pattern: $X.$queryRaw`...audit.append_log...`
+          - pattern: $X.$executeRawUnsafe(`...audit.append_log...`)
+    paths:
+      include:
+        - "apps/**/*.ts"
+        - "apps/**/*.tsx"
+      exclude:
+        - "packages/db/src/audit.ts"
+        - "**/migrations/**"
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+    message: "PROIBIDO chamar audit.append_log via raw SQL (parameter binding incorreto para arrays Postgres + JSON.stringify nao trata BigInt). Use appendAuditLog() helper de @nutricore/db/audit."
+    severity: ERROR
+    languages: [typescript]
+
+  - id: no-promise-all-in-tx
+    patterns:
+      - pattern-either:
+          - pattern: |
+              return withTenant($REQ, async ($CTX) => { ... await Promise.all([...]) ... });
+          - pattern: |
+              await withTenantAction(async ($CTX) => { ... await Promise.all([...]) ... });
+    message: "Promise.all dentro de withTenant/withTenantAction (transacao Prisma) dispara DeprecationWarning do pg adapter (Calling client.query() when already executing). Serialize com await sequencial."
+    severity: WARNING
+    languages: [typescript]
+
   - id: no-route-without-with-tenant
     patterns:
       - pattern-either:

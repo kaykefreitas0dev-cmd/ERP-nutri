@@ -1,0 +1,23 @@
+# Semgrep custom rules — usam sintaxe inline {...} que Prettier não consegue parsear
+.semgrep/
+
+# Generated files
+**/.next/
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/.turbo/
+packages/db/src/generated/
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build artifacts
+**/.tsbuildinfo
+**/*.tsbuildinfo
+
+# Static
+**/public/manifest.webmanifest

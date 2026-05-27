@@ -17,6 +17,8 @@
 //     trata como literal mesmo se a claim fosse hostile.
 
 import { createClient } from "@supabase/supabase-js";
+import { Redis } from "@upstash/redis";
+import { createHash } from "node:crypto";
 import { prisma } from "./client";
 import type { PrismaClient } from "./client";
 
@@ -85,6 +87,62 @@ function getSupabaseClient(): ReturnType<typeof createClient> {
   return _supabase;
 }
 
+// ── B4 (QA Rodada 7): Cache de getUser(token) no Redis ───────────────────
+//
+// Cada validação remota custa ~50-150ms. Cacheando o resultado por 30s
+// reduz para ~5ms quando o mesmo token é reusado dentro da janela.
+//
+// Key: sha256(token).slice(0,32) → não armazena token plain no Redis.
+// Value: { sub, currentOrg } (claims mínimas).
+// TTL: 30s — curto suficiente para refresh de revogações (logout, ban),
+// longo suficiente para amortizar requests em rajada (página com 5+ Server
+// Actions em paralelo).
+//
+// Fail-open: se Redis indisponível, fallback ao roundtrip Supabase.
+
+const CACHE_TTL_SECONDS = 30;
+
+let _redis: Redis | null = null;
+let _redisProbed = false;
+
+function getRedis(): Redis | null {
+  if (_redisProbed) return _redis;
+  _redisProbed = true;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  _redis = new Redis({ url, token });
+  return _redis;
+}
+
+interface CachedAuth {
+  sub: string;
+  currentOrg: string;
+}
+
+async function getCachedAuth(token: string): Promise<CachedAuth | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+  try {
+    const key = `auth:user:${createHash("sha256").update(token).digest("hex").slice(0, 32)}`;
+    const cached = await redis.get<CachedAuth>(key);
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+async function setCachedAuth(token: string, value: CachedAuth): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    const key = `auth:user:${createHash("sha256").update(token).digest("hex").slice(0, 32)}`;
+    await redis.set(key, value, { ex: CACHE_TTL_SECONDS });
+  } catch {
+    // ignore — cache best-effort
+  }
+}
+
 /**
  * Extrai e VALIDA o JWT Supabase do request.
  *
@@ -108,7 +166,16 @@ export async function extractTenantFromRequest(
     throw new TenantContextError("Missing authentication token", 401);
   }
 
-  // Validação REMOTA — Supabase rejeita JWT forjado/expirado.
+  // Fast path: cache Redis (TTL 30s). ~5ms vs ~100ms do roundtrip Supabase.
+  const cached = await getCachedAuth(token);
+  if (cached) {
+    return {
+      userId: assertUuid(cached.sub, "user.id (cached)"),
+      organizationId: assertUuid(cached.currentOrg, "current_org (cached)"),
+    };
+  }
+
+  // Slow path: validação REMOTA — Supabase rejeita JWT forjado/expirado.
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data.user) {
@@ -134,6 +201,9 @@ export async function extractTenantFromRequest(
   // qualquer formato — garantimos UUID antes de tocar SQL).
   const userId = assertUuid(user.id, "user.id");
   const organizationId = assertUuid(currentOrg, "current_org claim");
+
+  // Cache para próximos requests (fire-and-forget; falha de cache não bloqueia).
+  void setCachedAuth(token, { sub: userId, currentOrg: organizationId });
 
   return { organizationId, userId };
 }

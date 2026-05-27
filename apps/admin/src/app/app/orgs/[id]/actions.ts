@@ -1,8 +1,17 @@
 "use server";
 
+// CORREÇÃO QA Rodada 7 — apps/admin:
+//   - UUID validation em orgId
+//   - appendAuditLog helper em vez de raw $executeRaw (2 ocorrências)
+//   - Sanitização de erros (não vazar internal DB messages)
+
 import { revalidatePath } from "next/cache";
 import { prisma } from "@nutricore/db";
+import { appendAuditLog } from "@nutricore/db/audit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export interface AdminActionResult {
   ok: boolean;
@@ -27,65 +36,77 @@ export async function suspendOrgAction(
   orgId: string,
   reason: string,
 ): Promise<AdminActionResult> {
-  if (!reason || reason.trim().length < 5) {
-    return { ok: false, message: "Motivo obrigatório (mín 5 chars)" };
+  if (!orgId || !UUID_REGEX.test(orgId)) {
+    return { ok: false, message: "orgId inválido" };
+  }
+  if (!reason || reason.trim().length < 5 || reason.length > 500) {
+    return { ok: false, message: "Motivo obrigatório (5-500 chars)" };
   }
   const auth = await ensureSuperAdmin();
   if (!auth) return { ok: false, message: "Acesso negado" };
 
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.organization.update({
+      const updated = await tx.organization.update({
         where: { id: orgId },
         data: { subscriptionStatus: "SUSPENDED" },
       });
-      // Audit
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${orgId}::uuid, ${auth.userId}::uuid,
-          'super_admin'::text, NULL::inet, NULL::text,
-          'organization.suspend'::text, 'Organization'::text,
-          ${orgId}::text, NULL::uuid,
-          ARRAY['subscriptionStatus']::text[],
-          ${JSON.stringify({ reason: reason.trim() })}::jsonb
-        )
-      `;
+      if (!updated) throw new Error("Organização não encontrada");
+    });
+    // Audit fora da transação (já tem advisory lock próprio)
+    await appendAuditLog({
+      organizationId: orgId,
+      actorUserId: auth.userId,
+      actorRole: "super_admin",
+      action: "organization.suspend",
+      entityType: "Organization",
+      entityId: orgId,
+      patientId: null,
+      fieldsAccessed: ["subscriptionStatus"],
+      payload: { reason: reason.trim() },
     });
     revalidatePath(`/app/orgs/${orgId}`);
     revalidatePath("/app/orgs");
     return { ok: true };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
+    console.error("[admin/suspendOrg]", err);
+    return { ok: false, message: "Falha ao suspender organização" };
   }
 }
 
 export async function reactivateOrgAction(
   orgId: string,
 ): Promise<AdminActionResult> {
+  if (!orgId || !UUID_REGEX.test(orgId)) {
+    return { ok: false, message: "orgId inválido" };
+  }
   const auth = await ensureSuperAdmin();
   if (!auth) return { ok: false, message: "Acesso negado" };
 
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.organization.update({
+      const updated = await tx.organization.update({
         where: { id: orgId },
         data: { subscriptionStatus: "ACTIVE" },
       });
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${orgId}::uuid, ${auth.userId}::uuid,
-          'super_admin'::text, NULL::inet, NULL::text,
-          'organization.reactivate'::text, 'Organization'::text,
-          ${orgId}::text, NULL::uuid,
-          ARRAY['subscriptionStatus']::text[],
-          '{}'::jsonb
-        )
-      `;
+      if (!updated) throw new Error("Organização não encontrada");
+    });
+    await appendAuditLog({
+      organizationId: orgId,
+      actorUserId: auth.userId,
+      actorRole: "super_admin",
+      action: "organization.reactivate",
+      entityType: "Organization",
+      entityId: orgId,
+      patientId: null,
+      fieldsAccessed: ["subscriptionStatus"],
+      payload: {},
     });
     revalidatePath(`/app/orgs/${orgId}`);
     revalidatePath("/app/orgs");
     return { ok: true };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
+    console.error("[admin/reactivateOrg]", err);
+    return { ok: false, message: "Falha ao reativar organização" };
   }
 }
