@@ -52,8 +52,8 @@ Adicionalmente: `signInWithPassword` (commit `803fa44`) também está bloqueado.
 #### a) `.env.local` em `apps/web`
 
 ```diff
-- NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiI..."  # legacy
-- SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiI..."     # legacy
+- NEXT_PUBLIC_SUPABASE_ANON_KEY="<JWT-LEGACY-TRUNCADO>"  # formato antigo
+- SUPABASE_SERVICE_ROLE_KEY="<JWT-LEGACY-TRUNCADO>"      # formato antigo
 + NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."
 + SUPABASE_SERVICE_ROLE_KEY="sb_secret_..."
 ```
