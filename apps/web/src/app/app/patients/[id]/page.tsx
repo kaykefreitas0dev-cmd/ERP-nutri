@@ -14,6 +14,7 @@ import {
   Phone,
   ChevronRight,
   Activity,
+  TrendingUp,
   Flame,
   Banknote,
   CreditCard,
@@ -367,6 +368,17 @@ export default async function PatientDetailPage({ params }: Props) {
               <FileText className="h-4 w-4" strokeWidth={1.75} />
               Documentos
             </Link>
+            {!isAnonymized && (
+              <a
+                href={`/api/v1/patients/${patient.id}/evolution-report/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
+              >
+                <TrendingUp className="h-4 w-4" strokeWidth={1.75} />
+                Relatório
+              </a>
+            )}
             <Link
               href={`/app/patients/${patient.id}/edit`}
               className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 text-body font-medium text-text-primary transition-colors hover:bg-bg-surface-hover hover:border-border-strong"
