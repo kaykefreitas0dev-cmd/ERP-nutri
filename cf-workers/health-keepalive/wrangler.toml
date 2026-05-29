@@ -1,21 +1,29 @@
-# Cloudflare Worker — Healthcheck Supabase (ADR 0044)
-# Bate /api/health/db a cada 5 dias para evitar pausa Supabase Free.
-# v11.2 Diff B.7 — substitui cron-job.org (frágil)
+# Cloudflare Worker — Healthcheck Supabase + Status Aggregator (ADR 0044 + v11.2 B.7)
+# A cada execução:
+#   1. POST /api/internal/workers/monitoring/health-aggregator → popula status page
+#   2. GET /api/health/db → anti-pausa Supabase Free
+#
+# SETUP (PM, requer Cloudflare account):
+#   cd cf-workers/health-keepalive
+#   wrangler secret put INTERNAL_HEALTH_TOKEN   # = INTERNAL_HEALTH_TOKEN do Vercel web
+#   wrangler deploy \
+#     --var HEALTH_URL:https://erp-nutri-web.vercel.app/api/health/db \
+#     --var AGGREGATOR_URL:https://erp-nutri-web.vercel.app/api/internal/workers/monitoring/health-aggregator
 
 name = "nutricore-health-keepalive"
 main = "src/index.ts"
 compatibility_date = "2026-01-01"
 
-# Cron triggers: 5 dias (frequência mínima para anti-pausa Supabase Free)
-# Free tier permite crons com >5min de intervalo
+# Cron: a cada 15 min (96/dia, dentro do CF Workers free 100k/dia).
+# Serve tanto o aggregator (status page fresca) quanto keepalive (anti-pausa).
 [triggers]
-crons = ["0 6 */5 * *"]  # A cada 5 dias às 06:00 UTC = 03:00 BRT
+crons = ["*/15 * * * *"]
 
-# Vars (públicas; secrets vão via `wrangler secret put`)
+# Vars (públicas; secrets via `wrangler secret put`)
 [vars]
 ENVIRONMENT = "production"
-# HEALTH_URL é setado por env override no deploy:
-# wrangler deploy --var HEALTH_URL:https://nutri.nutricore.app/api/health/db
+# HEALTH_URL + AGGREGATOR_URL setados via --var no deploy (ver SETUP acima)
+# INTERNAL_HEALTH_TOKEN é secret → wrangler secret put
 
 # Observability
 [observability]

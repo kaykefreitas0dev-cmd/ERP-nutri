@@ -2,13 +2,48 @@
 // ADR 0044 — Anti-pausa Supabase Free via Cloudflare Workers Cron Trigger
 
 interface Env {
-  HEALTH_URL: string; // https://nutri.nutricore.app/api/health/db
+  HEALTH_URL: string; // https://erp-nutri-web.vercel.app/api/health/db
   ENVIRONMENT: "development" | "production";
   SENTRY_DSN?: string;
+  // health-aggregator (status page): popula service_health
+  AGGREGATOR_URL?: string; // https://erp-nutri-web.vercel.app/api/internal/workers/monitoring/health-aggregator
+  INTERNAL_HEALTH_TOKEN?: string;
 }
 
 export default {
-  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+  async scheduled(
+    _event: ScheduledEvent,
+    env: Env,
+    _ctx: ExecutionContext,
+  ): Promise<void> {
+    // 1. Disparar health-aggregator (popula status page) — best-effort
+    if (env.AGGREGATOR_URL && env.INTERNAL_HEALTH_TOKEN) {
+      try {
+        const aggRes = await fetch(env.AGGREGATOR_URL, {
+          method: "POST",
+          headers: {
+            "X-Internal-Token": env.INTERNAL_HEALTH_TOKEN,
+            "User-Agent": "NutriCore-CFWorker-HealthAggregator/1.0",
+          },
+          signal: AbortSignal.timeout(15_000),
+        });
+        console.log(
+          JSON.stringify({
+            level: aggRes.ok ? "info" : "error",
+            msg: "[health-aggregator] triggered",
+            status: aggRes.status,
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      } catch (err) {
+        console.error(
+          "[health-aggregator] failed:",
+          err instanceof Error ? err.message : "?",
+        );
+      }
+    }
+
+    // 2. Keepalive Supabase (anti-pausa)
     if (!env.HEALTH_URL) {
       console.error("[health-keepalive] HEALTH_URL not configured");
       return;
