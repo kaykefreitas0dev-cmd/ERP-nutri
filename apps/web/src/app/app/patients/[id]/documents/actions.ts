@@ -17,7 +17,7 @@ import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { appendAuditLog } from "@nutricore/db/audit";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitById } from "@/lib/rate-limit";
 
 const DOC_BUCKET = "clinical-documents";
 
@@ -396,15 +396,9 @@ export async function searchCidsAction(input: {
       h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       h.get("x-real-ip") ??
       "unknown";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fauxReq = {
-      headers: { get: (_: string) => null },
-      cookies: { get: () => undefined },
-    } as any;
-    const limit = await checkRateLimit(fauxReq, "cid:search:ip", {
+    const limit = await checkRateLimitById("cid:search:ip", ip, {
       max: 60,
       windowSec: 60,
-      identifier: ip,
     });
     if (!limit.ok) {
       return { ok: false, message: "Muitas buscas. Aguarde 1 minuto." };

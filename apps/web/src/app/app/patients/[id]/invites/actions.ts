@@ -13,7 +13,7 @@ import { headers } from "next/headers";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { sendPatientInviteEmail } from "@/lib/email/send-invite";
 import { appendAuditLog } from "@nutricore/db/audit";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitById } from "@/lib/rate-limit";
 
 export interface InviteActionResult {
   ok: boolean;
@@ -72,16 +72,11 @@ export async function createInviteAction(input: {
         // CORREÇÃO QA #49: rate limit per-user — 10 convites/hora.
         // Previne spam SES + DB bloat com tokens órfãos.
         const identifier = await getRateLimitIdentifier(userId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fauxReq = {
-          headers: { get: (_: string) => null },
-          cookies: { get: () => undefined },
-        } as any;
-        const limit = await checkRateLimit(fauxReq, "invite:create:user", {
-          max: 10,
-          windowSec: 3600,
+        const limit = await checkRateLimitById(
+          "invite:create:user",
           identifier,
-        });
+          { max: 10, windowSec: 3600 },
+        );
         if (!limit.ok) {
           throw new Error(
             "Limite de 10 convites/hora atingido. Aguarde antes de criar mais.",

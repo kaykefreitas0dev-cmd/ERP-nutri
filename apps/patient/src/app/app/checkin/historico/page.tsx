@@ -323,7 +323,7 @@ export default async function CheckinHistoricoPage() {
                     {/* Notas */}
                     {c.notes && (
                       <p className="mt-1.5 text-tiny italic text-text-secondary">
-                        "{c.notes}"
+                        &ldquo;{c.notes}&rdquo;
                       </p>
                     )}
                   </li>

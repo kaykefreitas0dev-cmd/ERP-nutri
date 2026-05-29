@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import Papa from "papaparse";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { appendAuditLog } from "@nutricore/db/audit";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitById } from "@/lib/rate-limit";
 
 const PatientFieldSchema = z.object({
   fullName: z.string().min(1).max(120),
@@ -69,16 +69,9 @@ export async function uploadImportFileAction(
   // CORREÇÃO QA #20: rate limit per-IP — 5 uploads / 10min.
   // Server Actions não recebem req direto; usamos headers() do Next.js.
   const ip = await getClientIp();
-  // Faux request para o helper (só usa .headers.get + .cookies.get)
-  const fauxReq = {
-    headers: { get: (_: string) => null },
-    cookies: { get: () => undefined },
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const limit = await checkRateLimit(fauxReq as any, "imports:upload", {
+  const limit = await checkRateLimitById("imports:upload", ip, {
     max: 5,
     windowSec: 600,
-    identifier: ip,
   });
   if (!limit.ok) {
     return { ok: false, message: "Muitos uploads. Aguarde alguns minutos." };

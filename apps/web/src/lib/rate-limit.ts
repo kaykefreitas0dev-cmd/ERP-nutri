@@ -104,6 +104,34 @@ export async function checkRateLimit(
 }
 
 /**
+ * Variante para Server Actions (sem NextRequest disponível). Recebe o
+ * identifier diretamente — evita o anti-pattern de criar um fake request.
+ */
+export async function checkRateLimitById(
+  scope: string,
+  identifier: string,
+  opts: { max: number; windowSec: number },
+): Promise<RateLimitResult> {
+  const limiter = getLimiter(scope, opts.max, opts.windowSec);
+  if (!limiter) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        `[rate-limit] FAIL-OPEN: Upstash not configured for scope "${scope}"`,
+      );
+    }
+    return {
+      ok: true,
+      limit: opts.max,
+      remaining: opts.max,
+      reset: Date.now() + opts.windowSec * 1000,
+      scope,
+    };
+  }
+  const { success, limit, remaining, reset } = await limiter.limit(identifier);
+  return { ok: success, limit, remaining, reset, scope };
+}
+
+/**
  * Constrói resposta 429 padronizada com headers Retry-After + X-RateLimit-*.
  */
 export function rateLimitResponse(result: RateLimitResult): NextResponse {
