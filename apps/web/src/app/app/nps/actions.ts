@@ -1,8 +1,11 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6: appendAuditLog helper.
+
 import { z } from "zod";
 import { headers } from "next/headers";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const NpsSchema = z.object({
   score: z.number().int().min(0).max(10),
@@ -49,16 +52,19 @@ export async function submitNpsAction(input: {
         },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, ${ua}::text,
-          'beta.nps_submit'::text, 'NpsFeedback'::text,
-          NULL::text, NULL::uuid,
-          ARRAY['score']::text[],
-          ${JSON.stringify({ score: parsed.data.score })}::jsonb
-        )
-      `;
+      // CORREÇÃO QA #80: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        actorUserAgent: ua,
+        action: "beta.nps_submit",
+        entityType: "NpsFeedback",
+        entityId: null,
+        patientId: null,
+        fieldsAccessed: ["score"],
+        payload: { score: parsed.data.score },
+      });
     });
 
     return { ok: true };

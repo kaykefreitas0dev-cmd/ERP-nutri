@@ -112,149 +112,135 @@ export default async function AppDashboard() {
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const [
-        activePatients,
-        apptsToday,
-        apptsThisWeek,
-        mealPlansActive,
-        docsThisMonth,
-        paymentsThisMonth,
-        appts30dRaw,
-        payments30dRaw,
-        docs30dRaw,
-        agendaHojeRaw,
-        inactivePatientsResult,
-      ] = await Promise.all([
-        tx.patient.count({ where: { status: "ACTIVE" } }),
-        tx.appointment.count({
-          where: {
-            professionalUserId: userId,
-            startsAt: { gte: startOfToday, lte: endOfToday },
-            status: { notIn: ["CANCELLED"] },
-          },
-        }),
-        tx.appointment.count({
-          where: {
-            professionalUserId: userId,
-            startsAt: { gte: startOfWeek, lt: endOfWeek },
-            status: { notIn: ["CANCELLED"] },
-          },
-        }),
-        tx.mealPlan.count({
-          where: { status: { in: ["ACTIVE", "DRAFT"] } },
-        }),
-        tx.clinicalDocument.count({
-          where: {
-            issuedByUserId: userId,
-            createdAt: { gte: startOfMonth, lt: endOfMonth },
-          },
-        }),
-        tx.patientPayment
-          .aggregate({
-            where: { paymentDate: { gte: startOfMonth, lt: endOfMonth } },
-            _count: true,
-            _sum: { amountCents: true },
-          })
-          .then(
-            (r: { _count: number; _sum: { amountCents: number | null } }) => ({
-              count: r._count,
-              totalCents: r._sum.amountCents ?? 0,
-            }),
+      // CORREÇÃO: serializado em vez de Promise.all — dentro da transação
+      // (withTenantAction) o @prisma/adapter-pg compartilha 1 connection;
+      // queries paralelas disparam DeprecationWarning ("Calling client.query()
+      // when the client is already executing a query") e vão virar erro em pg@9.
+      const activePatients = await tx.patient.count({
+        where: { status: "ACTIVE" },
+      });
+      const apptsToday = await tx.appointment.count({
+        where: {
+          professionalUserId: userId,
+          startsAt: { gte: startOfToday, lte: endOfToday },
+          status: { notIn: ["CANCELLED"] },
+        },
+      });
+      const apptsThisWeek = await tx.appointment.count({
+        where: {
+          professionalUserId: userId,
+          startsAt: { gte: startOfWeek, lt: endOfWeek },
+          status: { notIn: ["CANCELLED"] },
+        },
+      });
+      const mealPlansActive = await tx.mealPlan.count({
+        where: { status: { in: ["ACTIVE", "DRAFT"] } },
+      });
+      const docsThisMonth = await tx.clinicalDocument.count({
+        where: {
+          issuedByUserId: userId,
+          createdAt: { gte: startOfMonth, lt: endOfMonth },
+        },
+      });
+      const paymentsAggRaw = await tx.patientPayment.aggregate({
+        where: { paymentDate: { gte: startOfMonth, lt: endOfMonth } },
+        _count: true,
+        _sum: { amountCents: true },
+      });
+      const paymentsThisMonth = {
+        count: paymentsAggRaw._count,
+        totalCents: paymentsAggRaw._sum.amountCents ?? 0,
+      };
+      // Spark: appointments last 30 days
+      const appts30dRaw = await tx.appointment.findMany({
+        where: {
+          professionalUserId: userId,
+          startsAt: { gte: spark30Start, lte: endOfToday },
+          status: { notIn: ["CANCELLED"] },
+        },
+        select: { startsAt: true },
+      });
+      // Spark: payments last 30 days
+      const payments30dRaw = await tx.patientPayment.findMany({
+        where: { paymentDate: { gte: spark30Start, lte: endOfToday } },
+        select: { paymentDate: true, amountCents: true },
+      });
+      // Spark: docs last 30 days
+      const docs30dRaw = await tx.clinicalDocument.findMany({
+        where: {
+          issuedByUserId: userId,
+          createdAt: { gte: spark30Start, lte: endOfToday },
+        },
+        select: { createdAt: true },
+      });
+      // Agenda do dia
+      const agendaHojeRaw = await tx.appointment.findMany({
+        where: {
+          professionalUserId: userId,
+          startsAt: { gte: startOfToday, lte: endOfToday },
+        },
+        orderBy: { startsAt: "asc" },
+        take: 20,
+        select: {
+          id: true,
+          startsAt: true,
+          endsAt: true,
+          status: true,
+          modality: true,
+          timezone: true,
+          externalPatientName: true,
+          patient: { select: { fullName: true } },
+        },
+      });
+      // Inactive patients (already sequential)
+      const inactivePatientsResult = await (async () => {
+        const patientsWithApp = await tx.patient.findMany({
+          where: { status: "ACTIVE", userId: { not: null } },
+          select: { id: true, fullName: true, userId: true },
+          take: 200,
+        });
+        if (patientsWithApp.length === 0) return [];
+
+        const userIds = patientsWithApp.map(
+          (p: { userId: string | null }) => p.userId as string,
+        );
+        const streaks = await tx.userHealthStreak.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, lastCheckinDate: true },
+        });
+        const streakMap = new Map<string, Date | null>(
+          streaks.map(
+            (s: { userId: string; lastCheckinDate: Date | null }) =>
+              [s.userId, s.lastCheckinDate] as [string, Date | null],
           ),
-        // Spark: appointments last 30 days
-        tx.appointment.findMany({
-          where: {
-            professionalUserId: userId,
-            startsAt: { gte: spark30Start, lte: endOfToday },
-            status: { notIn: ["CANCELLED"] },
-          },
-          select: { startsAt: true },
-        }),
-        // Spark: payments last 30 days
-        tx.patientPayment.findMany({
-          where: { paymentDate: { gte: spark30Start, lte: endOfToday } },
-          select: { paymentDate: true, amountCents: true },
-        }),
-        // Spark: docs last 30 days
-        tx.clinicalDocument.findMany({
-          where: {
-            issuedByUserId: userId,
-            createdAt: { gte: spark30Start, lte: endOfToday },
-          },
-          select: { createdAt: true },
-        }),
-        // Agenda do dia — todos os compromissos de hoje (incluindo cancelados para mostrar gaps)
-        tx.appointment.findMany({
-          where: {
-            professionalUserId: userId,
-            startsAt: { gte: startOfToday, lte: endOfToday },
-          },
-          orderBy: { startsAt: "asc" },
-          take: 20,
-          select: {
-            id: true,
-            startsAt: true,
-            endsAt: true,
-            status: true,
-            modality: true,
-            timezone: true,
-            externalPatientName: true,
-            patient: { select: { fullName: true } },
-          },
-        }),
-        // Inactive patients: two sequential sub-queries in one IIFE
-        // (Patient → UserHealthStreak via userId key, no Prisma relation)
-        (async () => {
-          const patientsWithApp = await tx.patient.findMany({
-            where: { status: "ACTIVE", userId: { not: null } },
-            select: { id: true, fullName: true, userId: true },
-            take: 200,
-          });
-          if (patientsWithApp.length === 0) return [];
+        );
 
-          const userIds = patientsWithApp.map(
-            (p: { userId: string | null }) => p.userId as string,
-          );
-          const streaks = await tx.userHealthStreak.findMany({
-            where: { userId: { in: userIds } },
-            select: { userId: true, lastCheckinDate: true },
+        return patientsWithApp
+          .filter(
+            (p: { id: string; fullName: string; userId: string | null }) => {
+              const last = streakMap.get(p.userId as string) ?? null;
+              return !last || last < sevenDaysAgo;
+            },
+          )
+          .sort(
+            (a: { userId: string | null }, b: { userId: string | null }) => {
+              const da = streakMap.get(a.userId as string) ?? null;
+              const db = streakMap.get(b.userId as string) ?? null;
+              if (!da && !db) return 0;
+              if (!da) return -1;
+              if (!db) return 1;
+              return da.getTime() - db.getTime();
+            },
+          )
+          .slice(0, 6)
+          .map((p: { id: string; fullName: string; userId: string | null }) => {
+            const last = streakMap.get(p.userId as string) ?? null;
+            const daysSince = last
+              ? Math.floor((now.getTime() - last.getTime()) / 86_400_000)
+              : null;
+            return { id: p.id, fullName: p.fullName, daysSince };
           });
-          const streakMap = new Map<string, Date | null>(
-            streaks.map(
-              (s: { userId: string; lastCheckinDate: Date | null }) =>
-                [s.userId, s.lastCheckinDate] as [string, Date | null],
-            ),
-          );
-
-          return patientsWithApp
-            .filter(
-              (p: { id: string; fullName: string; userId: string | null }) => {
-                const last = streakMap.get(p.userId as string) ?? null;
-                return !last || last < sevenDaysAgo;
-              },
-            )
-            .sort(
-              (a: { userId: string | null }, b: { userId: string | null }) => {
-                const da = streakMap.get(a.userId as string) ?? null;
-                const db = streakMap.get(b.userId as string) ?? null;
-                if (!da && !db) return 0;
-                if (!da) return -1; // never checked in → top of list
-                if (!db) return 1;
-                return da.getTime() - db.getTime();
-              },
-            )
-            .slice(0, 6)
-            .map(
-              (p: { id: string; fullName: string; userId: string | null }) => {
-                const last = streakMap.get(p.userId as string) ?? null;
-                const daysSince = last
-                  ? Math.floor((now.getTime() - last.getTime()) / 86_400_000)
-                  : null;
-                return { id: p.id, fullName: p.fullName, daysSince };
-              },
-            );
-        })(),
-      ]);
+      })();
 
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
       function buildDailyCount(dates: Date[], days = 30): number[] {

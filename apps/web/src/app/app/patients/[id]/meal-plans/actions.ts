@@ -1,8 +1,12 @@
 "use server";
 
+// CORREÇÃO QA Rodada 5:
+//   #73 — appendAuditLog helper em vez de raw $executeRaw (3 ocorrências)
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const DEFAULT_MEALS = [
   { name: "Café da manhã", time: "07:00" },
@@ -75,16 +79,18 @@ export async function createMealPlanAction(
           });
         }
 
-        await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'meal_plan.create'::text, 'MealPlan'::text,
-          ${plan.id}::text, ${d.patientId}::uuid,
-          ARRAY['name','targetKcal']::text[],
-          '{}'::jsonb
-        )
-      `;
+        // CORREÇÃO QA #73: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "meal_plan.create",
+          entityType: "MealPlan",
+          entityId: plan.id,
+          patientId: d.patientId,
+          fieldsAccessed: ["name", "targetKcal"],
+          payload: {},
+        });
 
         return plan;
       },
@@ -483,16 +489,18 @@ export async function updateMealPlanStatusAction(input: {
         data: { status: input.status },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          ${`meal_plan.status.${input.status.toLowerCase()}`}::text,
-          'MealPlan'::text,
-          ${input.mealPlanId}::text, NULL::uuid,
-          ARRAY['status']::text[], '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #73: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: `meal_plan.status.${input.status.toLowerCase()}`,
+        entityType: "MealPlan",
+        entityId: input.mealPlanId,
+        patientId: null,
+        fieldsAccessed: ["status"],
+        payload: { status: input.status },
+      });
     });
     return { ok: true, mealPlanId: input.mealPlanId };
   } catch (err) {
@@ -604,17 +612,18 @@ export async function duplicateMealPlanAction(input: {
           }
         }
 
-        // 4. Audit
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'meal_plan.duplicate'::text, 'MealPlan'::text,
-            ${newPlan.id}::text, ${input.patientId}::uuid,
-            ARRAY['name','sourceId']::text[],
-            ${JSON.stringify({ sourceId: input.planId })}::jsonb
-          )
-        `;
+        // CORREÇÃO QA #73: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "meal_plan.duplicate",
+          entityType: "MealPlan",
+          entityId: newPlan.id,
+          patientId: input.patientId,
+          fieldsAccessed: ["name", "sourceId"],
+          payload: { sourceId: input.planId },
+        });
 
         return newPlan;
       },
@@ -642,14 +651,13 @@ export async function reorderMealItemsAction(input: {
 }): Promise<PlanActionResult> {
   try {
     await withTenantAction(async ({ tx }) => {
-      await Promise.all(
-        input.orderedIds.map((id, index) =>
-          tx.mealItem.update({
-            where: { id },
-            data: { sortOrder: index },
-          }),
-        ),
-      );
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      for (let index = 0; index < input.orderedIds.length; index++) {
+        await tx.mealItem.update({
+          where: { id: input.orderedIds[index]! },
+          data: { sortOrder: index },
+        });
+      }
     });
     revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
     return { ok: true };
@@ -669,14 +677,13 @@ export async function reorderMealsAction(input: {
 }): Promise<PlanActionResult> {
   try {
     await withTenantAction(async ({ tx }) => {
-      await Promise.all(
-        input.orderedIds.map((id, index) =>
-          tx.meal.update({
-            where: { id },
-            data: { sortOrder: index },
-          }),
-        ),
-      );
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      for (let index = 0; index < input.orderedIds.length; index++) {
+        await tx.meal.update({
+          where: { id: input.orderedIds[index]! },
+          data: { sortOrder: index },
+        });
+      }
     });
     revalidatePath("/app/patients/[id]/meal-plans/[planId]", "page");
     return { ok: true };

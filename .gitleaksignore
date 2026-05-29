@@ -1,15 +1,2 @@
-# Gitleaks fingerprint ignore — NutriCore
-# Cada linha é um fingerprint <commit>:<file>:<rule>:<line>
-#
-# Entries abaixo são para o commit 55f75e8 (scripts setup-vercel-env.*)
-# que continham JWTs já removidos do tracking em commit 39107f1.
-# - anon_key: pública por design (OK exposta)
-# - service_role_key: **rotacionada pelo PM em ação separada** (ver docs/pm-required.md)
-#
-# Allowlist por paths em .gitleaks.toml cobre, mas fingerprints explícitos
-# (recomendados pelo gitleaks-action) param os 4 review comments do bot.
-
-55f75e8341925e507217a1f88e4ffb96153a1ef5:scripts/setup-vercel-env.ps1:jwt:9
-55f75e8341925e507217a1f88e4ffb96153a1ef5:scripts/setup-vercel-env.ps1:jwt:10
-55f75e8341925e507217a1f88e4ffb96153a1ef5:scripts/setup-vercel-env.sh:jwt:16
-55f75e8341925e507217a1f88e4ffb96153a1ef5:scripts/setup-vercel-env.sh:jwt:17
+93ae359bda64d40dd820ade8b3852a9dd1e49b6f:URGENT-FIX-API-KEYS.md:generic-api-key:55
+93ae359bda64d40dd820ade8b3852a9dd1e49b6f:URGENT-FIX-API-KEYS.md:generic-api-key:56

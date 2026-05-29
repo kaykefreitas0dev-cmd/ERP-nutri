@@ -9,6 +9,9 @@ import {
   MapPin,
   Video,
   Phone,
+  Scale,
+  TrendingDown,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { prisma } from "@nutricore/db";
@@ -101,9 +104,9 @@ export default async function PatientHomePage({
   } = await supabase.auth.getUser();
   // Layout já garante auth; aqui apenas leitura
 
-  // Streak + check-in de hoje
+  // Streak + check-in de hoje + última medição de antropometria
   const todayDate = new Date(todayLocalISO() + "T12:00:00Z");
-  const [streak, todayCheckin] = await Promise.all([
+  const [streak, todayCheckin, latestMeasurement] = await Promise.all([
     prisma.userHealthStreak.findUnique({ where: { userId: user!.id } }),
     prisma.userHealthCheckin.findUnique({
       where: {
@@ -111,7 +114,24 @@ export default async function PatientHomePage({
       },
       select: { id: true },
     }),
+    prisma.anthropometry.findFirst({
+      where: { patient: { userId: user!.id, status: { not: "ANONYMIZED" } } },
+      orderBy: { measuredAt: "desc" },
+      select: { weightKg: true, measuredAt: true },
+    }),
   ]);
+
+  // Medição anterior (precisa do measuredAt da última para filtrar)
+  const previousMeasurement = latestMeasurement
+    ? await prisma.anthropometry.findFirst({
+        where: {
+          patient: { userId: user!.id, status: { not: "ANONYMIZED" } },
+          measuredAt: { lt: latestMeasurement.measuredAt },
+        },
+        orderBy: { measuredAt: "desc" },
+        select: { weightKg: true },
+      })
+    : null;
 
   // Lock 6 — Patient é User-scoped: encontre todos os Patient records vinculados a este user
   const patients = await prisma.patient.findMany({
@@ -247,6 +267,57 @@ export default async function PatientHomePage({
           </Link>
         </div>
       </div>
+
+      {/* Teaser de peso → link para /app/progresso */}
+      {latestMeasurement?.weightKg && (
+        <Link
+          href="/app/progresso"
+          className="mt-4 flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-colors hover:border-brand-primary hover:bg-brand-primary-bg/30"
+        >
+          <Scale
+            className="h-5 w-5 shrink-0 text-text-muted"
+            strokeWidth={1.75}
+            aria-hidden="true"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-tiny text-text-muted">Último peso registrado</p>
+            <p className="text-body font-semibold tabular-nums text-text-primary">
+              {Number(latestMeasurement.weightKg).toFixed(1)} kg
+            </p>
+          </div>
+          {previousMeasurement?.weightKg &&
+            (() => {
+              const diff =
+                Number(latestMeasurement.weightKg) -
+                Number(previousMeasurement.weightKg);
+              if (Math.abs(diff) < 0.05) return null;
+              const isDown = diff < 0;
+              return (
+                <span
+                  className={
+                    "flex items-center gap-0.5 text-tiny font-medium tabular-nums " +
+                    (isDown ? "text-success" : "text-danger")
+                  }
+                >
+                  {isDown ? (
+                    <TrendingDown
+                      className="h-3.5 w-3.5"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <TrendingUp
+                      className="h-3.5 w-3.5"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {(diff > 0 ? "+" : "") + diff.toFixed(1)} kg
+                </span>
+              );
+            })()}
+        </Link>
+      )}
 
       {/* Próximas consultas */}
       {upcomingAppointments.length > 0 && (

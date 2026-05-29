@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, FileDown } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MealPlanEditor } from "./MealPlanEditor";
 import { PlanHeaderEditable } from "./PlanHeaderEditable";
@@ -134,82 +134,96 @@ export default async function MealPlanEditorPage({ params }: Props) {
             status={data.plan.status}
           />
 
-          <div className="min-w-[280px] rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]">
-            <div className="flex items-baseline justify-between">
-              <span className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-                Total
-              </span>
-              {target && (
-                <span className="text-tiny tabular-nums text-text-muted">
-                  meta {target.toFixed(0)}
-                </span>
-              )}
-            </div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-h1 font-semibold tabular-nums text-text-primary">
-                {totalKcal.toFixed(0)}
-              </span>
-              <span className="text-caption text-text-secondary">kcal</span>
-              {pctOfTarget != null && (
-                <span
-                  className={
-                    "ml-auto rounded-full px-2 py-0.5 text-tiny font-medium tabular-nums ring-1 ring-inset " +
-                    (pctOfTarget >= 95 && pctOfTarget <= 105
-                      ? "bg-success-bg text-success ring-success-border"
-                      : pctOfTarget < 80 || pctOfTarget > 120
-                        ? "bg-warning-bg text-warning ring-warning-border"
-                        : "bg-bg-subtle text-text-secondary ring-border-subtle")
-                  }
-                >
-                  {pctOfTarget}%
-                </span>
-              )}
-            </div>
+          <div className="flex flex-col gap-2">
+            {/* Baixar PDF */}
+            <a
+              href={`/api/v1/meal-plans/${planId}/pdf`}
+              download
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border-subtle bg-bg-surface px-4 py-2 text-caption font-medium text-text-secondary shadow-xs transition-colors hover:border-brand-primary hover:text-brand-primary"
+              aria-label="Baixar plano alimentar em PDF"
+            >
+              <FileDown className="h-4 w-4" strokeWidth={1.75} />
+              Baixar PDF
+            </a>
 
-            {/* Stacked macros bar */}
-            <div className="mt-3 flex h-1.5 w-full overflow-hidden rounded-full bg-bg-subtle">
-              <div
-                style={{
-                  width: `${proteinPct}%`,
-                  backgroundColor: "var(--color-macro-protein)",
-                }}
-                title={`Proteína ${proteinPct}%`}
-              />
-              <div
-                style={{
-                  width: `${carbPct}%`,
-                  backgroundColor: "var(--color-macro-carb)",
-                }}
-                title={`Carboidrato ${carbPct}%`}
-              />
-              <div
-                style={{
-                  width: `${fatPct}%`,
-                  backgroundColor: "var(--color-macro-fat)",
-                }}
-                title={`Lipídeo ${fatPct}%`}
-              />
-            </div>
+            <div className="min-w-[280px] rounded-lg border border-border-subtle bg-bg-surface p-4 [box-shadow:var(--shadow-xs)]">
+              <div className="flex items-baseline justify-between">
+                <span className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
+                  Total
+                </span>
+                {target && (
+                  <span className="text-tiny tabular-nums text-text-muted">
+                    meta {target.toFixed(0)}
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-h1 font-semibold tabular-nums text-text-primary">
+                  {totalKcal.toFixed(0)}
+                </span>
+                <span className="text-caption text-text-secondary">kcal</span>
+                {pctOfTarget != null && (
+                  <span
+                    className={
+                      "ml-auto rounded-full px-2 py-0.5 text-tiny font-medium tabular-nums ring-1 ring-inset " +
+                      (pctOfTarget >= 95 && pctOfTarget <= 105
+                        ? "bg-success-bg text-success ring-success-border"
+                        : pctOfTarget < 80 || pctOfTarget > 120
+                          ? "bg-warning-bg text-warning ring-warning-border"
+                          : "bg-bg-subtle text-text-secondary ring-border-subtle")
+                    }
+                  >
+                    {pctOfTarget}%
+                  </span>
+                )}
+              </div>
 
-            {/* Macros legenda */}
-            <div className="mt-3 grid grid-cols-3 gap-2 text-tiny tabular-nums">
-              <MacroChip
-                color="var(--color-macro-protein)"
-                label="PTN"
-                value={`${totalProtein.toFixed(0)}g`}
-              />
-              <MacroChip
-                color="var(--color-macro-carb)"
-                label="CHO"
-                value={`${totalCarb.toFixed(0)}g`}
-              />
-              <MacroChip
-                color="var(--color-macro-fat)"
-                label="LIP"
-                value={`${totalFat.toFixed(0)}g`}
-              />
+              {/* Stacked macros bar */}
+              <div className="mt-3 flex h-1.5 w-full overflow-hidden rounded-full bg-bg-subtle">
+                <div
+                  style={{
+                    width: `${proteinPct}%`,
+                    backgroundColor: "var(--color-macro-protein)",
+                  }}
+                  title={`Proteína ${proteinPct}%`}
+                />
+                <div
+                  style={{
+                    width: `${carbPct}%`,
+                    backgroundColor: "var(--color-macro-carb)",
+                  }}
+                  title={`Carboidrato ${carbPct}%`}
+                />
+                <div
+                  style={{
+                    width: `${fatPct}%`,
+                    backgroundColor: "var(--color-macro-fat)",
+                  }}
+                  title={`Lipídeo ${fatPct}%`}
+                />
+              </div>
+
+              {/* Macros legenda */}
+              <div className="mt-3 grid grid-cols-3 gap-2 text-tiny tabular-nums">
+                <MacroChip
+                  color="var(--color-macro-protein)"
+                  label="PTN"
+                  value={`${totalProtein.toFixed(0)}g`}
+                />
+                <MacroChip
+                  color="var(--color-macro-carb)"
+                  label="CHO"
+                  value={`${totalCarb.toFixed(0)}g`}
+                />
+                <MacroChip
+                  color="var(--color-macro-fat)"
+                  label="LIP"
+                  value={`${totalFat.toFixed(0)}g`}
+                />
+              </div>
             </div>
           </div>
+          {/* end flex-col wrapper */}
         </header>
 
         <div className="mt-6">

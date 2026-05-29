@@ -37,36 +37,37 @@ export default async function PatientsListPage({ searchParams }: Props) {
   try {
     result = await withTenantAction(async ({ tx }) => {
       const PAGE_SIZE = 100;
-      const [rawPatients, [active, archived, anonymized]] = await Promise.all([
-        tx.patient.findMany({
-          where: {
-            status: filterStatus,
-            ...(q
-              ? {
-                  OR: [
-                    { fullName: { contains: q, mode: "insensitive" } },
-                    { email: { contains: q, mode: "insensitive" } },
-                  ],
-                }
-              : {}),
-          },
-          orderBy: { updatedAt: "desc" },
-          take: PAGE_SIZE + 1, // +1 to detect next page
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            phone: true,
-            status: true,
-            updatedAt: true,
-          },
-        }),
-        Promise.all([
-          tx.patient.count({ where: { status: "ACTIVE" } }),
-          tx.patient.count({ where: { status: "ARCHIVED" } }),
-          tx.patient.count({ where: { status: "ANONYMIZED" } }),
-        ]),
-      ]);
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta paralelo).
+      const rawPatients = await tx.patient.findMany({
+        where: {
+          status: filterStatus,
+          ...(q
+            ? {
+                OR: [
+                  { fullName: { contains: q, mode: "insensitive" } },
+                  { email: { contains: q, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: { updatedAt: "desc" },
+        take: PAGE_SIZE + 1,
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          status: true,
+          updatedAt: true,
+        },
+      });
+      const active = await tx.patient.count({ where: { status: "ACTIVE" } });
+      const archived = await tx.patient.count({
+        where: { status: "ARCHIVED" },
+      });
+      const anonymized = await tx.patient.count({
+        where: { status: "ANONYMIZED" },
+      });
 
       let nextCursor: string | null = null;
       if (rawPatients.length > PAGE_SIZE) {

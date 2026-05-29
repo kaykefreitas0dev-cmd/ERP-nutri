@@ -1,9 +1,13 @@
 // GET /api/v1/patients/:id — detalhe paciente
 // PATCH /api/v1/patients/:id — update parcial
+//
+// CORREÇÃO QA #5: substitui $executeRaw inline (com Object.keys mal-serializado
+// como array Postgres) por appendAuditLog helper que faz parameter binding correto.
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withTenant, TenantContextError } from "@nutricore/db/with-tenant";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const UpdatePatientSchema = z.object({
   fullName: z.string().min(2).max(120).optional(),
@@ -52,17 +56,18 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
 
-      // Audit PHI read
-      await prisma.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'patient.read'::text, 'Patient'::text,
-          ${patient.id}::text, ${patient.id}::uuid,
-          ARRAY['fullName','email','phone','cpf']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #5: usar helper appendAuditLog (parameter binding correto).
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.read",
+        entityType: "Patient",
+        entityId: patient.id,
+        patientId: patient.id,
+        fieldsAccessed: ["fullName", "email", "phone", "cpf"],
+        payload: {},
+      });
 
       return NextResponse.json(
         { patient },
@@ -106,16 +111,20 @@ export async function PATCH(
         },
       });
 
-      await prisma.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'patient.update'::text, 'Patient'::text,
-          ${updated.id}::text, ${updated.id}::uuid,
-          ${Object.keys(data)}::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #5: Object.keys(data) agora vai como text[] correto via
+      // appendAuditLog (que faz $queryRaw com ${array}::text[] tagged template
+      // binding — Prisma serializa como Postgres array, não JSON string).
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.update",
+        entityType: "Patient",
+        entityId: updated.id,
+        patientId: updated.id,
+        fieldsAccessed: Object.keys(data),
+        payload: {},
+      });
 
       return NextResponse.json({ patient: updated });
     });

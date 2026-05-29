@@ -47,5 +47,10 @@
     "@upstash/qstash": "^2.11.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "next-themes@0.4.6": "patches/next-themes@0.4.6.patch"
+    }
   }
 }

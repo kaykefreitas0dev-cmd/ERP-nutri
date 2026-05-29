@@ -1,11 +1,30 @@
 "use server";
 
+// CORREÇÃO QA Rodada 5:
+//   #74+#75 — DOC_SIGNATURE_SECRET obrigatório em prod + HMAC-SHA256
+//   #76 — organizationId explícito em findFirst (defense-in-depth)
+//   #77 — appendAuditLog helper em vez de raw $executeRaw (3 ocorrências)
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+import { appendAuditLog } from "@nutricore/db/audit";
+
+function getDocSecret(): string {
+  const secret = process.env.DOC_SIGNATURE_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "DOC_SIGNATURE_SECRET missing or too short (min 32 chars)",
+      );
+    }
+    return "dev-only-do-not-use-in-production-min-32-chars";
+  }
+  return secret;
+}
 
 const DOC_BUCKET = "clinical-documents";
 
@@ -62,15 +81,16 @@ export async function completeAppointmentWithPaymentAction(
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
-        // 1. Buscar appointment + patient para snapshots
+        // CORREÇÃO QA #76: organizationId explícito.
         const appt = await tx.appointment.findFirst({
-          where: { id: d.appointmentId },
+          where: { id: d.appointmentId, organizationId },
           include: {
             // Patient pode ser null (externalPatient)
             // Não suportamos recibo para externalPatient no MVP
           },
         });
-        if (!appt) throw new Error("Agendamento não encontrado");
+        if (!appt)
+          throw new Error("Agendamento não encontrado nesta organização");
         if (appt.status === "COMPLETED") {
           throw new Error("Já marcado como realizado");
         }
@@ -80,11 +100,13 @@ export async function completeAppointmentWithPaymentAction(
           );
         }
 
+        // CORREÇÃO QA #76: organizationId explícito.
         const patient = await tx.patient.findFirst({
-          where: { id: appt.patientId },
+          where: { id: appt.patientId, organizationId },
           select: { id: true, fullName: true, cpf: true },
         });
-        if (!patient) throw new Error("Paciente não encontrado");
+        if (!patient)
+          throw new Error("Paciente não encontrado nesta organização");
 
         // Pegar issuer info (BookingPage do nutri, igual S11)
         const bookingPage = await tx.bookingPage.findFirst({
@@ -136,26 +158,29 @@ export async function completeAppointmentWithPaymentAction(
           },
         });
 
-        // 4. Audit logs (appointment + payment)
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'appointment.status.completed'::text, 'Appointment'::text,
-            ${appt.id}::text, ${patient.id}::uuid,
-            ARRAY['status']::text[], '{}'::jsonb
-          )
-        `;
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'patient_payment.create'::text, 'PatientPayment'::text,
-            ${payment.id}::text, ${patient.id}::uuid,
-            ARRAY['amountCents','externalPaymentMethod']::text[],
-            ${JSON.stringify({ amountCents: d.amountCents, method: d.paymentMethod })}::jsonb
-          )
-        `;
+        // CORREÇÃO QA #77: appendAuditLog helper (parameter binding correto).
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "appointment.status.completed",
+          entityType: "Appointment",
+          entityId: appt.id,
+          patientId: patient.id,
+          fieldsAccessed: ["status"],
+          payload: {},
+        });
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "patient_payment.create",
+          entityType: "PatientPayment",
+          entityId: payment.id,
+          patientId: patient.id,
+          fieldsAccessed: ["amountCents", "externalPaymentMethod"],
+          payload: { amountCents: d.amountCents, method: d.paymentMethod },
+        });
 
         // 5. Se generateReceipt — gerar PDF (fora da transação para evitar
         //    long-lived TX; mas precisamos retornar receipt id, então geramos
@@ -203,15 +228,16 @@ Para clareza firmo o presente recibo.
 
           // Gera doc DRAFT, depois assina (mesmo fluxo S11 issueDocumentAction)
           const issuedAt = new Date();
-          const secret = process.env.DOC_SIGNATURE_SECRET ?? "dev-mock-secret";
-          const signatureValue: string = createHash("sha256")
+          // CORREÇÃO QA #74+#75: HMAC-SHA256 + secret obrigatório em prod.
+          const secret = getDocSecret();
+          const signatureValue: string = createHmac("sha256", secret)
             .update(
               [
                 body,
                 issuedAt.toISOString(),
                 bookingPage?.crn ?? "",
                 issuerName,
-                secret,
+                appt.id, // bind à appointment para evitar replay cross-appointment
               ].join("|"),
             )
             .digest("hex");
@@ -265,7 +291,7 @@ Para clareza firmo o presente recibo.
               signerName: issuerName,
               signerCrn: bookingPage?.crn ?? null,
               signerCrnUf: bookingPage?.crnUf ?? null,
-              algorithm: "SHA256-MOCK",
+              algorithm: "HMAC-SHA256-MOCK",
             },
           });
 
@@ -275,16 +301,18 @@ Para clareza firmo o presente recibo.
             data: { receiptDocumentId: doc.id },
           });
 
-          await tx.$executeRaw`
-            SELECT audit.append_log(
-              ${organizationId}::uuid, ${userId}::uuid,
-              'nutritionist'::text, NULL::inet, NULL::text,
-              'clinical_document.issue'::text, 'ClinicalDocument'::text,
-              ${doc.id}::text, ${patient.id}::uuid,
-              ARRAY['status','pdfHash']::text[],
-              ${JSON.stringify({ source: "auto_recibo", pdfHash: pdfRender.sha256 })}::jsonb
-            )
-          `;
+          // CORREÇÃO QA #77: appendAuditLog helper.
+          await appendAuditLog({
+            organizationId,
+            actorUserId: userId,
+            actorRole: "nutritionist",
+            action: "clinical_document.issue",
+            entityType: "ClinicalDocument",
+            entityId: doc.id,
+            patientId: patient.id,
+            fieldsAccessed: ["status", "pdfHash"],
+            payload: { source: "auto_recibo", pdfHash: pdfRender.sha256 },
+          });
 
           receiptDocId = doc.id;
         }

@@ -1,8 +1,11 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6: appendAuditLog helper.
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 export interface SettingsResult {
   ok: boolean;
@@ -55,16 +58,18 @@ export async function updateBrandingAction(input: {
         },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'organization.update_branding'::text, 'OrganizationBranding'::text,
-          ${organizationId}::text, NULL::uuid,
-          ARRAY['logoUrl','primaryColor','emailFromName']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #83: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "organization.update_branding",
+        entityType: "OrganizationBranding",
+        entityId: organizationId,
+        patientId: null,
+        fieldsAccessed: ["logoUrl", "primaryColor", "emailFromName"],
+        payload: {},
+      });
     });
 
     revalidatePath("/app/settings");

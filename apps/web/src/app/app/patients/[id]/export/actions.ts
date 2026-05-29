@@ -1,8 +1,13 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6:
+//   #81 — organizationId explícito em findFirst (defense-in-depth)
+//   #82 — appendAuditLog helper em vez de raw $executeRaw
+
 import JSZip from "jszip";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const EXPORT_BUCKET = "lgpd-exports";
 const SIGNED_URL_TTL_SECONDS = 24 * 60 * 60; // 24h
@@ -46,8 +51,9 @@ export async function exportPatientDataAction(input: {
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #81: organizationId explícito.
         const patient = await tx.patient.findFirst({
-          where: { id: input.patientId },
+          where: { id: input.patientId, organizationId },
           include: {
             allergies: { include: { allergen: true } },
             dietaryRestrictions: true,
@@ -154,31 +160,33 @@ export async function exportPatientDataAction(input: {
           LIMIT 1000
         `;
 
-        // Audit log do export em si (Art. 41 — DPO precisa rastrear)
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'patient.data_export'::text, 'Patient'::text,
-            ${patient.id}::text, ${patient.id}::uuid,
-            ARRAY['lgpd_export']::text[],
-            ${JSON.stringify({
-              format: "zip",
-              entityCounts: {
-                allergies: patient.allergies.length,
-                dietary: patient.dietaryRestrictions.length,
-                conditions: patient.clinicalConditions.length,
-                anthropometry: patient.anthropometryRecords.length,
-                mealPlans: patient.mealPlans.length,
-                documents: patient.clinicalDocuments.length,
-                payments: patient.payments.length,
-                checkins: checkins.length,
-                appointments: appointments.length,
-                auditEntries: auditLogs.length,
-              },
-            })}::jsonb
-          )
-        `;
+        // CORREÇÃO QA #82: appendAuditLog helper.
+        // LGPD Art. 41 — DPO precisa rastrear exports.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "patient.data_export",
+          entityType: "Patient",
+          entityId: patient.id,
+          patientId: patient.id,
+          fieldsAccessed: ["lgpd_export"],
+          payload: {
+            format: "zip",
+            entityCounts: {
+              allergies: patient.allergies.length,
+              dietary: patient.dietaryRestrictions.length,
+              conditions: patient.clinicalConditions.length,
+              anthropometry: patient.anthropometryRecords.length,
+              mealPlans: patient.mealPlans.length,
+              documents: patient.clinicalDocuments.length,
+              payments: patient.payments.length,
+              checkins: checkins.length,
+              appointments: appointments.length,
+              auditEntries: auditLogs.length,
+            },
+          },
+        });
 
         return {
           patient,

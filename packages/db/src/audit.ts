@@ -19,6 +19,22 @@ export interface AuditEntry {
 }
 
 /**
+ * JSON.stringify replacer que lida com tipos não serializáveis nativamente.
+ *
+ * CORREÇÃO QA #14: JSON.stringify falha hard com BigInt (TypeError) e perde
+ * Date (vira string ISO OK, mas circular refs quebram). Replacer abaixo
+ * normaliza BigInt → string, Date → ISO, undefined → null, e ignora funções
+ * (que nunca deveriam estar em payload de audit, mas defense-in-depth).
+ */
+function auditReplacer(_key: string, value: unknown): unknown {
+  if (typeof value === "bigint") return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "function") return undefined;
+  if (typeof value === "symbol") return undefined;
+  return value;
+}
+
+/**
  * Insere um audit log via função SECURITY DEFINER audit.append_log.
  * A função calcula hash encadeado automaticamente.
  *
@@ -34,7 +50,17 @@ export interface AuditEntry {
  *   });
  */
 export async function appendAuditLog(entry: AuditEntry): Promise<string> {
-  const payloadJson = JSON.stringify(entry.payload ?? {});
+  // CORREÇÃO QA #14: replacer + try/catch para nunca derrubar audit por
+  // payload malformado (perda de audit é pior que payload imperfeito).
+  let payloadJson: string;
+  try {
+    payloadJson = JSON.stringify(entry.payload ?? {}, auditReplacer);
+  } catch (err) {
+    payloadJson = JSON.stringify({
+      _audit_payload_serialize_error:
+        err instanceof Error ? err.message : String(err),
+    });
+  }
 
   const result = await prisma.$queryRaw<{ id: string }[]>`
     SELECT audit.append_log(

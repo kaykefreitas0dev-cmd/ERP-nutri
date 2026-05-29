@@ -1,30 +1,30 @@
 // GET /api/health/ready — readiness probe (checa deps externas)
 // Diferente de /live: pode retornar 503 se DB/Redis estão down
+//
+// CORREÇÃO QA Rodada 7:
+//   - Rate limit per-IP (probes legítimos = 1/min; brute >120/min = abuse)
+//   - Não vazar mensagens de erro de exception do DB/Redis (revela versão/schema)
+//   - Não expor latency_ms para clientes não-autorizados (side-channel)
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@nutricore/db";
 import { Redis } from "@upstash/redis";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface CheckResult {
   status: "ok" | "error" | "skipped";
-  latency_ms?: number;
-  error?: string;
 }
 
 async function checkDb(): Promise<CheckResult> {
-  const start = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return { status: "ok", latency_ms: Date.now() - start };
+    return { status: "ok" };
   } catch (err) {
-    return {
-      status: "error",
-      latency_ms: Date.now() - start,
-      error: err instanceof Error ? err.message : "Unknown",
-    };
+    console.error("[health/ready] db error:", err);
+    return { status: "error" };
   }
 }
 
@@ -36,21 +36,29 @@ async function checkRedis(): Promise<CheckResult> {
     return { status: "skipped" };
   }
 
-  const start = Date.now();
   try {
     const redis = new Redis({ url, token });
     await redis.ping();
-    return { status: "ok", latency_ms: Date.now() - start };
+    return { status: "ok" };
   } catch (err) {
-    return {
-      status: "error",
-      latency_ms: Date.now() - start,
-      error: err instanceof Error ? err.message : "Unknown",
-    };
+    console.error("[health/ready] redis error:", err);
+    return { status: "error" };
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Rate limit per-IP — probes legítimos (Vercel kubelet) 1/min; abuso 120+/min
+  const limit = await checkRateLimit(req, "health:ready:ip", {
+    max: 120,
+    windowSec: 60,
+  });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { status: "rate_limited" },
+      { status: 429, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const [db, redis] = await Promise.all([checkDb(), checkRedis()]);
 
   const overall =

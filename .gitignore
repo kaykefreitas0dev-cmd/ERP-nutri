@@ -32,6 +32,16 @@ out/
 build
 dist
 
+# TypeScript build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Cloudflare Workers (wrangler) build artifacts
+**/.wrangler/
+
+# Claude Code local session settings
+.claude/settings.local.json
+
 
 # Debug
 npm-debug.log*

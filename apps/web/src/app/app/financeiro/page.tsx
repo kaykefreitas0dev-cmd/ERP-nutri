@@ -112,25 +112,24 @@ export default async function FinanceiroPage({ searchParams }: Props) {
         where.patient = { fullName: { contains: q, mode: "insensitive" } };
       }
 
-      const [payments, allInRange] = await Promise.all([
-        tx.patientPayment.findMany({
-          where,
-          orderBy: { paymentDate: "desc" },
-          take: 200,
-          include: {
-            patient: { select: { id: true, fullName: true } },
-            appointment: { select: { id: true, startsAt: true } },
-          },
-        }),
-        tx.patientPayment.findMany({
-          where: { paymentDate: { gte: fromDate, lte: toDate } },
-          select: {
-            amountCents: true,
-            externalPaymentMethod: true,
-            paymentDate: true,
-          },
-        }),
-      ]);
+      // CORREÇÃO: serializado (pg adapter dentro de tx não suporta Promise.all).
+      const payments = await tx.patientPayment.findMany({
+        where,
+        orderBy: { paymentDate: "desc" },
+        take: 200,
+        include: {
+          patient: { select: { id: true, fullName: true } },
+          appointment: { select: { id: true, startsAt: true } },
+        },
+      });
+      const allInRange = await tx.patientPayment.findMany({
+        where: { paymentDate: { gte: fromDate, lte: toDate } },
+        select: {
+          amountCents: true,
+          externalPaymentMethod: true,
+          paymentDate: true,
+        },
+      });
 
       // Aggregates
       const totalCents = allInRange.reduce(

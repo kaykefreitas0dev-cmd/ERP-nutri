@@ -1,8 +1,22 @@
 // Server Action wrapper que aplica tenant context (alternativa a withTenant para Route Handlers)
 // Usado em Server Actions onde request não está disponível diretamente.
+//
+// CORREÇÃO QA #1: substitui $executeRawUnsafe (que era safe-by-source aqui,
+// já que valores vêm de Supabase Auth + Prisma findFirst) por $executeRaw
+// tagged template (parameter binding) + UUID validation defense-in-depth.
+// Mantém safety se algum dia a fonte mudar.
 
 import { createSupabaseServerClient } from "./supabase/server";
 import { prisma } from "@nutricore/db";
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function assertUuid(value: string, label: string): void {
+  if (!UUID_REGEX.test(value)) {
+    throw new ActionTenantError(`Invalid ${label} format`, "UNAUTHORIZED");
+  }
+}
 
 export interface ActionTenantContext {
   organizationId: string;
@@ -24,10 +38,11 @@ export class ActionTenantError extends Error {
 /**
  * Wrapper para Server Actions tenant-aware.
  *
- * 1. Verifica sessão Supabase
- * 2. Determina organização ativa (memberships[0] por simplicidade — multi-org TODO)
- * 3. Abre transação Prisma + SET LOCAL app.current_org/app.current_user
- * 4. Chama handler com contexto
+ * 1. Verifica sessão Supabase (validada server-side com cookie real).
+ * 2. Determina organização ativa (memberships[0] — multi-org TODO).
+ * 3. Valida UUID format (defense-in-depth).
+ * 4. Abre transação Prisma + set_config via PARAMETER BINDING.
+ * 5. Chama handler com contexto.
  */
 export async function withTenantAction<T>(
   handler: (ctx: ActionTenantContext) => Promise<T>,
@@ -51,16 +66,15 @@ export async function withTenantAction<T>(
     throw new ActionTenantError("Sem organização ativa", "NO_ORG");
   }
 
+  // Defense-in-depth: validar UUID antes de qualquer SQL.
+  assertUuid(user.id, "user.id");
+  assertUuid(membership.organizationId, "membership.organizationId");
+
   return prisma.$transaction(async (tx) => {
-    // Use set_config(..., true) (LOCAL) em vez de SET LOCAL porque
-    // `current_user` é palavra reservada do Postgres e o parser confunde
-    // mesmo quando prefixado com `app.`.
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_org', '${membership.organizationId}', true)`,
-    );
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.current_user', '${user.id}', true)`,
-    );
+    // CORREÇÃO: $executeRaw com tagged template usa parameter binding ($1, $2).
+    // O cast ::text é defensivo contra coerção inesperada de tipos.
+    await tx.$executeRaw`SELECT set_config('app.current_org', ${membership.organizationId}::text, ${true}::boolean)`;
+    await tx.$executeRaw`SELECT set_config('app.current_user', ${user.id}::text, ${true}::boolean)`;
     return handler({
       organizationId: membership.organizationId,
       userId: user.id,

@@ -1,8 +1,11 @@
 "use server";
 
+// CORREÇÃO QA Rodada 6: appendAuditLog helper em 3 ocorrências.
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const CreatePatientSchema = z.object({
   fullName: z.string().min(2).max(120).trim(),
@@ -83,22 +86,18 @@ export async function createPatientAction(
           },
         });
 
-        // Audit log
-        await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid,
-          ${userId}::uuid,
-          'nutritionist'::text,
-          NULL::inet,
-          NULL::text,
-          'patient.create'::text,
-          'Patient'::text,
-          ${created.id}::text,
-          ${created.id}::uuid,
-          ARRAY['fullName','email','phone']::text[],
-          '{}'::jsonb
-        )
-      `;
+        // CORREÇÃO QA #79: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "patient.create",
+          entityType: "Patient",
+          entityId: created.id,
+          patientId: created.id,
+          fieldsAccessed: ["fullName", "email", "phone"],
+          payload: {},
+        });
 
         return created;
       },
@@ -168,20 +167,18 @@ export async function updatePatientAction(
         },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid,
-          ${userId}::uuid,
-          'nutritionist'::text,
-          NULL::inet, NULL::text,
-          'patient.update'::text,
-          'Patient'::text,
-          ${updated.id}::text,
-          ${updated.id}::uuid,
-          ARRAY[]::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #79: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.update",
+        entityType: "Patient",
+        entityId: updated.id,
+        patientId: updated.id,
+        fieldsAccessed: [],
+        payload: {},
+      });
       return updated;
     });
 
@@ -284,20 +281,18 @@ export async function archivePatientAction(
         data: { status: "ARCHIVED", archivedAt: new Date() },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid,
-          ${userId}::uuid,
-          'nutritionist'::text,
-          NULL::inet, NULL::text,
-          'patient.archive'::text,
-          'Patient'::text,
-          ${patientId}::text,
-          ${patientId}::uuid,
-          ARRAY[]::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #79: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient.archive",
+        entityType: "Patient",
+        entityId: patientId,
+        patientId,
+        fieldsAccessed: ["status"],
+        payload: {},
+      });
     });
     revalidatePath("/app/patients");
     return { ok: true };

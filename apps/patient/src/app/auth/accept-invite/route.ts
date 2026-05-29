@@ -16,6 +16,8 @@ import { createHash } from "node:crypto";
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInviteAcceptedEmail } from "@/lib/email/send-invite-accepted";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +25,26 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
 
-  if (!token) {
+  if (!token || typeof token !== "string" || token.length > 256) {
     return NextResponse.redirect(new URL("/?error=missing_token", url.origin));
+  }
+
+  // CORREÇÃO QA #12: rate limit per-IP (anti spam) + per-token (anti brute-force).
+  // Em dev sem Upstash → fail-open (degrada-se silenciosamente).
+  const ipLimit = await checkRateLimit(req, "accept-invite:ip", {
+    max: 20,
+    windowSec: 600,
+  });
+  if (!ipLimit.ok) {
+    return NextResponse.redirect(new URL("/?error=rate_limited", url.origin));
+  }
+  const tokenLimit = await checkRateLimit(req, "accept-invite:token", {
+    max: 5,
+    windowSec: 600,
+    identifier: createHash("sha256").update(token).digest("hex"),
+  });
+  if (!tokenLimit.ok) {
+    return NextResponse.redirect(new URL("/?error=rate_limited", url.origin));
   }
 
   // 1. Confere sessão Supabase
@@ -86,29 +106,36 @@ export async function GET(req: NextRequest) {
         throw new Error("Invite already processed (race)");
       }
 
-      // Link patient.user_id se ainda não vinculado
-      const patient = await tx.patient.findUnique({
-        where: { id: invite.patientId },
+      // Link patient.user_id se ainda não vinculado.
+      // CORREÇÃO QA #11: defense-in-depth — confirmar que o patient pertence
+      // à mesma org do invite (FK protege hoje; check redundante guarda
+      // contra futura mutação de patientId via worker/ETL).
+      const patient = await tx.patient.findFirst({
+        where: { id: invite.patientId, organizationId: invite.organizationId },
         select: { userId: true },
       });
-      if (patient && !patient.userId) {
+      if (!patient) {
+        throw new Error("Patient not found in invite organization");
+      }
+      if (!patient.userId) {
         await tx.patient.update({
           where: { id: invite.patientId },
           data: { userId: user.id },
         });
       }
 
-      // Audit log (com org context manual)
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${invite.organizationId}::uuid, ${user.id}::uuid,
-          'patient'::text, NULL::inet, NULL::text,
-          'patient_invite.accept'::text, 'PatientInvite'::text,
-          ${invite.id}::text, ${invite.patientId}::uuid,
-          ARRAY['acceptedAt','acceptedByUserId']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #88: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId: invite.organizationId,
+        actorUserId: user.id,
+        actorRole: "patient",
+        action: "patient_invite.accept",
+        entityType: "PatientInvite",
+        entityId: invite.id,
+        patientId: invite.patientId,
+        fieldsAccessed: ["acceptedAt", "acceptedByUserId"],
+        payload: {},
+      });
     });
   } catch {
     return NextResponse.redirect(new URL("/?error=accept_failed", url.origin));

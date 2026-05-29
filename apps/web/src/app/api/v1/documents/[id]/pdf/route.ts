@@ -10,9 +10,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+// CORREÇÃO QA Rodada 6: appendAuditLog helper.
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 const DOC_BUCKET = "clinical-documents";
 
@@ -38,17 +40,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
         });
         if (!doc) return null;
 
-        // Audit em download
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'clinical_document.download'::text, 'ClinicalDocument'::text,
-            ${doc.id}::text, ${doc.patientId}::uuid,
-            ARRAY['pdfStorageKey']::text[],
-            '{}'::jsonb
-          )
-        `;
+        // CORREÇÃO QA #86: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "clinical_document.download",
+          entityType: "ClinicalDocument",
+          entityId: doc.id,
+          patientId: doc.patientId,
+          fieldsAccessed: ["pdfStorageKey"],
+          payload: {},
+        });
 
         return doc;
       },

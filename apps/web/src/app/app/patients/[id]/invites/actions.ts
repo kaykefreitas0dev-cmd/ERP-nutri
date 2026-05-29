@@ -1,10 +1,19 @@
 "use server";
 
+// CORREÇÃO QA Rodada 4:
+//   #49 — rate limit per-user (10 convites / hora) para conter spam SES.
+//   #50+#51 — explicit organizationId no findFirst (defense-in-depth).
+//   #52 — appendAuditLog helper em vez de raw $executeRaw.
+//   #53 — UUID validation em revokeInviteAction.
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createHash, randomBytes } from "node:crypto";
+import { headers } from "next/headers";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { sendPatientInviteEmail } from "@/lib/email/send-invite";
+import { appendAuditLog } from "@nutricore/db/audit";
+import { checkRateLimitById } from "@/lib/rate-limit";
 
 export interface InviteActionResult {
   ok: boolean;
@@ -18,6 +27,8 @@ export interface InviteActionResult {
 }
 
 const INVITE_TTL_DAYS = 7;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function generateToken(): { plain: string; hash: string } {
   // 32 bytes = 256 bits de entropia — URL-safe base64
@@ -31,6 +42,11 @@ function getPatientAppBaseUrl(): string {
   return (
     process.env.NEXT_PUBLIC_PATIENT_APP_URL ?? "https://patient.nutricore.app"
   );
+}
+
+async function getRateLimitIdentifier(userId: string): Promise<string> {
+  // userId é o melhor identificador (resistente a IP shifting).
+  return `user:${userId}`;
 }
 
 const CreateInviteSchema = z.object({
@@ -53,11 +69,27 @@ export async function createInviteAction(input: {
   try {
     const result = await withTenantAction(
       async ({ tx, organizationId, userId }) => {
+        // CORREÇÃO QA #49: rate limit per-user — 10 convites/hora.
+        // Previne spam SES + DB bloat com tokens órfãos.
+        const identifier = await getRateLimitIdentifier(userId);
+        const limit = await checkRateLimitById(
+          "invite:create:user",
+          identifier,
+          { max: 10, windowSec: 3600 },
+        );
+        if (!limit.ok) {
+          throw new Error(
+            "Limite de 10 convites/hora atingido. Aguarde antes de criar mais.",
+          );
+        }
+
+        // CORREÇÃO QA #50: organizationId explícito.
         const patient = await tx.patient.findFirst({
-          where: { id: parsed.data.patientId },
+          where: { id: parsed.data.patientId, organizationId },
           select: { id: true, fullName: true, userId: true },
         });
-        if (!patient) throw new Error("Paciente não encontrado");
+        if (!patient)
+          throw new Error("Paciente não encontrado nesta organização");
         if (patient.userId) {
           throw new Error(
             "Este paciente já possui conta vinculada. Use a opção 'Reenviar acesso'.",
@@ -73,6 +105,7 @@ export async function createInviteAction(input: {
         await tx.patientInvite.updateMany({
           where: {
             patientId: patient.id,
+            organizationId,
             acceptedAt: null,
             revokedAt: null,
             expiresAt: { gt: new Date() },
@@ -99,16 +132,19 @@ export async function createInviteAction(input: {
           },
         });
 
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'patient_invite.create'::text, 'PatientInvite'::text,
-            ${invite.id}::text, ${patient.id}::uuid,
-            ARRAY['email','expiresAt']::text[],
-            ${JSON.stringify({ email: parsed.data.email })}::jsonb
-          )
-        `;
+        // CORREÇÃO QA #52: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: "patient_invite.create",
+          entityType: "PatientInvite",
+          entityId: invite.id,
+          patientId: patient.id,
+          fieldsAccessed: ["email", "expiresAt"],
+          // Não inclui email no payload do audit (PII; já vai em fieldsAccessed)
+          payload: { ttlDays: INVITE_TTL_DAYS },
+        });
 
         return { invite, plain, patient, org };
       },
@@ -155,13 +191,19 @@ export async function createInviteAction(input: {
 export async function revokeInviteAction(
   inviteId: string,
 ): Promise<InviteActionResult> {
+  // CORREÇÃO QA #53: validar UUID antes de qualquer query.
+  if (!inviteId || !UUID_REGEX.test(inviteId)) {
+    return { ok: false, message: "inviteId inválido" };
+  }
+
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
+      // CORREÇÃO QA #51: organizationId explícito.
       const inv = await tx.patientInvite.findFirst({
-        where: { id: inviteId },
+        where: { id: inviteId, organizationId },
         select: { id: true, patientId: true, acceptedAt: true },
       });
-      if (!inv) throw new Error("Convite não encontrado");
+      if (!inv) throw new Error("Convite não encontrado nesta organização");
       if (inv.acceptedAt)
         throw new Error("Convite já aceito — não pode ser revogado");
 
@@ -170,16 +212,18 @@ export async function revokeInviteAction(
         data: { revokedAt: new Date(), revokedReason: "Revogado manualmente" },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          'patient_invite.revoke'::text, 'PatientInvite'::text,
-          ${inviteId}::text, ${inv.patientId}::uuid,
-          ARRAY['revokedAt']::text[],
-          '{}'::jsonb
-        )
-      `;
+      // CORREÇÃO QA #52: appendAuditLog helper.
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient_invite.revoke",
+        entityType: "PatientInvite",
+        entityId: inviteId,
+        patientId: inv.patientId,
+        fieldsAccessed: ["revokedAt"],
+        payload: {},
+      });
     });
     return { ok: true, inviteId };
   } catch (err) {

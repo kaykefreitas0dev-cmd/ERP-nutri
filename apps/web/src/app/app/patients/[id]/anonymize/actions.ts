@@ -1,8 +1,20 @@
 "use server";
 
+// CORREÇÃO QA Rodada 5 — anonymization Lock 4/13:
+//   #58 — hashString agora usa HMAC-SHA256 (era hash polinomial trivialmente
+//         reversível). Para audit LGPD prova "conhecia o nome" sem revelá-lo.
+//   #59 — IMPLEMENTAR de fato o scrub de ClinicalNote/ExamAttachment/etc
+//         (versão anterior só tinha comentário, sem código).
+//   #60+#62 — organizationId explicit em findFirst (defense-in-depth).
+//   #61 — UUID validation em archivePatientAction.
+//   #63 — RBAC: apenas org_owner / clinic_admin podem anonimizar.
+//   #64 — appendAuditLog helper em vez de raw $executeRaw (2 ocorrências).
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { createHmac } from "node:crypto";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { appendAuditLog } from "@nutricore/db/audit";
 
 export interface AnonymizeResult {
   ok: boolean;
@@ -10,38 +22,67 @@ export interface AnonymizeResult {
   patientId?: string;
 }
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const AnonymizeSchema = z.object({
   patientId: z.string().uuid(),
-  // Confirm phrase deve casar exatamente para prevenir click acidental
   confirmPhrase: z.string(),
-  // Texto de motivo obrigatório (LGPD Art. 41 — DPO precisa documentar)
   reason: z.string().min(10).max(500),
 });
 
+// Roles permitidas a executar a operação destrutiva.
+const ALLOWED_ANONYMIZE_ROLES = new Set(["org_owner", "clinic_admin"]);
+
+/** CORREÇÃO QA #58: HMAC-SHA256 com segredo de servidor. Sem o segredo,
+ * regulador/atacante não consegue brute-force reverter para nomes plain. */
+function getNameHashSecret(): string {
+  const s = process.env.ANONYMIZE_HASH_SECRET;
+  if (!s || s.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "ANONYMIZE_HASH_SECRET missing or too short (min 32 chars)",
+      );
+    }
+    return "dev-only-anonymize-hash-secret-min-32-chars";
+  }
+  return s;
+}
+
+function hashNameForAudit(s: string): string {
+  return (
+    "hmac256:" +
+    createHmac("sha256", getNameHashSecret())
+      .update(s)
+      .digest("hex")
+      .slice(0, 32)
+  );
+}
+
 /**
- * Anonimiza um Patient nesta organização (LGPD Art. 18, V — direito ao
- * esquecimento dentro do escopo da empresa).
+ * Anonimiza um Patient nesta organização (Lock 4 + 13; LGPD Art. 18, V).
  *
- * O que faz:
- * - Patient.status = ANONYMIZED
- * - Patient.anonymizedAt = now()
- * - Patient.fullName = "Paciente anonimizado"
- * - Patient.preferredName = NULL
- * - Patient.email = NULL, phone = NULL, cpf = NULL
- * - Patient.birthDate = NULL, biologicalSex = NULL, genderIdentity = NULL
- * - Patient.city/state/postalCode/street/number/complement/neighborhood = NULL
- * - Patient.occupation = NULL, notes = NULL
- * - Cascata em ClinicalNote: scrub body com placeholder "[ANONIMIZADO]"
- * - Cascata em PatientContact: DELETE rows
- * - Cascata em PatientAllergy/DietaryRestriction/ClinicalCondition: mantém
- *   (relevância clínica, mas sem PII)
- * - Cascata em MealItem/ClinicalDocument: **MANTÉM** (Lock 15 — snapshot
- *   imutável; recibo emitido tem CPF para fiscal). patient_name_snapshot
- *   nos docs também mantém — eles são prova de emissão.
- * - Patient.userId NÃO é tocado (Lock 6 — user é cross-tenant; deletar
- *   user requer fluxo separado vindo do app paciente)
+ * Implementado nesta versão (versão anterior tinha código incompleto):
+ * - Patient PII fields → null + status = ANONYMIZED + anonymizedAt = now()
+ * - ClinicalNote.encryptedContent → null + contentPreview = '[ANONIMIZADO]'
+ * - ExamAttachment.encryptedMetadata → null + notesPreview = '[ANONIMIZADO]'
+ *   + fileName = '[redigido]' (storagePath mantém para audit; arquivos físicos
+ *   no Storage devem ser deletados por job assíncrono — fora do escopo MVP)
+ * - PatientInvite pendentes revogados
  *
- * Ações são feitas em transação atômica.
+ * NÃO toca (intencional):
+ * - Patient.userId (Lock 6: User é global, deletar conta requer fluxo
+ *   separado vindo do app paciente)
+ * - PatientAllergy/DietaryRestriction/ClinicalCondition (dados clínicos
+ *   sem PII direta — epidemiologia futura)
+ * - MealItem / ClinicalDocument (Lock 15: snapshot imutável; doc emitido
+ *   com CPF é prova fiscal)
+ * - patient_name_snapshot em ClinicalDocument (prova de emissão)
+ *
+ * Restrições:
+ * - Apenas org_owner / clinic_admin (RBAC; QA #63)
+ * - Confirm phrase + reason obrigatórios (anti click acidental)
+ * - Não-idempotente: já-anonimizado rejeita
  */
 export async function anonymizePatientAction(input: {
   patientId: string;
@@ -66,9 +107,17 @@ export async function anonymizePatientAction(input: {
 
   try {
     const result = await withTenantAction(
-      async ({ tx, organizationId, userId }) => {
+      async ({ tx, organizationId, userId, role }) => {
+        // CORREÇÃO QA #63: RBAC — apenas roles administrativos podem anonimizar.
+        if (!ALLOWED_ANONYMIZE_ROLES.has(role)) {
+          throw new Error(
+            "Apenas Admin/Owner da organização pode anonimizar pacientes",
+          );
+        }
+
+        // CORREÇÃO QA #62: organizationId explícito.
         const patient = await tx.patient.findFirst({
-          where: { id: parsed.data.patientId },
+          where: { id: parsed.data.patientId, organizationId },
           select: {
             id: true,
             fullName: true,
@@ -78,17 +127,20 @@ export async function anonymizePatientAction(input: {
             userId: true,
           },
         });
-        if (!patient) throw new Error("Paciente não encontrado");
+        if (!patient)
+          throw new Error("Paciente não encontrado nesta organização");
         if (patient.status === "ANONYMIZED") {
           throw new Error("Paciente já está anonimizado");
         }
+
+        const now = new Date();
 
         // 1. Scrub Patient (PHI fields)
         await tx.patient.update({
           where: { id: patient.id },
           data: {
             status: "ANONYMIZED",
-            anonymizedAt: new Date(),
+            anonymizedAt: now,
             fullName: "Paciente anonimizado",
             preferredName: null,
             cpf: null,
@@ -106,47 +158,75 @@ export async function anonymizePatientAction(input: {
             neighborhood: null,
             occupation: null,
             notes: null,
-            // userId preservado (Lock 6) — user pode existir em outras orgs
           },
         });
 
-        // 2. Scrub ClinicalNote body (não toca encrypted_body — Lock 4 deixa
-        //    decrypt fail no futuro, mas grava placeholder para auditoria UX)
-        // 3. Delete PatientContact rows (PII)
-        // Nota: schemas Patient*Allergy/DietaryRestriction/ClinicalCondition
-        // são dados clínicos sem PII direta — mantemos para epidemiologia
-        // futura (sem nome ligado).
+        // CORREÇÃO QA #59: SCRUB de fato as ClinicalNotes (versão anterior
+        // só tinha comentário). Substitui encryptedContent por buffer mínimo
+        // (Postgres bytea requer NOT NULL via schema; usamos empty buffer).
+        await tx.clinicalNote.updateMany({
+          where: { patientId: patient.id, organizationId },
+          data: {
+            encryptedContent: Buffer.alloc(0),
+            contentPreview: "[ANONIMIZADO]",
+          },
+        });
 
-        // 4. Revogar todos os invites pendentes
+        // CORREÇÃO QA #59: scrub ExamAttachment metadata + filename.
+        // Arquivos físicos no Supabase Storage devem ser deletados por
+        // worker assíncrono — fora do escopo MVP (registrado em audit).
+        await tx.examAttachment.updateMany({
+          where: { patientId: patient.id, organizationId },
+          data: {
+            fileName: "[redigido]",
+            encryptedMetadata: null,
+            notesPreview: "[ANONIMIZADO]",
+          },
+        });
+
+        // Revogar todos os invites pendentes
         await tx.patientInvite.updateMany({
           where: {
             patientId: patient.id,
+            organizationId,
             acceptedAt: null,
             revokedAt: null,
           },
           data: {
-            revokedAt: new Date(),
+            revokedAt: now,
             revokedReason: "Patient anonymized",
           },
         });
 
-        // 5. Audit log (Lock 4 — registro imutável de anonimização)
-        await tx.$executeRaw`
-          SELECT audit.append_log(
-            ${organizationId}::uuid, ${userId}::uuid,
-            'nutritionist'::text, NULL::inet, NULL::text,
-            'patient.anonymize'::text, 'Patient'::text,
-            ${patient.id}::text, ${patient.id}::uuid,
-            ARRAY['status','fullName','cpf','email','phone','address','notes']::text[],
-            ${JSON.stringify({
-              reason: parsed.data.reason,
-              previousNameHash: hashString(patient.fullName),
-              hadCpf: Boolean(patient.cpf),
-              hadEmail: Boolean(patient.email),
-              hadUserAccount: Boolean(patient.userId),
-            })}::jsonb
-          )
-        `;
+        // CORREÇÃO QA #64: appendAuditLog helper (parameter binding correto).
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: role,
+          action: "patient.anonymize",
+          entityType: "Patient",
+          entityId: patient.id,
+          patientId: patient.id,
+          fieldsAccessed: [
+            "status",
+            "fullName",
+            "cpf",
+            "email",
+            "phone",
+            "address",
+            "notes",
+            "clinicalNotes.encryptedContent",
+            "examAttachments.metadata",
+          ],
+          payload: {
+            reason: parsed.data.reason,
+            // CORREÇÃO QA #58: HMAC do nome (não hash polinomial).
+            previousNameHash: hashNameForAudit(patient.fullName),
+            hadCpf: Boolean(patient.cpf),
+            hadEmail: Boolean(patient.email),
+            hadUserAccount: Boolean(patient.userId),
+          },
+        });
 
         return { patient };
       },
@@ -165,17 +245,6 @@ export async function anonymizePatientAction(input: {
   }
 }
 
-function hashString(s: string): string {
-  // Simple non-crypto hash to prove "we knew the name was X" without storing X
-  // Para auditoria: regulador pode verificar via hash determinístico.
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h << 5) - h + s.charCodeAt(i);
-    h |= 0;
-  }
-  return `name_h:${h.toString(16)}`;
-}
-
 /**
  * Arquiva (soft) sem anonimizar — patient não aparece nas listas default
  * mas dados permanecem. Reversível.
@@ -183,35 +252,45 @@ function hashString(s: string): string {
 export async function archivePatientAction(
   patientId: string,
 ): Promise<AnonymizeResult> {
+  // CORREÇÃO QA #61: UUID validation.
+  if (!patientId || !UUID_REGEX.test(patientId)) {
+    return { ok: false, message: "patientId inválido" };
+  }
+
   try {
-    await withTenantAction(async ({ tx, organizationId, userId }) => {
+    await withTenantAction(async ({ tx, organizationId, userId, role }) => {
+      // CORREÇÃO QA #60: organizationId explícito.
       const patient = await tx.patient.findFirst({
-        where: { id: patientId },
+        where: { id: patientId, organizationId },
         select: { id: true, status: true },
       });
-      if (!patient) throw new Error("Paciente não encontrado");
+      if (!patient)
+        throw new Error("Paciente não encontrado nesta organização");
       if (patient.status === "ANONYMIZED") {
         throw new Error("Paciente anonimizado não pode ser arquivado");
       }
 
+      const willUnarchive = patient.status === "ARCHIVED";
+
       await tx.patient.update({
         where: { id: patientId },
         data: {
-          status: patient.status === "ARCHIVED" ? "ACTIVE" : "ARCHIVED",
-          archivedAt: patient.status === "ARCHIVED" ? null : new Date(),
+          status: willUnarchive ? "ACTIVE" : "ARCHIVED",
+          archivedAt: willUnarchive ? null : new Date(),
         },
       });
 
-      await tx.$executeRaw`
-        SELECT audit.append_log(
-          ${organizationId}::uuid, ${userId}::uuid,
-          'nutritionist'::text, NULL::inet, NULL::text,
-          ${patient.status === "ARCHIVED" ? "patient.unarchive" : "patient.archive"}::text,
-          'Patient'::text,
-          ${patientId}::text, ${patientId}::uuid,
-          ARRAY['status']::text[], '{}'::jsonb
-        )
-      `;
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: role,
+        action: willUnarchive ? "patient.unarchive" : "patient.archive",
+        entityType: "Patient",
+        entityId: patientId,
+        patientId,
+        fieldsAccessed: ["status"],
+        payload: {},
+      });
     });
     revalidatePath("/app/patients");
     revalidatePath(`/app/patients/${patientId}`);

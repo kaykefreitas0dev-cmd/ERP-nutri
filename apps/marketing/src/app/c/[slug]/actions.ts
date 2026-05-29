@@ -1,9 +1,27 @@
 "use server";
 
+// CORREÇÃO QA #27/#30/#31:
+//   #27 — Rate limit no submit (spam DoS + custo SES)
+//   #30 — Rate limit no slot lookup (enumeração + DoS)
+//   #31 — Audit log via helper (não raw $executeRaw)
+
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { prisma } from "@nutricore/db";
+import { appendAuditLog } from "@nutricore/db/audit";
+import { checkRateLimitById } from "../../../lib/rate-limit";
+
+async function getClientIp(): Promise<string> {
+  try {
+    const h = await headers();
+    const xff = h.get("x-forwarded-for");
+    if (xff) return xff.split(",")[0]?.trim() ?? "unknown";
+    return h.get("x-real-ip") ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
 
 const PublicBookingSchema = z.object({
   bookingPageId: z.string().uuid(),
@@ -24,6 +42,16 @@ export interface PublicBookingResult {
 export async function submitPublicBookingAction(
   formData: FormData,
 ): Promise<PublicBookingResult> {
+  // CORREÇÃO QA #27: rate limit per-IP (3/10min) + per-email (5/24h).
+  const ip = await getClientIp();
+  const ipLimit = await checkRateLimitById("booking:public:ip", ip, 3, 600);
+  if (!ipLimit.ok) {
+    return {
+      ok: false,
+      message: "Muitas tentativas de agendamento. Aguarde alguns minutos.",
+    };
+  }
+
   const raw = {
     bookingPageId: formData.get("bookingPageId"),
     serviceOfferingId: formData.get("serviceOfferingId"),
@@ -48,6 +76,20 @@ export async function submitPublicBookingAction(
 
   const d = parsed.data;
 
+  // CORREÇÃO QA #27: rate limit per-email — 5 agendamentos / 24h para mesmo email.
+  const emailLimit = await checkRateLimitById(
+    "booking:public:email",
+    d.patientEmail,
+    5,
+    86400,
+  );
+  if (!emailLimit.ok) {
+    return {
+      ok: false,
+      message: "Limite de agendamentos para este email atingido hoje.",
+    };
+  }
+
   try {
     // Buscar booking page + service (validação de existência + min_notice + max_advance)
     const bp = await prisma.bookingPage.findFirst({
@@ -65,11 +107,18 @@ export async function submitPublicBookingAction(
 
     if (!bp) return { ok: false, message: "Profissional não encontrado" };
     if (!bp.acceptsNewPatients) {
-      return { ok: false, message: "Profissional não está aceitando novos pacientes" };
+      return {
+        ok: false,
+        message: "Profissional não está aceitando novos pacientes",
+      };
     }
 
     const service = await prisma.serviceOffering.findFirst({
-      where: { id: d.serviceOfferingId, bookingPageId: d.bookingPageId, isActive: true },
+      where: {
+        id: d.serviceOfferingId,
+        bookingPageId: d.bookingPageId,
+        isActive: true,
+      },
       select: { durationMinutes: true },
     });
 
@@ -78,7 +127,9 @@ export async function submitPublicBookingAction(
     const startsAt = new Date(d.startsAt);
     const now = new Date();
     const minStart = new Date(now.getTime() + bp.minNoticeHours * 3600_000);
-    const maxStart = new Date(now.getTime() + bp.maxAdvanceDays * 24 * 3600_000);
+    const maxStart = new Date(
+      now.getTime() + bp.maxAdvanceDays * 24 * 3600_000,
+    );
 
     if (startsAt < minStart) {
       return {
@@ -93,16 +144,15 @@ export async function submitPublicBookingAction(
       };
     }
 
-    const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+    const endsAt = new Date(
+      startsAt.getTime() + service.durationMinutes * 60_000,
+    );
 
     // Idempotency key (mesmo email + horário = único)
     const idempotencyKey = createHash("sha256")
       .update(`${d.bookingPageId}|${d.patientEmail}|${d.startsAt}`)
       .digest("hex")
       .slice(0, 32);
-
-    const h = await headers();
-    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 
     try {
       const appt = await prisma.appointment.create({
@@ -140,17 +190,22 @@ export async function submitPublicBookingAction(
         },
       });
 
-      // Audit (sem actor_user_id — booking público)
-      await prisma.$executeRaw`
-        SELECT audit.append_log(
-          ${bp.organizationId}::uuid, NULL::uuid,
-          'public_booking'::text, ${ip}::inet, NULL::text,
-          'appointment.public_booking'::text, 'Appointment'::text,
-          ${appt.id}::text, NULL::uuid,
-          ARRAY['externalPatientEmail','startsAt']::text[],
-          ${JSON.stringify({ idempotencyKey })}::jsonb
-        )
-      `;
+      // CORREÇÃO QA #31: usar appendAuditLog helper (parameter binding correto
+      // de arrays Postgres + JSON safe-serialize). Inet vai como string que
+      // Postgres faz cast automático.
+      await appendAuditLog({
+        organizationId: bp.organizationId,
+        actorUserId: null,
+        actorRole: "public_booking",
+        actorIp: ip,
+        actorUserAgent: null,
+        action: "appointment.public_booking",
+        entityType: "Appointment",
+        entityId: appt.id,
+        patientId: null,
+        fieldsAccessed: ["externalPatientEmail", "startsAt"],
+        payload: { idempotencyKey },
+      });
 
       // TODO S12b: enviar email de confirmação via Resend
       // TODO S6+: webhook Google Calendar para criar evento espelho
@@ -180,11 +235,31 @@ export async function submitPublicBookingAction(
 
 // Helper exposto: calcular slots disponíveis em uma data
 // (chamado pelo BookingForm via separate Server Action)
+//
+// CORREÇÃO QA #30: rate limit + validação UUID/date para prevenir
+// enumeração de bookingPages e DoS.
+const SlotsInputSchema = z.object({
+  bookingPageId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
+  durationMinutes: z.number().int().min(5).max(480),
+});
+
 export async function getAvailableSlotsAction(input: {
   bookingPageId: string;
   date: string; // YYYY-MM-DD
   durationMinutes: number;
 }): Promise<{ ok: boolean; slots?: string[]; message?: string }> {
+  // CORREÇÃO QA #30: validar inputs antes de qualquer query.
+  const parsed = SlotsInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: "Parâmetros inválidos" };
+  }
+  // Rate limit por IP — 30 lookups/min (UI faz 1 por mudança de data).
+  const ip = await getClientIp();
+  const limit = await checkRateLimitById("booking:slots:ip", ip, 30, 60);
+  if (!limit.ok) {
+    return { ok: false, message: "Muitas requisições — aguarde 1 minuto." };
+  }
   try {
     const bp = await prisma.bookingPage.findFirst({
       where: { id: input.bookingPageId, isPublished: true },
@@ -243,11 +318,17 @@ export async function getAvailableSlotsAction(input: {
       const slotEnd = new Date(date);
       slotEnd.setHours(Number(endH), Number(endM), 0, 0);
 
-      const step = input.durationMinutes + bp.bufferBeforeMinutes + bp.bufferAfterMinutes;
+      const step =
+        input.durationMinutes + bp.bufferBeforeMinutes + bp.bufferAfterMinutes;
       let cursor = new Date(slotStart);
 
-      while (cursor.getTime() + input.durationMinutes * 60_000 <= slotEnd.getTime()) {
-        const slotEndCandidate = new Date(cursor.getTime() + input.durationMinutes * 60_000);
+      while (
+        cursor.getTime() + input.durationMinutes * 60_000 <=
+        slotEnd.getTime()
+      ) {
+        const slotEndCandidate = new Date(
+          cursor.getTime() + input.durationMinutes * 60_000,
+        );
 
         // Min notice
         if (cursor < minStart) {
