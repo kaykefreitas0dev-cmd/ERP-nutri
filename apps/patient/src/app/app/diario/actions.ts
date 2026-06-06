@@ -45,13 +45,15 @@ export async function addDiaryEntryAction(input: {
   const d = parsed.data;
 
   // Anti-backdating: no máximo 7 dias atrás, nunca no futuro.
+  // (BR é UTC-2..UTC-5, então a data local nunca é > data UTC → diffDays >= 0
+  // para hoje/passado; rejeitar diffDays < 0 bloqueia datas futuras.)
   const entry = new Date(d.entryDate + "T12:00:00Z");
   const today = new Date();
   today.setUTCHours(12, 0, 0, 0);
   const diffDays = (today.getTime() - entry.getTime()) / 86_400_000;
   if (diffDays > 7)
     return { ok: false, message: "Data muito antiga (máx. 7 dias)" };
-  if (diffDays < -1) return { ok: false, message: "Data inválida" };
+  if (diffDays < 0) return { ok: false, message: "Data não pode ser futura" };
 
   try {
     const userId = await getUserId();
