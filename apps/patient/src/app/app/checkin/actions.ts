@@ -162,6 +162,46 @@ export async function upsertCheckinAction(
 
     revalidatePath("/app");
     revalidatePath("/app/checkin");
+
+    // Notificação in-app para o nutri SOMENTE quando o paciente sinaliza que
+    // NÃO seguiu o plano — sinal acionável, sem spam diário. Best-effort:
+    // nunca bloqueia a resposta do check-in. Cross-tenant (Lock 6): notifica
+    // o owner de cada org em que este usuário é paciente ativo.
+    if (d.followedPlan === false) {
+      void (async () => {
+        try {
+          const patients = await prisma.patient.findMany({
+            where: { userId: user.id, status: "ACTIVE" },
+            select: { id: true, fullName: true, organizationId: true },
+          });
+          for (const pat of patients) {
+            const owner = await prisma.membership.findFirst({
+              where: {
+                organizationId: pat.organizationId,
+                role: "org_owner",
+                status: "ACTIVE",
+              },
+              select: { userId: true },
+            });
+            if (owner?.userId) {
+              await prisma.inAppNotification.create({
+                data: {
+                  organizationId: pat.organizationId,
+                  userId: owner.userId,
+                  type: "patient.checkin_off_plan",
+                  title: "Paciente fora do plano",
+                  body: `${pat.fullName} registrou um check-in sem seguir o plano.`,
+                  linkPath: `/app/patients/${pat.id}/checkins`,
+                },
+              });
+            }
+          }
+        } catch {
+          // best-effort
+        }
+      })();
+    }
+
     return {
       ok: true,
       checkin: {
