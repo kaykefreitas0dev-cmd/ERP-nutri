@@ -56,6 +56,30 @@ function fmtBRL(cents: number): string {
   }).format(cents / 100);
 }
 
+/**
+ * Normaliza `features` para uma lista de strings renderável.
+ * Lida com dois formatos:
+ *   - API (PricingPlan.features): { limits: {...}, included: ["..."] }
+ *   - Fallback (flat):           { patients: "...", booking: "..." }
+ * Objetos aninhados (ex.: `limits`) são ignorados — não são React children
+ * válidos (era a causa do 500 em /precos).
+ */
+function planFeatureLines(
+  features: Record<string, unknown> | null | undefined,
+): string[] {
+  if (!features || typeof features !== "object") return [];
+  const out: string[] = [];
+  for (const value of Object.values(features)) {
+    if (typeof value === "string") {
+      out.push(value);
+    } else if (Array.isArray(value)) {
+      for (const v of value) if (typeof v === "string") out.push(v);
+    }
+    // objetos (ex.: limits) são ignorados de propósito
+  }
+  return out;
+}
+
 const FALLBACK_PLANS: PublicPlan[] = [
   {
     slug: "solo",
@@ -137,8 +161,7 @@ export default async function PrecosPage() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {plans.map((p) => {
               const featured = p.is_featured;
-              const features =
-                (p.features as Record<string, string> | null) ?? {};
+              const featureLines = planFeatureLines(p.features);
               return (
                 <Card
                   key={p.slug}
@@ -189,16 +212,16 @@ export default async function PrecosPage() {
                     </Link>
 
                     <ul className="mt-6 space-y-2.5">
-                      {Object.entries(features).map(([key, value]) => (
+                      {featureLines.map((line, i) => (
                         <li
-                          key={key}
+                          key={i}
                           className="flex items-start gap-2 text-caption text-text-secondary"
                         >
                           <CircleCheck
                             className="mt-0.5 h-4 w-4 shrink-0 text-success"
                             strokeWidth={1.75}
                           />
-                          <span>{value}</span>
+                          <span>{line}</span>
                         </li>
                       ))}
                     </ul>
