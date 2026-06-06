@@ -40,12 +40,15 @@ interface TemplateItem {
   foodId: string;
   foodVersion: number;
   quantityG: number;
+  householdMeasure: string | null;
   preparationNotes: string | null;
   sortOrder: number;
   kcal: number | null;
   proteinG: number | null;
   carbG: number | null;
   fatG: number | null;
+  fiberG: number | null;
+  sodiumMg: number | null;
 }
 interface TemplateMeal {
   name: string;
@@ -139,12 +142,15 @@ export async function saveAsTemplateAction(input: {
                 foodId: item.foodId,
                 foodVersion: item.foodVersion,
                 quantityG: Number(item.quantityG),
+                householdMeasure: item.householdMeasure ?? null,
                 preparationNotes: item.preparationNotes,
                 sortOrder: item.sortOrder,
                 kcal: item.kcal != null ? Number(item.kcal) : null,
                 proteinG: item.proteinG != null ? Number(item.proteinG) : null,
                 carbG: item.carbG != null ? Number(item.carbG) : null,
                 fatG: item.fatG != null ? Number(item.fatG) : null,
+                fiberG: item.fiberG != null ? Number(item.fiberG) : null,
+                sodiumMg: item.sodiumMg != null ? Number(item.sodiumMg) : null,
               })),
             })),
           })),
@@ -399,12 +405,15 @@ export async function applyTemplateAction(input: {
                   foodId: item.foodId,
                   foodVersion: item.foodVersion, // Lock 15 snapshot
                   quantityG: item.quantityG,
+                  householdMeasure: item.householdMeasure ?? null,
                   preparationNotes: item.preparationNotes,
                   sortOrder: item.sortOrder,
                   kcal: item.kcal,
                   proteinG: item.proteinG,
                   carbG: item.carbG,
                   fatG: item.fatG,
+                  fiberG: item.fiberG ?? null,
+                  sodiumMg: item.sodiumMg ?? null,
                 })),
               });
             }

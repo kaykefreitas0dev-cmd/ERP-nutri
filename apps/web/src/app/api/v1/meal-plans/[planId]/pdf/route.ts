@@ -96,10 +96,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
     type RawItem = {
       food: { name: string };
       quantityG: unknown;
+      householdMeasure: string | null;
       kcal: unknown;
       proteinG: unknown;
       carbG: unknown;
       fatG: unknown;
+      fiberG: unknown;
+      sodiumMg: unknown;
       preparationNotes: string | null;
     };
     type RawMeal = {
@@ -117,10 +120,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
         items: meal.items.map((item) => ({
           foodName: item.food.name,
           quantityG: Number(item.quantityG),
+          householdMeasure: item.householdMeasure,
           kcal: item.kcal != null ? Number(item.kcal) : null,
           proteinG: item.proteinG != null ? Number(item.proteinG) : null,
           carbG: item.carbG != null ? Number(item.carbG) : null,
           fatG: item.fatG != null ? Number(item.fatG) : null,
+          fiberG: item.fiberG != null ? Number(item.fiberG) : null,
+          sodiumMg: item.sodiumMg != null ? Number(item.sodiumMg) : null,
           preparationNotes: item.preparationNotes,
         })),
       })),

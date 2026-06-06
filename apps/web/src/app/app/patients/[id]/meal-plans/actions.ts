@@ -110,6 +110,7 @@ const AddItemSchema = z.object({
   foodId: z.string().uuid(),
   quantityG: z.coerce.number().positive().max(5000),
   preparationNotes: z.string().max(200).optional(),
+  householdMeasure: z.string().max(60).optional(),
 });
 
 export async function addMealItemAction(input: {
@@ -117,6 +118,7 @@ export async function addMealItemAction(input: {
   foodId: string;
   quantityG: number;
   preparationNotes?: string;
+  householdMeasure?: string;
 }): Promise<{ ok: boolean; itemId?: string; message?: string }> {
   const parsed = AddItemSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Dados inválidos" };
@@ -133,15 +135,21 @@ export async function addMealItemAction(input: {
           proteinG: true,
           carbG: true,
           fatG: true,
+          fiberG: true,
+          sodiumMg: true,
         },
       });
       if (!food) throw new Error("Alimento não encontrado");
 
       const factor = parsed.data.quantityG / 100;
+      const round2 = (v: number | null) =>
+        v != null ? Math.round(v * 100) / 100 : null;
       const kcal = food.kcalPer100g ? Number(food.kcalPer100g) * factor : null;
       const protein = food.proteinG ? Number(food.proteinG) * factor : null;
       const carb = food.carbG ? Number(food.carbG) * factor : null;
       const fat = food.fatG ? Number(food.fatG) * factor : null;
+      const fiber = food.fiberG ? Number(food.fiberG) * factor : null;
+      const sodium = food.sodiumMg ? Number(food.sodiumMg) * factor : null;
 
       // Contar ordem
       const count = await tx.mealItem.count({
@@ -154,12 +162,15 @@ export async function addMealItemAction(input: {
           foodId: food.id,
           foodVersion: food.version, // Lock 15 snapshot
           quantityG: parsed.data.quantityG,
+          householdMeasure: parsed.data.householdMeasure?.trim() || null,
           preparationNotes: parsed.data.preparationNotes ?? null,
           sortOrder: count,
-          kcal: kcal ? Math.round(kcal * 100) / 100 : null,
-          proteinG: protein ? Math.round(protein * 100) / 100 : null,
-          carbG: carb ? Math.round(carb * 100) / 100 : null,
-          fatG: fat ? Math.round(fat * 100) / 100 : null,
+          kcal: round2(kcal),
+          proteinG: round2(protein),
+          carbG: round2(carb),
+          fatG: round2(fat),
+          fiberG: round2(fiber),
+          sodiumMg: round2(sodium),
         },
       });
     });
@@ -418,24 +429,32 @@ export async function updateMealItemQuantityAction(input: {
           proteinG: true,
           carbG: true,
           fatG: true,
+          fiberG: true,
+          sodiumMg: true,
         },
       });
       if (!food) throw new Error("Alimento não encontrado");
 
       const factor = parsed.data.quantityG / 100;
+      const round2 = (v: number | null) =>
+        v != null ? Math.round(v * 100) / 100 : null;
       const kcal = food.kcalPer100g ? Number(food.kcalPer100g) * factor : null;
       const protein = food.proteinG ? Number(food.proteinG) * factor : null;
       const carb = food.carbG ? Number(food.carbG) * factor : null;
       const fat = food.fatG ? Number(food.fatG) * factor : null;
+      const fiber = food.fiberG ? Number(food.fiberG) * factor : null;
+      const sodium = food.sodiumMg ? Number(food.sodiumMg) * factor : null;
 
       await tx.mealItem.update({
         where: { id: parsed.data.itemId },
         data: {
           quantityG: parsed.data.quantityG,
-          kcal: kcal ? Math.round(kcal * 100) / 100 : null,
-          proteinG: protein ? Math.round(protein * 100) / 100 : null,
-          carbG: carb ? Math.round(carb * 100) / 100 : null,
-          fatG: fat ? Math.round(fat * 100) / 100 : null,
+          kcal: round2(kcal),
+          proteinG: round2(protein),
+          carbG: round2(carb),
+          fatG: round2(fat),
+          fiberG: round2(fiber),
+          sodiumMg: round2(sodium),
         },
       });
     });
@@ -600,12 +619,15 @@ export async function duplicateMealPlanAction(input: {
                   foodId: item.foodId as string,
                   foodVersion: item.foodVersion as number, // Lock 15 snapshot preserved
                   quantityG: item.quantityG,
+                  householdMeasure: item.householdMeasure as string | null,
                   preparationNotes: item.preparationNotes as string | null,
                   sortOrder: item.sortOrder as number,
                   kcal: item.kcal,
                   proteinG: item.proteinG,
                   carbG: item.carbG,
                   fatG: item.fatG,
+                  fiberG: item.fiberG,
+                  sodiumMg: item.sodiumMg,
                 })),
               });
             }
@@ -812,6 +834,44 @@ export async function updateMealItemNotesAction(input: {
     return {
       ok: false,
       message: err instanceof Error ? err.message : "Erro ao salvar nota",
+    };
+  }
+}
+
+/**
+ * Atualiza a medida caseira de um MealItem (ex: "2 col. sopa").
+ * String vazia → null. Máx 60 caracteres.
+ */
+export async function updateMealItemMeasureAction(input: {
+  itemId: string;
+  householdMeasure: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const measure = input.householdMeasure.trim();
+  if (measure.length > 60) {
+    return { ok: false, message: "Medida muito longa (máx. 60 caracteres)" };
+  }
+  if (!input.itemId) return { ok: false, message: "Item inválido" };
+
+  try {
+    await withTenantAction(async ({ tx }) => {
+      const item = await tx.mealItem.findFirst({
+        where: { id: input.itemId },
+        select: { id: true },
+      });
+      if (!item) throw new Error("Item não encontrado");
+
+      await tx.mealItem.update({
+        where: { id: input.itemId },
+        data: { householdMeasure: measure || null },
+      });
+    });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Erro ao salvar medida",
     };
   }
 }

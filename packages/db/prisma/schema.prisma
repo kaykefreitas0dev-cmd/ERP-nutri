@@ -1032,6 +1032,8 @@ model MealItem {
   foodId           String  @map("food_id") @db.Uuid
   foodVersion      Int     @map("food_version") // Lock 15 - snapshot da versão
   quantityG        Decimal @map("quantity_g") @db.Decimal(8, 2)
+  // Medida caseira (ex: "2 col. sopa", "1 xícara") — paciente não precisa pesar.
+  householdMeasure String? @map("household_measure")
   preparationNotes String? @map("preparation_notes") // ex: "cozido", "cru"
   sortOrder        Int     @default(0) @map("sort_order")
 
@@ -1040,6 +1042,10 @@ model MealItem {
   proteinG Decimal? @map("protein_g") @db.Decimal(6, 2)
   carbG    Decimal? @map("carb_g") @db.Decimal(6, 2)
   fatG     Decimal? @map("fat_g") @db.Decimal(6, 2)
+  fiberG   Decimal? @map("fiber_g") @db.Decimal(6, 2)
+  // Decimal(9,2): valor é DESNORMALIZADO (escalado por quantityG/100, fator
+  // até 50). Sódio/100g de alimentos como sal/caldo é alto → 7,2 estouraria.
+  sodiumMg Decimal? @map("sodium_mg") @db.Decimal(9, 2)
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
   // Relation pra mostrar nome/source no UI. NÃO usar `food.kcal/protein/etc`

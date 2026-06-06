@@ -44,10 +44,13 @@ export type MealPlanPdfPayload = {
       items: Array<{
         foodName: string;
         quantityG: number;
+        householdMeasure: string | null;
         kcal: number | null;
         proteinG: number | null;
         carbG: number | null;
         fatG: number | null;
+        fiberG: number | null;
+        sodiumMg: number | null;
         preparationNotes: string | null;
       }>;
     }>;
@@ -137,7 +140,6 @@ export async function renderMealPlanPdf(
       const pageW =
         doc.page.width - doc.page.margins.left - doc.page.margins.right;
       const left = doc.page.margins.left;
-      const right = doc.page.width - doc.page.margins.right;
 
       // ── CABEÇALHO ────────────────────────────────────────────────────
       doc
@@ -309,12 +311,15 @@ export async function renderMealPlanPdf(
               doc.addPage();
             }
             const itemTop = doc.y;
-            // Nome do alimento + quantidade
+            // Nome do alimento (+ medida caseira) + quantidade
+            const nameLabel = item.householdMeasure
+              ? `  • ${item.foodName} — ${item.householdMeasure}`
+              : `  • ${item.foodName}`;
             doc
               .fontSize(8.5)
               .fillColor(COLORS.textPrimary)
               .font("Helvetica")
-              .text(`  • ${item.foodName}`, left, itemTop, {
+              .text(nameLabel, left, itemTop, {
                 continued: true,
                 width: pageW - 200,
               });
@@ -327,12 +332,14 @@ export async function renderMealPlanPdf(
                 align: "right",
               });
 
-            // Macros compactos no mesmo nível
+            // Nutrientes compactos no mesmo nível
             const macroStr = [
               item.kcal != null ? `${item.kcal.toFixed(0)} kcal` : "",
               item.proteinG != null ? `P ${item.proteinG.toFixed(1)}g` : "",
               item.carbG != null ? `C ${item.carbG.toFixed(1)}g` : "",
               item.fatG != null ? `L ${item.fatG.toFixed(1)}g` : "",
+              item.fiberG != null ? `Fib ${item.fiberG.toFixed(1)}g` : "",
+              item.sodiumMg != null ? `Na ${item.sodiumMg.toFixed(0)}mg` : "",
             ]
               .filter(Boolean)
               .join(" · ");
@@ -340,7 +347,7 @@ export async function renderMealPlanPdf(
             doc
               .fontSize(7.5)
               .fillColor(COLORS.textMuted)
-              .text(macroStr, { width: 155, align: "right" });
+              .text(macroStr, { width: 175, align: "right" });
 
             // Notas de preparo (se houver) — linha abaixo, itálico
             if (item.preparationNotes) {
