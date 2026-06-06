@@ -1043,7 +1043,9 @@ model MealItem {
   carbG    Decimal? @map("carb_g") @db.Decimal(6, 2)
   fatG     Decimal? @map("fat_g") @db.Decimal(6, 2)
   fiberG   Decimal? @map("fiber_g") @db.Decimal(6, 2)
-  sodiumMg Decimal? @map("sodium_mg") @db.Decimal(7, 2)
+  // Decimal(9,2): valor é DESNORMALIZADO (escalado por quantityG/100, fator
+  // até 50). Sódio/100g de alimentos como sal/caldo é alto → 7,2 estouraria.
+  sodiumMg Decimal? @map("sodium_mg") @db.Decimal(9, 2)
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
   // Relation pra mostrar nome/source no UI. NÃO usar `food.kcal/protein/etc`
