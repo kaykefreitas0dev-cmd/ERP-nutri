@@ -7,22 +7,17 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { appendAuditLog } from "@nutricore/db/audit";
+import {
+  GOAL_TYPES,
+  GOAL_DIRECTIONS,
+  GOAL_STATUSES,
+  type GoalType,
+  type GoalDirection,
+  type GoalStatus,
+} from "./goal-utils";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-export const GOAL_TYPES = [
-  "WEIGHT",
-  "BODY_FAT",
-  "MEASUREMENT",
-  "HABIT",
-  "PERFORMANCE",
-  "OTHER",
-] as const;
-export const GOAL_DIRECTIONS = ["DECREASE", "INCREASE", "MAINTAIN"] as const;
-export const GOAL_STATUSES = ["ACTIVE", "ACHIEVED", "ABANDONED"] as const;
-
-export type GoalStatus = (typeof GOAL_STATUSES)[number];
 
 export interface GoalActionResult {
   ok: boolean;
@@ -65,8 +60,8 @@ export async function createGoalAction(input: {
   patientId: string;
   title: string;
   description?: string;
-  type?: (typeof GOAL_TYPES)[number];
-  direction?: (typeof GOAL_DIRECTIONS)[number];
+  type?: GoalType;
+  direction?: GoalDirection;
   startValue?: number | null;
   targetValue?: number | null;
   currentValue?: number | null;

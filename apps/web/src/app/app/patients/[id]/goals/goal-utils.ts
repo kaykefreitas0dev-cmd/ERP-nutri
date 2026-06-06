@@ -1,4 +1,23 @@
 // Helpers puros para metas do paciente (compartilhados server + client).
+//
+// Constantes de domínio ficam AQUI (não em actions.ts) porque um módulo
+// "use server" só pode exportar funções async — exportar arrays runtime
+// quebra o build do Next.js.
+
+export const GOAL_TYPES = [
+  "WEIGHT",
+  "BODY_FAT",
+  "MEASUREMENT",
+  "HABIT",
+  "PERFORMANCE",
+  "OTHER",
+] as const;
+export const GOAL_DIRECTIONS = ["DECREASE", "INCREASE", "MAINTAIN"] as const;
+export const GOAL_STATUSES = ["ACTIVE", "ACHIEVED", "ABANDONED"] as const;
+
+export type GoalType = (typeof GOAL_TYPES)[number];
+export type GoalDirection = (typeof GOAL_DIRECTIONS)[number];
+export type GoalStatus = (typeof GOAL_STATUSES)[number];
 
 export interface GoalView {
   id: string;

@@ -3,8 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Target, Plus } from "lucide-react";
-import { createGoalAction, GOAL_TYPES, GOAL_DIRECTIONS } from "./actions";
-import { GOAL_TYPE_LABEL, GOAL_DIRECTION_LABEL } from "./goal-utils";
+import { createGoalAction } from "./actions";
+import {
+  GOAL_TYPES,
+  GOAL_DIRECTIONS,
+  GOAL_TYPE_LABEL,
+  GOAL_DIRECTION_LABEL,
+} from "./goal-utils";
 
 function parseNum(v: string): number | null {
   if (v.trim() === "") return null;
