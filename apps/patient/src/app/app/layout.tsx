@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
 import { NavBar } from "./NavBar";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const dynamic = "force-dynamic";
 
@@ -58,10 +59,11 @@ export default async function AppLayout({
             </svg>
             NutriCore
           </Link>
-          <div className="flex items-center gap-3 text-tiny">
+          <div className="flex items-center gap-2 text-tiny">
             <span className="hidden text-text-muted sm:inline">
               {user.email}
             </span>
+            <NotificationBell />
             <SignOutButton />
           </div>
         </div>
