@@ -15,9 +15,14 @@ import {
   Phone,
   ChevronRight,
   AlertTriangle,
+  Target,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
+import {
+  computeGoalProgress,
+  formatGoalValue,
+} from "./patients/[id]/goals/goal-utils";
 import { WelcomeTour } from "./WelcomeTour";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +74,18 @@ export default async function AppDashboard() {
       fullName: string;
       /** Days since last check-in, or null if they've never checked in. */
       daysSince: number | null;
+    }>;
+    /** Active patient goals with a deadline, soonest first. */
+    goals: Array<{
+      id: string;
+      patientId: string;
+      patientName: string;
+      title: string;
+      unit: string | null;
+      currentValue: number | null;
+      targetValue: number | null;
+      dueDate: string; // YYYY-MM-DD
+      progress: number | null;
     }>;
   } | null = null;
 
@@ -242,6 +259,41 @@ export default async function AppDashboard() {
           });
       })();
 
+      // Metas ativas com prazo (mais próximas primeiro). PatientGoal não tem
+      // relação Prisma com Patient (FK escalar) → busca nomes em seguida.
+      const goalsRaw = await tx.patientGoal.findMany({
+        where: { status: "ACTIVE", dueDate: { not: null } },
+        orderBy: { dueDate: "asc" },
+        take: 6,
+        select: {
+          id: true,
+          patientId: true,
+          title: true,
+          unit: true,
+          direction: true,
+          startValue: true,
+          targetValue: true,
+          currentValue: true,
+          dueDate: true,
+        },
+      });
+      const goalPatientIds = [
+        ...new Set(goalsRaw.map((g: { patientId: string }) => g.patientId)),
+      ];
+      const goalPatients =
+        goalPatientIds.length > 0
+          ? await tx.patient.findMany({
+              where: { id: { in: goalPatientIds } },
+              select: { id: true, fullName: true },
+            })
+          : [];
+      const goalNameMap = new Map<string, string>(
+        goalPatients.map(
+          (p: { id: string; fullName: string }) =>
+            [p.id, p.fullName] as [string, string],
+        ),
+      );
+
       // Build daily spark arrays (index 0 = 29 days ago, index 29 = today)
       function buildDailyCount(dates: Date[], days = 30): number[] {
         const counts = new Array(days).fill(0) as number[];
@@ -297,6 +349,42 @@ export default async function AppDashboard() {
           ),
         },
         inactivePatients: inactivePatientsResult,
+        goals: goalsRaw.map(
+          (g: {
+            id: string;
+            patientId: string;
+            title: string;
+            unit: string | null;
+            direction: string;
+            startValue: { toString(): string } | null;
+            targetValue: { toString(): string } | null;
+            currentValue: { toString(): string } | null;
+            dueDate: Date | null;
+          }) => {
+            const start =
+              g.startValue != null ? Number(g.startValue.toString()) : null;
+            const target =
+              g.targetValue != null ? Number(g.targetValue.toString()) : null;
+            const current =
+              g.currentValue != null ? Number(g.currentValue.toString()) : null;
+            return {
+              id: g.id,
+              patientId: g.patientId,
+              patientName: goalNameMap.get(g.patientId) ?? "Paciente",
+              title: g.title,
+              unit: g.unit,
+              currentValue: current,
+              targetValue: target,
+              dueDate: g.dueDate ? g.dueDate.toISOString().slice(0, 10) : "",
+              progress: computeGoalProgress({
+                startValue: start,
+                targetValue: target,
+                currentValue: current,
+                direction: g.direction,
+              }),
+            };
+          },
+        ),
         agendaHoje: agendaHojeRaw.map(
           (a: {
             id: string;
@@ -669,6 +757,72 @@ export default async function AppDashboard() {
                         className="h-3.5 w-3.5 shrink-0 text-text-muted"
                         strokeWidth={2}
                       />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Metas a acompanhar — metas ativas com prazo */}
+        {data.goals.length > 0 && (
+          <section aria-label="Metas a acompanhar" className="mt-10">
+            <div className="mb-4 flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-h2 font-semibold text-text-primary">
+                  Metas a acompanhar
+                </h2>
+                <span className="rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary ring-1 ring-inset ring-brand-primary/20">
+                  {data.goals.length}
+                </span>
+              </div>
+            </div>
+            <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {data.goals.map((goal) => {
+                const dueLabel = goal.dueDate
+                  ? goal.dueDate.split("-").reverse().join("/")
+                  : "";
+                return (
+                  <li key={goal.id}>
+                    <Link
+                      href={`/app/patients/${goal.patientId}/goals`}
+                      className="flex flex-col gap-2 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-all duration-fast hover:border-brand-primary hover:[box-shadow:var(--shadow-sm)]"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Target
+                          className="mt-0.5 h-4 w-4 shrink-0 text-brand-primary"
+                          strokeWidth={1.75}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-body font-medium text-text-primary">
+                            {goal.title}
+                          </p>
+                          <p className="truncate text-tiny text-text-muted">
+                            {goal.patientName}
+                            {dueLabel ? ` · prazo ${dueLabel}` : ""}
+                          </p>
+                        </div>
+                        {goal.progress !== null && (
+                          <span className="shrink-0 text-tiny font-semibold tabular-nums text-text-secondary">
+                            {goal.progress}%
+                          </span>
+                        )}
+                      </div>
+                      {goal.progress !== null && (
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-subtle">
+                          <div
+                            className="h-full rounded-full bg-brand-primary transition-all duration-fast"
+                            style={{ width: `${goal.progress}%` }}
+                          />
+                        </div>
+                      )}
+                      {goal.targetValue !== null && (
+                        <p className="text-tiny text-text-muted tabular-nums">
+                          {formatGoalValue(goal.currentValue, goal.unit)} →{" "}
+                          {formatGoalValue(goal.targetValue, goal.unit)}
+                        </p>
+                      )}
                     </Link>
                   </li>
                 );

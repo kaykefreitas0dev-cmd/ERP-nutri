@@ -151,7 +151,9 @@ export async function GET(req: NextRequest) {
             role: "org_owner",
             status: "ACTIVE",
           },
-          select: { user: { select: { email: true, fullName: true } } },
+          select: {
+            user: { select: { id: true, email: true, fullName: true } },
+          },
         }),
         prisma.patient.findUnique({
           where: { id: invite.patientId },
@@ -165,6 +167,19 @@ export async function GET(req: NextRequest) {
           organizationName: patient.organization.name,
           patientFullName: patient.fullName,
           patientEmail: user.email!, // guarded by early return at line 35
+        });
+      }
+      // Notificação in-app (sino do portal nutri).
+      if (membership?.user?.id && patient) {
+        await prisma.inAppNotification.create({
+          data: {
+            organizationId: invite.organizationId,
+            userId: membership.user.id,
+            type: "patient.invite_accepted",
+            title: "Paciente aceitou o convite",
+            body: `${patient.fullName} agora tem acesso ao app.`,
+            linkPath: `/app/patients/${invite.patientId}`,
+          },
         });
       }
     } catch {
