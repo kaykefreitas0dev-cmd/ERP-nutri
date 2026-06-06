@@ -11,6 +11,7 @@ import {
   Wallet,
   Settings,
   PanelLeft,
+  LayoutTemplate,
 } from "lucide-react";
 import { NutricoreLogoFull, NutricoreLogoMark } from "./Logo";
 import { SidebarItem, SidebarSection } from "./SidebarItem";
@@ -106,6 +107,11 @@ export function Sidebar() {
           href="/app/alimentos"
           label="Alimentos & Receitas"
           Icon={UtensilsCrossed}
+        />
+        <SidebarItem
+          href="/app/templates"
+          label="Modelos de plano"
+          Icon={LayoutTemplate}
         />
         <SidebarItem
           href="/app/imports"

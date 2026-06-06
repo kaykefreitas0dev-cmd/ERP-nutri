@@ -14,6 +14,7 @@ const ROUTE_LABELS: Record<string, string> = {
   patients: "Pacientes",
   new: "Novo",
   alimentos: "Alimentos & Receitas",
+  templates: "Modelos de plano",
   imports: "Importar",
   financeiro: "Financeiro",
   settings: "Configurações",

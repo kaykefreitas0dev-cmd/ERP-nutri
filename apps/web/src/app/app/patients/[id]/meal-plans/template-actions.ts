@@ -30,6 +30,8 @@ export interface TemplateSummary {
   mealCount: number;
   usageCount: number;
   isPublic: boolean;
+  /** true se o modelo pertence à org atual (pode editar/excluir). */
+  isOwn: boolean;
   createdAt: Date;
 }
 
@@ -66,6 +68,7 @@ interface TemplateStructure {
 // client de transação tenant-scoped não infere o payload do findMany.
 interface TemplateRow {
   id: string;
+  organizationId: string;
   name: string;
   description: string | null;
   targetKcal: { toString(): string } | null;
@@ -198,6 +201,7 @@ export async function listTemplatesAction(): Promise<TemplateSummary[]> {
         take: 100,
         select: {
           id: true,
+          organizationId: true,
           name: true,
           description: true,
           targetKcal: true,
@@ -227,12 +231,56 @@ export async function listTemplatesAction(): Promise<TemplateSummary[]> {
           mealCount,
           usageCount: t.usageCount,
           isPublic: t.isPublic,
+          isOwn: t.organizationId === organizationId,
           createdAt: t.createdAt,
         };
       });
     });
   } catch {
     return [];
+  }
+}
+
+/**
+ * Alterna a visibilidade pública de um modelo (apenas da própria org).
+ * Modelo público fica disponível para todas as orgs no picker.
+ */
+export async function togglePublicTemplateAction(input: {
+  templateId: string;
+  isPublic: boolean;
+}): Promise<TemplateActionResult> {
+  if (!input.templateId || !UUID_REGEX.test(input.templateId)) {
+    return { ok: false, message: "templateId inválido" };
+  }
+  try {
+    await withTenantAction(async ({ tx, organizationId, userId }) => {
+      const updated = await tx.mealPlanTemplate.updateMany({
+        where: { id: input.templateId, organizationId },
+        data: { isPublic: input.isPublic },
+      });
+      if (updated.count === 0)
+        throw new Error("Modelo não encontrado nesta organização");
+
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: input.isPublic
+          ? "meal_plan_template.publish"
+          : "meal_plan_template.unpublish",
+        entityType: "MealPlanTemplate",
+        entityId: input.templateId,
+        patientId: null,
+        fieldsAccessed: ["isPublic"],
+        payload: { isPublic: input.isPublic },
+      });
+    });
+    revalidatePath("/app/templates");
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof ActionTenantError)
+      return { ok: false, message: err.message };
+    return { ok: false, message: err instanceof Error ? err.message : "Erro" };
   }
 }
 
@@ -371,7 +419,8 @@ export async function applyTemplateAction(input: {
  */
 export async function deleteTemplateAction(input: {
   templateId: string;
-  patientId: string;
+  /** Opcional: revalida a página de planos do paciente quando vier do picker. */
+  patientId?: string;
 }): Promise<TemplateActionResult> {
   if (!input.templateId || !UUID_REGEX.test(input.templateId)) {
     return { ok: false, message: "templateId inválido" };
@@ -398,7 +447,10 @@ export async function deleteTemplateAction(input: {
         payload: {},
       });
     });
-    revalidatePath(`/app/patients/${input.patientId}/meal-plans`);
+    if (input.patientId) {
+      revalidatePath(`/app/patients/${input.patientId}/meal-plans`);
+    }
+    revalidatePath("/app/templates");
     return { ok: true };
   } catch (err) {
     if (err instanceof ActionTenantError)
