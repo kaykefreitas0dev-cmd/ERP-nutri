@@ -17,6 +17,7 @@ import {
 import { prisma } from "@nutricore/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PatientGoalsCard } from "@/components/PatientGoalsCard";
+import { AchievementsCard } from "@/components/AchievementsCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Início — NutriCore" };
@@ -271,6 +272,9 @@ export default async function PatientHomePage({
 
       {/* Suas metas (visível + atualizável pelo paciente) */}
       <PatientGoalsCard />
+
+      {/* Conquistas (badges derivadas de streak + metas) */}
+      <AchievementsCard />
 
       {/* Teaser de peso → link para /app/progresso */}
       {latestMeasurement?.weightKg && (

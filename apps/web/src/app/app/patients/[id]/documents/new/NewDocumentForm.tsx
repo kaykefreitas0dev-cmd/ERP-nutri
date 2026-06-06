@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createDocumentAction, searchCidsAction } from "../actions";
+import {
+  listDocTemplatesAction,
+  createDocTemplateAction,
+  deleteDocTemplateAction,
+  incrementDocTemplateUsageAction,
+  type DocTemplateSummary,
+} from "../template-actions";
 
 type DocType =
   | "PLANO_ALIMENTAR"
@@ -113,6 +120,47 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
   const [cidResults, setCidResults] = useState<CidSelected[]>([]);
   const [cidsSelected, setCidsSelected] = useState<CidSelected[]>([]);
   const [searchingCids, setSearchingCids] = useState(false);
+
+  // Modelos de documento salvos (DocumentTemplate), por tipo
+  const [docTemplates, setDocTemplates] = useState<DocTemplateSummary[]>([]);
+  const loadTemplates = useCallback(async (t: DocType) => {
+    const list = await listDocTemplatesAction(t);
+    setDocTemplates(list);
+  }, []);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const list = await listDocTemplatesAction(docType);
+      if (active) setDocTemplates(list);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [docType]);
+
+  function applyTemplate(tpl: DocTemplateSummary) {
+    setBody(tpl.bodyMarkdown.replace(/\{paciente\}/g, patientName));
+    void incrementDocTemplateUsageAction(tpl.id);
+  }
+  function handleSaveAsTemplate() {
+    const name = window.prompt("Nome do modelo (ex: Atestado padrão):");
+    if (!name || name.trim().length < 2) return;
+    startTransition(async () => {
+      const r = await createDocTemplateAction({
+        documentType: docType,
+        name: name.trim(),
+        bodyMarkdown: body,
+      });
+      if (r.ok) void loadTemplates(docType);
+      else setError(r.message ?? "Erro ao salvar modelo");
+    });
+  }
+  function handleDeleteTemplate(id: string) {
+    startTransition(async () => {
+      const r = await deleteDocTemplateAction(id);
+      if (r.ok) void loadTemplates(docType);
+    });
+  }
 
   function handleTypeChange(t: DocType) {
     setDocType(t);
@@ -318,6 +366,55 @@ export function NewDocumentForm({ patientId, patientName, mealPlans }: Props) {
                   className="block w-full rounded px-3 py-1.5 text-left text-tiny hover:bg-brand-primary-bg"
                 >
                   <strong>{c.code}</strong> — {c.description}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Modelos salvos (DocumentTemplate) */}
+      <div className="rounded-md border border-border-subtle bg-bg-subtle/40 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-tiny font-medium text-text-secondary">
+            Modelos salvos
+          </span>
+          <button
+            type="button"
+            onClick={handleSaveAsTemplate}
+            disabled={pending || body.trim().length < 5}
+            className="rounded px-2 py-1 text-tiny font-medium text-brand-primary transition-colors hover:bg-brand-primary-bg disabled:opacity-50"
+          >
+            + Salvar corpo atual como modelo
+          </button>
+        </div>
+        {docTemplates.length === 0 ? (
+          <p className="mt-1.5 text-tiny text-text-muted">
+            Nenhum modelo para este tipo ainda. Escreva o corpo e salve como
+            modelo para reutilizar.
+          </p>
+        ) : (
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {docTemplates.map((tpl) => (
+              <li
+                key={tpl.id}
+                className="inline-flex items-center gap-1 rounded-full bg-bg-surface px-2.5 py-1 text-tiny ring-1 ring-inset ring-border-subtle"
+              >
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(tpl)}
+                  className="font-medium text-text-secondary hover:text-brand-primary"
+                  title="Aplicar este modelo ao corpo"
+                >
+                  {tpl.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTemplate(tpl.id)}
+                  className="text-text-muted hover:text-danger"
+                  aria-label={`Excluir modelo ${tpl.name}`}
+                >
+                  ×
                 </button>
               </li>
             ))}
