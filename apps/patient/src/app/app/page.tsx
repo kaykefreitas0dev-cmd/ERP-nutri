@@ -12,6 +12,7 @@ import {
   Scale,
   TrendingDown,
   TrendingUp,
+  NotebookPen,
   type LucideIcon,
 } from "lucide-react";
 import { prisma } from "@nutricore/db";
@@ -269,6 +270,26 @@ export default async function PatientHomePage({
           </Link>
         </div>
       </div>
+
+      {/* Diário alimentar */}
+      <Link
+        href="/app/diario"
+        className="mt-4 flex items-center gap-3 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 [box-shadow:var(--shadow-xs)] transition-colors hover:border-brand-primary hover:bg-brand-primary-bg/30"
+      >
+        <NotebookPen
+          className="h-5 w-5 shrink-0 text-text-muted"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-body font-medium text-text-primary">
+            Diário alimentar
+          </p>
+          <p className="text-tiny text-text-muted">
+            Registre o que você comeu hoje
+          </p>
+        </div>
+      </Link>
 
       {/* Suas metas (visível + atualizável pelo paciente) */}
       <PatientGoalsCard />

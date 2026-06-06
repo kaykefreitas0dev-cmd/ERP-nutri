@@ -47,6 +47,13 @@ export default async function PatientCheckinsPage({ params }: Props) {
       totalCheckins: number;
       lastCheckinDate: Date | null;
     } | null;
+    diary: Array<{
+      id: string;
+      entryDate: Date;
+      mealLabel: string;
+      description: string;
+      followedPlan: boolean | null;
+    }>;
   } | null = null;
 
   try {
@@ -58,7 +65,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
       if (!patient) return null;
 
       if (!patient.userId) {
-        return { patient, checkins: [], streak: null };
+        return { patient, checkins: [], streak: null, diary: [] };
       }
 
       // Lock 6 + RLS policy "user_checkins_nutri_read" permite leitura
@@ -89,8 +96,21 @@ export default async function PatientCheckinsPage({ params }: Props) {
           lastCheckinDate: true,
         },
       });
+      // Diário alimentar (nutri_read RLS via vínculo org-paciente).
+      const diary = await tx.foodDiaryEntry.findMany({
+        where: { userId: patient.userId },
+        orderBy: [{ entryDate: "desc" }, { createdAt: "asc" }],
+        take: 40,
+        select: {
+          id: true,
+          entryDate: true,
+          mealLabel: true,
+          description: true,
+          followedPlan: true,
+        },
+      });
 
-      return { patient, checkins, streak };
+      return { patient, checkins, streak, diary };
     });
   } catch (err) {
     if (err instanceof ActionTenantError && err.code === "NO_ORG")
@@ -99,7 +119,7 @@ export default async function PatientCheckinsPage({ params }: Props) {
   }
 
   if (!data) notFound();
-  const { patient, checkins, streak } = data;
+  const { patient, checkins, streak, diary } = data;
 
   // Calcular médias (últimos 30 dias)
   const last30 = checkins.slice(0, 30);
@@ -328,6 +348,55 @@ export default async function PatientCheckinsPage({ params }: Props) {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </section>
+
+            {/* Diário alimentar do paciente */}
+            <section className="mt-8 rounded-lg border border-border-subtle bg-bg-surface [box-shadow:var(--shadow-xs)]">
+              <header className="border-b border-border-subtle px-5 py-3">
+                <h2 className="text-h3 font-semibold">
+                  Diário alimentar ({diary.length})
+                </h2>
+                <p className="mt-0.5 text-tiny text-text-muted">
+                  O que o paciente registrou ter comido.
+                </p>
+              </header>
+              {diary.length === 0 ? (
+                <p className="p-5 text-body text-text-muted">
+                  Nenhum registro no diário ainda.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border-subtle">
+                  {diary.map((d) => (
+                    <li key={d.id} className="px-5 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-tiny font-semibold tabular-nums text-text-secondary">
+                          {new Date(d.entryDate).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            timeZone: "UTC",
+                          })}
+                        </span>
+                        <span className="text-body font-medium text-text-primary">
+                          {d.mealLabel}
+                        </span>
+                        {d.followedPlan === true && (
+                          <span className="rounded-full bg-success-bg px-1.5 py-0.5 text-tiny text-success">
+                            seguiu
+                          </span>
+                        )}
+                        {d.followedPlan === false && (
+                          <span className="rounded-full bg-warning-bg px-1.5 py-0.5 text-tiny text-warning">
+                            fora do plano
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-caption text-text-secondary">
+                        {d.description}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
               )}
             </section>
           </>
