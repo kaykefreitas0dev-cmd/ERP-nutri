@@ -1298,6 +1298,22 @@ model UserHealthStreak {
   @@map("user_health_streaks")
 }
 
+// Diário alimentar do paciente (User-scoped, cross-tenant — Lock 6).
+// Paciente registra o que comeu (texto livre por refeição) → aderência real.
+// Nutri lê via vínculo org-paciente (mesmo padrão dos check-ins).
+model FoodDiaryEntry {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  entryDate    DateTime @map("entry_date") @db.Date
+  mealLabel    String   @map("meal_label") @db.VarChar(80)
+  description  String   @db.VarChar(1000)
+  followedPlan Boolean? @map("followed_plan")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId, entryDate(sort: Desc)])
+  @@map("food_diary_entries")
+}
+
 // =====================================================================
 // PATIENT PAYMENTS (S15a — Fase 5, escopo reduzido MVP)
 // =====================================================================
