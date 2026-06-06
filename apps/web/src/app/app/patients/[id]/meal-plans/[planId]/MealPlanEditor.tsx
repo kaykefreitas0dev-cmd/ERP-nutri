@@ -36,6 +36,7 @@ import {
   removeMealItemAction,
   updateMealItemQuantityAction,
   updateMealItemNotesAction,
+  updateMealItemMeasureAction,
   updateMealPlanDayLabelAction,
   updateMealNameAction,
   updateMealScheduledTimeAction,
@@ -52,11 +53,14 @@ import {
 interface MealItemView {
   id: string;
   quantityG: { toString: () => string };
+  householdMeasure: string | null;
   preparationNotes: string | null;
   kcal: { toString: () => string } | null;
   proteinG: { toString: () => string } | null;
   carbG: { toString: () => string } | null;
   fatG: { toString: () => string } | null;
+  fiberG: { toString: () => string } | null;
+  sodiumMg: { toString: () => string } | null;
   food: { id: string; name: string; source: string };
 }
 
@@ -86,12 +90,14 @@ function SortableMealItem({
   onRemove,
   onUpdateQuantity,
   onUpdateNotes,
+  onUpdateMeasure,
 }: {
   item: MealItemView;
   pending: boolean;
   onRemove: (id: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
   onUpdateNotes: (itemId: string, notes: string) => void;
+  onUpdateMeasure: (itemId: string, measure: string) => void;
 }) {
   const {
     attributes,
@@ -111,6 +117,32 @@ function SortableMealItem({
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState(item.preparationNotes ?? "");
   const notesInputRef = useRef<HTMLInputElement>(null);
+
+  // Inline household-measure editing (medida caseira)
+  const [editingMeasure, setEditingMeasure] = useState(false);
+  const [measureValue, setMeasureValue] = useState(item.householdMeasure ?? "");
+  const measureInputRef = useRef<HTMLInputElement>(null);
+
+  function startMeasureEdit() {
+    if (editingQty || editingNotes) return;
+    setMeasureValue(item.householdMeasure ?? "");
+    setEditingMeasure(true);
+    setTimeout(() => {
+      measureInputRef.current?.focus();
+      measureInputRef.current?.select();
+    }, 20);
+  }
+  function commitMeasureEdit() {
+    const next = measureValue.trim();
+    setEditingMeasure(false);
+    if (next !== (item.householdMeasure ?? "")) {
+      onUpdateMeasure(item.id, next);
+    }
+  }
+  function cancelMeasureEdit() {
+    setMeasureValue(item.householdMeasure ?? "");
+    setEditingMeasure(false);
+  }
 
   function startEditing() {
     setQtyValue(item.quantityG.toString());
@@ -227,7 +259,54 @@ function SortableMealItem({
             {item.quantityG.toString()}g
           </button>
         )}
+        {/* Medida caseira (ex: "2 col. sopa") */}
         {!editingQty &&
+          (editingMeasure ? (
+            <input
+              ref={measureInputRef}
+              type="text"
+              maxLength={60}
+              placeholder="ex: 2 col. sopa"
+              value={measureValue}
+              onChange={(e) => setMeasureValue(e.target.value)}
+              onBlur={commitMeasureEdit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitMeasureEdit();
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelMeasureEdit();
+                }
+              }}
+              className="ml-1.5 w-32 rounded border border-brand-primary bg-bg-surface px-1.5 py-0.5 text-caption text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+              aria-label="Medida caseira"
+            />
+          ) : item.householdMeasure ? (
+            <button
+              type="button"
+              onClick={startMeasureEdit}
+              disabled={pending}
+              title="Clique para editar a medida caseira"
+              className="ml-1 rounded px-1 text-caption font-medium text-brand-primary transition-colors hover:bg-brand-primary-bg disabled:pointer-events-none"
+            >
+              · {item.householdMeasure}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={startMeasureEdit}
+              disabled={pending}
+              title="Adicionar medida caseira"
+              aria-label="Adicionar medida caseira"
+              className="ml-1 rounded px-0.5 text-caption text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-bg-subtle hover:text-text-secondary disabled:pointer-events-none"
+            >
+              + medida
+            </button>
+          ))}
+        {!editingQty &&
+          !editingMeasure &&
           (editingNotes ? (
             <input
               ref={notesInputRef}
@@ -272,6 +351,25 @@ function SortableMealItem({
               + nota
             </button>
           ))}
+
+        {/* Nutrientes do item (medida caseira já fica acima) */}
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-tiny text-text-muted tabular-nums">
+          {item.proteinG != null && (
+            <span>P {Number(item.proteinG).toFixed(1)}g</span>
+          )}
+          {item.carbG != null && (
+            <span>· C {Number(item.carbG).toFixed(1)}g</span>
+          )}
+          {item.fatG != null && (
+            <span>· L {Number(item.fatG).toFixed(1)}g</span>
+          )}
+          {item.fiberG != null && (
+            <span>· Fibra {Number(item.fiberG).toFixed(1)}g</span>
+          )}
+          {item.sodiumMg != null && (
+            <span>· Na {Number(item.sodiumMg).toFixed(0)}mg</span>
+          )}
+        </div>
       </div>
 
       {/* Macros + remove */}
@@ -304,6 +402,7 @@ function SortableMeal({
   onRemoveItem,
   onUpdateQuantity,
   onUpdateNotes,
+  onUpdateMeasure,
   onUpdateName,
   onUpdateScheduledTime,
   onDelete,
@@ -313,10 +412,16 @@ function SortableMeal({
   openMealId: string | null;
   canDelete: boolean;
   onToggleOpen: (mealId: string) => void;
-  onAddItem: (mealId: string, foodId: string, quantityG: number) => void;
+  onAddItem: (
+    mealId: string,
+    foodId: string,
+    quantityG: number,
+    householdMeasure: string,
+  ) => void;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantityG: number) => void;
   onUpdateNotes: (itemId: string, notes: string) => void;
+  onUpdateMeasure: (itemId: string, measure: string) => void;
   onUpdateName: (mealId: string, name: string) => void;
   onUpdateScheduledTime: (mealId: string, scheduledTime: string | null) => void;
   onDelete: (mealId: string) => void;
@@ -398,6 +503,7 @@ function SortableMeal({
   >([]);
   const [searching, setSearching] = useState(false);
   const [quantityG, setQuantityG] = useState("100");
+  const [addMeasure, setAddMeasure] = useState("");
 
   // Sync local items when server props change (add/remove)
   const prevItemsRef = useRef(meal.items);
@@ -686,6 +792,7 @@ function SortableMeal({
                     onRemove={(id) => onRemoveItem(id)}
                     onUpdateQuantity={(id, qty) => onUpdateQuantity(id, qty)}
                     onUpdateNotes={(id, notes) => onUpdateNotes(id, notes)}
+                    onUpdateMeasure={(id, m) => onUpdateMeasure(id, m)}
                   />
                 ))}
               </ul>
@@ -721,6 +828,15 @@ function SortableMeal({
                 className="h-9 w-20 rounded-sm border border-border-default bg-bg-surface px-2 text-body tabular-nums focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
                 placeholder="g"
               />
+              <input
+                type="text"
+                maxLength={60}
+                value={addMeasure}
+                onChange={(e) => setAddMeasure(e.target.value)}
+                className="h-9 w-32 rounded-sm border border-border-default bg-bg-surface px-2 text-body focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+                placeholder="medida caseira"
+                title="Medida caseira (ex: 2 col. sopa) — opcional"
+              />
             </div>
 
             {searching && (
@@ -734,10 +850,11 @@ function SortableMeal({
                     <button
                       type="button"
                       onClick={() => {
-                        onAddItem(meal.id, f.id, Number(quantityG));
+                        onAddItem(meal.id, f.id, Number(quantityG), addMeasure);
                         setFoodQuery("");
                         setFoodResults([]);
                         setQuantityG("100");
+                        setAddMeasure("");
                       }}
                       disabled={pendingGlobal}
                       className="flex w-full items-center justify-between rounded-md border border-border-default bg-bg-surface px-3 py-2 text-left text-body transition-all hover:border-brand-primary hover:bg-brand-primary-bg disabled:opacity-50"
@@ -842,10 +959,20 @@ export function MealPlanEditor({ planId, days }: Props) {
     });
   }
 
-  function handleAddItem(mealId: string, foodId: string, quantityG: number) {
+  function handleAddItem(
+    mealId: string,
+    foodId: string,
+    quantityG: number,
+    householdMeasure: string,
+  ) {
     setOpenMealId(null);
     startTransition(async () => {
-      const result = await addMealItemAction({ mealId, foodId, quantityG });
+      const result = await addMealItemAction({
+        mealId,
+        foodId,
+        quantityG,
+        householdMeasure: householdMeasure.trim() || undefined,
+      });
       if (!result.ok) {
         setErrorMsg(result.message ?? "Erro ao adicionar alimento");
         return;
@@ -877,6 +1004,20 @@ export function MealPlanEditor({ planId, days }: Props) {
       const result = await updateMealItemNotesAction({ itemId, notes });
       if (!result.ok) {
         setErrorMsg(result.message ?? "Erro ao salvar nota");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleUpdateMeasure(itemId: string, measure: string) {
+    startTransition(async () => {
+      const result = await updateMealItemMeasureAction({
+        itemId,
+        householdMeasure: measure,
+      });
+      if (!result.ok) {
+        setErrorMsg(result.message ?? "Erro ao salvar medida");
         return;
       }
       router.refresh();
@@ -1216,6 +1357,7 @@ export function MealPlanEditor({ planId, days }: Props) {
                         onRemoveItem={handleRemoveItem}
                         onUpdateQuantity={handleUpdateQuantity}
                         onUpdateNotes={handleUpdateNotes}
+                        onUpdateMeasure={handleUpdateMeasure}
                         onUpdateName={handleUpdateMealName}
                         onUpdateScheduledTime={handleUpdateMealScheduledTime}
                         onDelete={handleDeleteMeal}

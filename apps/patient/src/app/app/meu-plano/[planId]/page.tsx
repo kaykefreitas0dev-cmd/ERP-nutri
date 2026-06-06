@@ -249,18 +249,58 @@ export default async function PlanDetailPage({ params }: Props) {
                         {meal.items.map((it) => (
                           <li
                             key={it.id}
-                            className="flex items-center justify-between gap-3 rounded-md border border-border-subtle px-3 py-2 text-body"
+                            className="rounded-md border border-border-subtle px-3 py-2 text-body"
                           >
-                            <div className="min-w-0">
-                              <span className="font-medium text-text-primary">
-                                {foodMap.get(it.foodId) ?? "—"}
-                              </span>
-                              <span className="ml-2 text-caption text-text-muted tabular-nums">
-                                {it.quantityG.toString()}g
-                              </span>
-                              {it.preparationNotes && (
-                                <span className="ml-1 text-caption text-text-subtle">
-                                  ({it.preparationNotes})
+                            <div className="flex items-baseline justify-between gap-3">
+                              <div className="min-w-0">
+                                <span className="font-medium text-text-primary">
+                                  {foodMap.get(it.foodId) ?? "—"}
+                                </span>
+                                {it.householdMeasure ? (
+                                  <>
+                                    <span className="ml-2 font-medium text-brand-primary-hover">
+                                      {it.householdMeasure}
+                                    </span>
+                                    <span className="ml-1.5 text-caption text-text-muted tabular-nums">
+                                      ({it.quantityG.toString()}g)
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="ml-2 text-caption text-text-muted tabular-nums">
+                                    {it.quantityG.toString()}g
+                                  </span>
+                                )}
+                                {it.preparationNotes && (
+                                  <span className="ml-1 text-caption text-text-subtle">
+                                    ({it.preparationNotes})
+                                  </span>
+                                )}
+                              </div>
+                              {it.kcal != null && (
+                                <span className="shrink-0 text-caption font-medium text-text-secondary tabular-nums">
+                                  {Number(it.kcal).toFixed(0)} kcal
+                                </span>
+                              )}
+                            </div>
+                            {/* Nutrientes do item */}
+                            <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-tiny text-text-muted tabular-nums">
+                              {it.proteinG != null && (
+                                <span>P {Number(it.proteinG).toFixed(1)}g</span>
+                              )}
+                              {it.carbG != null && (
+                                <span>· C {Number(it.carbG).toFixed(1)}g</span>
+                              )}
+                              {it.fatG != null && (
+                                <span>· L {Number(it.fatG).toFixed(1)}g</span>
+                              )}
+                              {it.fiberG != null && (
+                                <span>
+                                  · Fibra {Number(it.fiberG).toFixed(1)}g
+                                </span>
+                              )}
+                              {it.sodiumMg != null && (
+                                <span>
+                                  · Sódio {Number(it.sodiumMg).toFixed(0)}mg
                                 </span>
                               )}
                             </div>
