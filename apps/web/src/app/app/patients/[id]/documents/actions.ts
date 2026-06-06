@@ -13,6 +13,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
+import { prisma } from "@nutricore/db";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { renderClinicalDocumentPdf } from "@/lib/pdf/clinical-document-pdf";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
@@ -299,6 +300,28 @@ export async function issueDocumentAction(
 
     revalidatePath(`/app/patients/${result.patientId}/documents`);
     revalidatePath(`/app/patients/${result.patientId}/documents/${documentId}`);
+
+    // Best-effort: avisa o paciente que há um novo documento (sino do PWA).
+    try {
+      const pat = await prisma.patient.findUnique({
+        where: { id: result.patientId },
+        select: { userId: true, organizationId: true },
+      });
+      if (pat?.userId) {
+        await prisma.inAppNotification.create({
+          data: {
+            organizationId: pat.organizationId,
+            userId: pat.userId,
+            type: "document.issued",
+            title: "Novo documento disponível",
+            body: "Seu nutricionista emitiu um novo documento clínico.",
+            linkPath: "/app/documentos",
+          },
+        });
+      }
+    } catch {
+      // notificação é best-effort
+    }
     return { ok: true, documentId };
   } catch (err) {
     if (err instanceof ActionTenantError)

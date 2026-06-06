@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { prisma } from "@nutricore/db";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { appendAuditLog } from "@nutricore/db/audit";
 
@@ -502,25 +503,60 @@ export async function updateMealPlanStatusAction(input: {
   status: "DRAFT" | "ACTIVE" | "COMPLETED" | "REPLACED" | "ARCHIVED";
 }): Promise<PlanActionResult> {
   try {
-    await withTenantAction(async ({ tx, organizationId, userId }) => {
-      await tx.mealPlan.update({
-        where: { id: input.mealPlanId },
-        data: { status: input.status },
-      });
+    const ctx = await withTenantAction(
+      async ({ tx, organizationId, userId }) => {
+        await tx.mealPlan.update({
+          where: { id: input.mealPlanId },
+          data: { status: input.status },
+        });
 
-      // CORREÇÃO QA #73: appendAuditLog helper.
-      await appendAuditLog({
-        organizationId,
-        actorUserId: userId,
-        actorRole: "nutritionist",
-        action: `meal_plan.status.${input.status.toLowerCase()}`,
-        entityType: "MealPlan",
-        entityId: input.mealPlanId,
-        patientId: null,
-        fieldsAccessed: ["status"],
-        payload: { status: input.status },
-      });
-    });
+        const plan = await tx.mealPlan.findFirst({
+          where: { id: input.mealPlanId },
+          select: {
+            name: true,
+            patientId: true,
+            patient: { select: { userId: true } },
+          },
+        });
+
+        // CORREÇÃO QA #73: appendAuditLog helper.
+        await appendAuditLog({
+          organizationId,
+          actorUserId: userId,
+          actorRole: "nutritionist",
+          action: `meal_plan.status.${input.status.toLowerCase()}`,
+          entityType: "MealPlan",
+          entityId: input.mealPlanId,
+          patientId: plan?.patientId ?? null,
+          fieldsAccessed: ["status"],
+          payload: { status: input.status },
+        });
+
+        return {
+          organizationId,
+          planName: plan?.name ?? "Plano alimentar",
+          patientUserId: plan?.patient?.userId ?? null,
+        };
+      },
+    );
+
+    // Best-effort: avisa o paciente quando o plano fica ATIVO (sino do PWA).
+    if (input.status === "ACTIVE" && ctx.patientUserId) {
+      try {
+        await prisma.inAppNotification.create({
+          data: {
+            organizationId: ctx.organizationId,
+            userId: ctx.patientUserId,
+            type: "meal_plan.activated",
+            title: "Seu plano alimentar está pronto",
+            body: `${ctx.planName} já está disponível no app.`,
+            linkPath: "/app/meu-plano",
+          },
+        });
+      } catch {
+        // notificação é best-effort
+      }
+    }
     return { ok: true, mealPlanId: input.mealPlanId };
   } catch (err) {
     if (err instanceof ActionTenantError)
