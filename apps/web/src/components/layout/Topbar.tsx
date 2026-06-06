@@ -21,6 +21,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "meal-plans": "Planos alimentares",
   documents: "Documentos",
   checkins: "Check-ins",
+  goals: "Metas",
   edit: "Editar",
   export: "Exportar",
   invites: "Convites",
