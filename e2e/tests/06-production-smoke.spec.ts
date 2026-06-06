@@ -106,6 +106,33 @@ test.describe("Produção — segurança (web)", () => {
   });
 });
 
+test.describe("Produção — features novas (templates, metas, relatório, sino)", () => {
+  test("evolution-report PDF sem auth → 401 (rota existe + protegida)", async ({
+    request,
+  }) => {
+    const res = await request.get(
+      `${WEB}/api/v1/patients/00000000-0000-4000-8000-000000000000/evolution-report/pdf`,
+    );
+    expect(res.status()).toBe(401);
+  });
+
+  test("/app/templates sem auth → redirect login", async ({ page }) => {
+    await page.goto(`${WEB}/app/templates`);
+    await page.waitForURL(/\/login/, { timeout: 15_000 });
+    expect(page.url()).toContain("/login");
+  });
+
+  test("/app/patients/[id]/goals sem auth → redirect login", async ({
+    page,
+  }) => {
+    await page.goto(
+      `${WEB}/app/patients/00000000-0000-4000-8000-000000000000/goals`,
+    );
+    await page.waitForURL(/\/login/, { timeout: 15_000 });
+    expect(page.url()).toContain("/login");
+  });
+});
+
 test.describe("Produção — marketing", () => {
   test("landing / → 200", async ({ page }) => {
     const res = await page.goto(MARKETING);
