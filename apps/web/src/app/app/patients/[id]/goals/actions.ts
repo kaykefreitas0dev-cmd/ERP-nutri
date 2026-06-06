@@ -150,12 +150,32 @@ export async function updateGoalProgressAction(input: {
   const d = parsed.data;
 
   try {
-    await withTenantAction(async ({ tx, organizationId }) => {
-      const updated = await tx.patientGoal.updateMany({
+    await withTenantAction(async ({ tx, organizationId, userId }) => {
+      // Busca a meta (escopada por org) p/ obter o patientId REAL — não confia
+      // no patientId do caller para o audit (evita misattribution).
+      const goal = await tx.patientGoal.findFirst({
         where: { id: d.goalId, organizationId },
+        select: { patientId: true },
+      });
+      if (!goal) throw new Error("Meta não encontrada");
+
+      await tx.patientGoal.update({
+        where: { id: d.goalId },
         data: { currentValue: d.currentValue },
       });
-      if (updated.count === 0) throw new Error("Meta não encontrada");
+
+      // currentValue pode ser PHI (peso/%GC) → audit obrigatório (LGPD).
+      await appendAuditLog({
+        organizationId,
+        actorUserId: userId,
+        actorRole: "nutritionist",
+        action: "patient_goal.progress.update",
+        entityType: "PatientGoal",
+        entityId: d.goalId,
+        patientId: goal.patientId,
+        fieldsAccessed: ["currentValue"],
+        payload: { currentValue: d.currentValue },
+      });
     });
     revalidatePath(`/app/patients/${d.patientId}/goals`);
     return { ok: true, goalId: d.goalId };
@@ -185,14 +205,19 @@ export async function updateGoalStatusAction(input: {
 
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
-      const updated = await tx.patientGoal.updateMany({
+      const goal = await tx.patientGoal.findFirst({
         where: { id: d.goalId, organizationId },
+        select: { patientId: true },
+      });
+      if (!goal) throw new Error("Meta não encontrada");
+
+      await tx.patientGoal.update({
+        where: { id: d.goalId },
         data: {
           status: d.status,
           achievedAt: d.status === "ACHIEVED" ? new Date() : null,
         },
       });
-      if (updated.count === 0) throw new Error("Meta não encontrada");
 
       await appendAuditLog({
         organizationId,
@@ -201,7 +226,7 @@ export async function updateGoalStatusAction(input: {
         action: `patient_goal.status.${d.status.toLowerCase()}`,
         entityType: "PatientGoal",
         entityId: d.goalId,
-        patientId: d.patientId,
+        patientId: goal.patientId,
         fieldsAccessed: ["status"],
         payload: { status: d.status },
       });
@@ -224,10 +249,13 @@ export async function deleteGoalAction(input: {
   }
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
-      const deleted = await tx.patientGoal.deleteMany({
+      const goal = await tx.patientGoal.findFirst({
         where: { id: input.goalId, organizationId },
+        select: { patientId: true },
       });
-      if (deleted.count === 0) throw new Error("Meta não encontrada");
+      if (!goal) throw new Error("Meta não encontrada");
+
+      await tx.patientGoal.delete({ where: { id: input.goalId } });
 
       await appendAuditLog({
         organizationId,
@@ -236,7 +264,7 @@ export async function deleteGoalAction(input: {
         action: "patient_goal.delete",
         entityType: "PatientGoal",
         entityId: input.goalId,
-        patientId: input.patientId,
+        patientId: goal.patientId,
         fieldsAccessed: ["id"],
         payload: {},
       });

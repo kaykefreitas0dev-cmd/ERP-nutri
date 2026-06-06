@@ -49,7 +49,7 @@ CREATE POLICY "in_app_notifications_select_own" ON "in_app_notifications"
   FOR SELECT
   USING (
     (
-      "organization_id" = current_setting('app.current_org', true)::uuid
+      "organization_id" = public.current_org_id()
       AND "user_id" = public.current_user_id()
     )
     OR public.is_super_admin()
@@ -59,11 +59,11 @@ CREATE POLICY "in_app_notifications_select_own" ON "in_app_notifications"
 CREATE POLICY "in_app_notifications_update_own" ON "in_app_notifications"
   FOR UPDATE
   USING (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
     AND "user_id" = public.current_user_id()
   )
   WITH CHECK (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
     AND "user_id" = public.current_user_id()
   );
 
@@ -71,7 +71,7 @@ CREATE POLICY "in_app_notifications_update_own" ON "in_app_notifications"
 CREATE POLICY "in_app_notifications_delete_own" ON "in_app_notifications"
   FOR DELETE
   USING (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
     AND "user_id" = public.current_user_id()
   );
 
@@ -80,7 +80,7 @@ CREATE POLICY "in_app_notifications_delete_own" ON "in_app_notifications"
 CREATE POLICY "in_app_notifications_insert_tenant" ON "in_app_notifications"
   FOR INSERT
   WITH CHECK (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
     OR public.is_super_admin()
   );
 

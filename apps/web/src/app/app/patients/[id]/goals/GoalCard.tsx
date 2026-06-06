@@ -31,9 +31,17 @@ function parseNum(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Prazo nos próximos 7 dias? (helper de módulo p/ manter o render puro) */
+/** Prazo nos próximos 7 dias? (helper de módulo p/ manter o render puro)
+ *  dueDate é date-only (YYYY-MM-DD) → parse como UTC para evitar shift de fuso. */
 function isDueSoon(dueDate: string): boolean {
-  return new Date(dueDate).getTime() - Date.now() < 7 * 24 * 3600_000;
+  return (
+    new Date(dueDate + "T00:00:00Z").getTime() - Date.now() < 7 * 24 * 3600_000
+  );
+}
+
+/** YYYY-MM-DD → DD/MM/YYYY sem conversão de fuso (campo é date-only). */
+function formatDueDate(dueDate: string): string {
+  return dueDate.split("-").reverse().join("/");
 }
 
 export function GoalCard({
@@ -123,9 +131,7 @@ export function GoalCard({
         ? "bg-bg-subtle text-text-muted ring-border-subtle"
         : "bg-warning-bg text-warning ring-warning-border";
 
-  const dueLabel = goal.dueDate
-    ? new Date(goal.dueDate).toLocaleDateString("pt-BR")
-    : null;
+  const dueLabel = goal.dueDate ? formatDueDate(goal.dueDate) : null;
   const dueSoon = goal.dueDate && isActive ? isDueSoon(goal.dueDate) : false;
 
   return (

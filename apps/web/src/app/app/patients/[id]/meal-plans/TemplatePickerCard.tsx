@@ -83,7 +83,7 @@ export function TemplatePickerCard({ patientId, templates }: Props) {
   function handleDelete(templateId: string) {
     setDeletingId(templateId);
     startDelete(async () => {
-      const result = await deleteTemplateAction(templateId);
+      const result = await deleteTemplateAction({ templateId, patientId });
       if (result.ok) {
         if (selectedId === templateId) setSelectedId(null);
         router.refresh();

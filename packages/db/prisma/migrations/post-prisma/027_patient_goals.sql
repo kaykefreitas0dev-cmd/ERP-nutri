@@ -57,11 +57,11 @@ DROP POLICY IF EXISTS "patient_goals_tenant" ON "patient_goals";
 CREATE POLICY "patient_goals_tenant" ON "patient_goals"
   FOR ALL
   USING (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
     OR public.is_super_admin()
   )
   WITH CHECK (
-    "organization_id" = current_setting('app.current_org', true)::uuid
+    "organization_id" = public.current_org_id()
   );
 
 COMMENT ON TABLE "patient_goals" IS

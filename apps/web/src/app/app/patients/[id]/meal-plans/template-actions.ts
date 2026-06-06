@@ -366,22 +366,25 @@ export async function applyTemplateAction(input: {
 
 /**
  * Deleta um template (apenas da própria org).
+ * patientId é usado apenas para revalidar a página correta (lista de modelos
+ * vive em /app/patients/[id]/meal-plans).
  */
-export async function deleteTemplateAction(
-  templateId: string,
-): Promise<TemplateActionResult> {
-  if (!templateId || !UUID_REGEX.test(templateId)) {
+export async function deleteTemplateAction(input: {
+  templateId: string;
+  patientId: string;
+}): Promise<TemplateActionResult> {
+  if (!input.templateId || !UUID_REGEX.test(input.templateId)) {
     return { ok: false, message: "templateId inválido" };
   }
   try {
     await withTenantAction(async ({ tx, organizationId, userId }) => {
       const template = await tx.mealPlanTemplate.findFirst({
-        where: { id: templateId, organizationId },
+        where: { id: input.templateId, organizationId },
         select: { id: true },
       });
       if (!template) throw new Error("Modelo não encontrado nesta organização");
 
-      await tx.mealPlanTemplate.delete({ where: { id: templateId } });
+      await tx.mealPlanTemplate.delete({ where: { id: input.templateId } });
 
       await appendAuditLog({
         organizationId,
@@ -389,13 +392,13 @@ export async function deleteTemplateAction(
         actorRole: "nutritionist",
         action: "meal_plan_template.delete",
         entityType: "MealPlanTemplate",
-        entityId: templateId,
+        entityId: input.templateId,
         patientId: null,
         fieldsAccessed: ["id"],
         payload: {},
       });
     });
-    revalidatePath("/app/templates");
+    revalidatePath(`/app/patients/${input.patientId}/meal-plans`);
     return { ok: true };
   } catch (err) {
     if (err instanceof ActionTenantError)
