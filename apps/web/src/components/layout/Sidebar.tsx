@@ -12,6 +12,7 @@ import {
   Settings,
   PanelLeft,
   LayoutTemplate,
+  ChefHat,
 } from "lucide-react";
 import { NutricoreLogoFull, NutricoreLogoMark } from "./Logo";
 import { SidebarItem, SidebarSection } from "./SidebarItem";
@@ -108,6 +109,7 @@ export function Sidebar() {
           label="Alimentos & Receitas"
           Icon={UtensilsCrossed}
         />
+        <SidebarItem href="/app/recipes" label="Receitas" Icon={ChefHat} />
         <SidebarItem
           href="/app/templates"
           label="Modelos de plano"
