@@ -1448,6 +1448,57 @@ model NpsFeedback {
 }
 
 // =====================================================================
+// NOTIFICAÇÕES IN-APP (sino do topbar — destinatário = User do nutri)
+// =====================================================================
+// Tenant-scoped + user-scoped. Criadas por produtores de eventos
+// (ex.: novo agendamento público). RLS: usuário só lê as próprias.
+model InAppNotification {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid // destinatário (User global)
+  type           String    @db.VarChar(60) // ex.: "appointment.booked", "payment.recorded"
+  title          String    @db.VarChar(180)
+  body           String?   @db.Text
+  linkPath       String?   @map("link_path") @db.VarChar(300) // ex.: /app/agenda
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, organizationId, createdAt])
+  @@index([userId, readAt])
+  @@map("in_app_notifications")
+}
+
+// =====================================================================
+// METAS DO PACIENTE + TRACKING
+// =====================================================================
+// Metas clínicas/comportamentais (peso, %GC, hábitos…) com valor inicial,
+// alvo e atual → barra de progresso. Tenant-scoped (gerida pela equipe da
+// org). type/direction/status validados por CHECK (DB) + Zod (app).
+model PatientGoal {
+  id              String    @id @default(uuid()) @db.Uuid
+  organizationId  String    @map("organization_id") @db.Uuid
+  patientId       String    @map("patient_id") @db.Uuid
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  title           String    @db.VarChar(160)
+  description     String?   @db.Text
+  type            String    @default("OTHER") @db.VarChar(20) // WEIGHT | BODY_FAT | MEASUREMENT | HABIT | PERFORMANCE | OTHER
+  direction       String    @default("DECREASE") @db.VarChar(20) // DECREASE | INCREASE | MAINTAIN
+  startValue      Decimal?  @map("start_value") @db.Decimal(10, 2)
+  targetValue     Decimal?  @map("target_value") @db.Decimal(10, 2)
+  currentValue    Decimal?  @map("current_value") @db.Decimal(10, 2)
+  unit            String?   @db.VarChar(20)
+  dueDate         DateTime? @map("due_date") @db.Date
+  status          String    @default("ACTIVE") @db.VarChar(20) // ACTIVE | ACHIEVED | ABANDONED
+  achievedAt      DateTime? @map("achieved_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([patientId, status])
+  @@index([organizationId, createdAt])
+  @@map("patient_goals")
+}
+
+// =====================================================================
 // ESQUELETO RESERVADO (implementação em sprints futuras)
 // =====================================================================
 //

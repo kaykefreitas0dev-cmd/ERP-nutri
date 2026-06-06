@@ -5,6 +5,9 @@ import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewMealPlanForm } from "./NewMealPlanForm";
 import { DuplicateMealPlanButton } from "./DuplicateMealPlanButton";
 import { MealPlanStatusActions } from "./MealPlanStatusActions";
+import { SaveAsTemplateButton } from "./SaveAsTemplateButton";
+import { TemplatePickerCard } from "./TemplatePickerCard";
+import { listTemplatesAction } from "./template-actions";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Rascunho",
@@ -71,6 +74,9 @@ export default async function PatientMealPlansPage({ params }: Props) {
   }
 
   if (!data) notFound();
+
+  // Templates reutilizáveis (própria org + públicos). Falha silenciosa → [].
+  const templates = await listTemplatesAction();
 
   return (
     <main className="p-4 md:p-8">
@@ -193,6 +199,11 @@ export default async function PatientMealPlansPage({ params }: Props) {
                       patientId={id}
                       originalName={p.name}
                     />
+                    <SaveAsTemplateButton
+                      planId={p.id}
+                      patientId={id}
+                      originalName={p.name}
+                    />
                   </li>
                 ))}
               </ul>
@@ -201,6 +212,7 @@ export default async function PatientMealPlansPage({ params }: Props) {
 
           <div>
             <NewMealPlanForm patientId={id} />
+            <TemplatePickerCard patientId={id} templates={templates} />
           </div>
         </div>
       </div>
