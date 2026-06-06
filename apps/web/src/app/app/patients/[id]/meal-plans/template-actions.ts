@@ -330,6 +330,31 @@ export async function applyTemplateAction(input: {
         const structure =
           (template.structure as unknown as TemplateStructure) ?? { days: [] };
 
+        // Modelos públicos de OUTRA org podem referenciar foods CUSTOM privados
+        // dela. Resolvemos os foodIds pelo client tenant-scoped (RLS) e
+        // descartamos itens cujo alimento não é visível nesta org — evita FK
+        // cross-tenant + crash de leitura (item.food == null).
+        const referencedFoodIds = [
+          ...new Set(
+            (structure.days ?? []).flatMap((day) =>
+              (day.meals ?? []).flatMap((m) =>
+                (m.items ?? []).map((i) => i.foodId),
+              ),
+            ),
+          ),
+        ];
+        const visibleFoods =
+          referencedFoodIds.length > 0
+            ? await tx.food.findMany({
+                where: { id: { in: referencedFoodIds } },
+                select: { id: true },
+              })
+            : [];
+        const visibleFoodIds = new Set(
+          visibleFoods.map((f: { id: string }) => f.id),
+        );
+        let droppedItems = 0;
+
         // Novo plano DRAFT
         const newPlan = await tx.mealPlan.create({
           data: {
@@ -362,9 +387,14 @@ export async function applyTemplateAction(input: {
                 notes: meal.notes,
               },
             });
-            if (meal.items?.length) {
+            const usableItems = (meal.items ?? []).filter((item) => {
+              const ok = visibleFoodIds.has(item.foodId);
+              if (!ok) droppedItems++;
+              return ok;
+            });
+            if (usableItems.length) {
               await tx.mealItem.createMany({
-                data: meal.items.map((item) => ({
+                data: usableItems.map((item) => ({
                   mealId: newMeal.id,
                   foodId: item.foodId,
                   foodVersion: item.foodVersion, // Lock 15 snapshot
@@ -399,12 +429,19 @@ export async function applyTemplateAction(input: {
           payload: { templateId: d.templateId },
         });
 
-        return newPlan;
+        return { newPlan, droppedItems };
       },
     );
 
     revalidatePath(`/app/patients/${d.patientId}/meal-plans`);
-    return { ok: true, mealPlanId: result.id };
+    return {
+      ok: true,
+      mealPlanId: result.newPlan.id,
+      message:
+        result.droppedItems > 0
+          ? `${result.droppedItems} item(ns) ignorado(s): alimento indisponível nesta organização.`
+          : undefined,
+    };
   } catch (err) {
     if (err instanceof ActionTenantError)
       return { ok: false, message: err.message };

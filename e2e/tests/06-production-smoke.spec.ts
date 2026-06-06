@@ -18,9 +18,11 @@ const PATIENT =
 const MARKETING =
   process.env.PROD_MARKETING_URL ?? "https://erp-nutri-marketing.vercel.app";
 
-const LOGIN_EMAIL =
-  process.env.PROD_LOGIN_EMAIL ?? "kaykefreitas0dev@gmail.com";
-const LOGIN_PASS = process.env.PROD_LOGIN_PASS ?? "kayke123";
+// Credenciais SOMENTE via env (CI secrets / .env local). Nunca hardcode:
+// o repositório é público (ADR 0056). Sem env → testes de login são pulados.
+const LOGIN_EMAIL = process.env.PROD_LOGIN_EMAIL;
+const LOGIN_PASS = process.env.PROD_LOGIN_PASS;
+const HAS_LOGIN_CREDS = Boolean(LOGIN_EMAIL && LOGIN_PASS);
 
 test.describe("Produção — health & APIs (web)", () => {
   test("health/live → 200 alive", async ({ request }) => {
@@ -73,8 +75,9 @@ test.describe("Produção — health & APIs (web)", () => {
 
 test.describe("Produção — segurança (web)", () => {
   test("signin-password rejeita senha errada → 401", async ({ request }) => {
+    test.skip(!HAS_LOGIN_CREDS, "PROD_LOGIN_EMAIL/PASS não setados");
     const res = await request.post(`${WEB}/api/auth/signin-password`, {
-      data: { email: LOGIN_EMAIL, password: "senha-errada-xyz" },
+      data: { email: LOGIN_EMAIL!, password: "senha-errada-xyz" },
     });
     expect(res.status()).toBe(401);
   });
@@ -82,8 +85,9 @@ test.describe("Produção — segurança (web)", () => {
   test("signin-password aceita credenciais válidas → 200", async ({
     request,
   }) => {
+    test.skip(!HAS_LOGIN_CREDS, "PROD_LOGIN_EMAIL/PASS não setados");
     const res = await request.post(`${WEB}/api/auth/signin-password`, {
-      data: { email: LOGIN_EMAIL, password: LOGIN_PASS },
+      data: { email: LOGIN_EMAIL!, password: LOGIN_PASS! },
     });
     expect(res.status()).toBe(200);
     const json = await res.json();

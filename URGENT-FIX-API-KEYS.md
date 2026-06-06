@@ -84,18 +84,18 @@ pnpm --filter web run dev
 curl -X POST '<SB_URL>/auth/v1/token?grant_type=password' \
   -H 'apikey: <PUB_KEY>' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"kaykefreitas0dev@gmail.com","password":"kayke123"}'
+  -d '{"email":"kaykefreitas0dev@gmail.com","password":"<SENHA-REDIGIDA-ROTACIONAR>"}'
 ```
 
 Resposta esperada: JSON com `access_token` (não com `Legacy API keys are disabled`).
 
 ## Conta admin já criada
 
-| Campo       | Valor                        |
-| ----------- | ---------------------------- |
-| Email       | `kaykefreitas0dev@gmail.com` |
-| Senha       | `kayke123`                   |
-| Super admin | ✅ true                      |
+| Campo       | Valor                         |
+| ----------- | ----------------------------- |
+| Email       | `kaykefreitas0dev@gmail.com`  |
+| Senha       | `<SENHA-REDIGIDA-ROTACIONAR>` |
+| Super admin | ✅ true                       |
 
 A conta foi criada via Supabase Auth Admin API (endpoint que ainda aceita legacy).
 A senha está válida no banco — só falta destravar o endpoint de login.
