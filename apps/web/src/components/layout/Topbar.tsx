@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, PanelLeft, Bell, ChevronRight } from "lucide-react";
+import { Search, PanelLeft, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "./NotificationBell";
 import { useSidebarStore } from "./sidebar-store";
 import { useCommandPaletteStore } from "./command-palette-store";
 
@@ -144,14 +145,7 @@ export function Topbar() {
 
       {/* Direita — Notifs + Theme + User */}
       <div className="flex items-center gap-1">
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-primary"
-        >
-          <Bell className="h-4 w-4" strokeWidth={1.75} />
-          {/* Dot de não-lida (placeholder — wire ao realtime depois) */}
-        </button>
+        <NotificationBell />
         <ThemeToggle />
       </div>
     </header>

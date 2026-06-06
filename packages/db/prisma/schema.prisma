@@ -1448,6 +1448,27 @@ model NpsFeedback {
 }
 
 // =====================================================================
+// NOTIFICAÇÕES IN-APP (sino do topbar — destinatário = User do nutri)
+// =====================================================================
+// Tenant-scoped + user-scoped. Criadas por produtores de eventos
+// (ex.: novo agendamento público). RLS: usuário só lê as próprias.
+model InAppNotification {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid // destinatário (User global)
+  type           String    @db.VarChar(60) // ex.: "appointment.booked", "payment.recorded"
+  title          String    @db.VarChar(180)
+  body           String?   @db.Text
+  linkPath       String?   @map("link_path") @db.VarChar(300) // ex.: /app/agenda
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, organizationId, createdAt])
+  @@index([userId, readAt])
+  @@map("in_app_notifications")
+}
+
+// =====================================================================
 // ESQUELETO RESERVADO (implementação em sprints futuras)
 // =====================================================================
 //

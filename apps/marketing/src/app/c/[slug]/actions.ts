@@ -207,6 +207,30 @@ export async function submitPublicBookingAction(
         payload: { idempotencyKey },
       });
 
+      // Notificação in-app para o profissional (sino do topbar web).
+      // Best-effort: nunca pode derrubar a confirmação do agendamento.
+      try {
+        const whenLabel = startsAt.toLocaleString("pt-BR", {
+          timeZone: bp.timezone,
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        await prisma.inAppNotification.create({
+          data: {
+            organizationId: bp.organizationId,
+            userId: bp.professionalUserId,
+            type: "appointment.booked",
+            title: "Novo agendamento",
+            body: `${d.patientName} agendou para ${whenLabel}.`,
+            linkPath: "/app/agenda",
+          },
+        });
+      } catch (notifErr) {
+        console.error("[/c/:slug booking] notification failed", notifErr);
+      }
+
       // TODO S12b: enviar email de confirmação via Resend
       // TODO S6+: webhook Google Calendar para criar evento espelho
 
