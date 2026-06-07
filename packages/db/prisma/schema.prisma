@@ -1034,6 +1034,9 @@ model MealItem {
   quantityG        Decimal @map("quantity_g") @db.Decimal(8, 2)
   // Medida caseira (ex: "2 col. sopa", "1 xícara") — paciente não precisa pesar.
   householdMeasure String? @map("household_measure")
+  // true = medida caseira foi preenchida automaticamente (POF/IBGE). Quando o
+  // nutri edita manualmente vira false e a quantidade não a sobrescreve mais.
+  householdMeasureAuto Boolean @default(false) @map("household_measure_auto")
   preparationNotes String? @map("preparation_notes") // ex: "cozido", "cru"
   sortOrder        Int     @default(0) @map("sort_order")
 

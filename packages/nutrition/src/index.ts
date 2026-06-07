@@ -6,3 +6,4 @@ export * from "./bmi";
 export * from "./bmr";
 export * from "./body-fat";
 export * from "./macros";
+export * from "./household-measures";

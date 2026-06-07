@@ -34,6 +34,7 @@ export default async function MealPlanEditorPage({ params }: Props) {
             id: string;
             quantityG: { toString: () => string };
             householdMeasure: string | null;
+            householdMeasureAuto: boolean;
             preparationNotes: string | null;
             kcal: { toString: () => string } | null;
             proteinG: { toString: () => string } | null;

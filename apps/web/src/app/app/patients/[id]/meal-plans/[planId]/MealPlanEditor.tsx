@@ -30,6 +30,7 @@ import {
   Pencil,
   Trash2,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import {
   addMealItemAction,
@@ -54,6 +55,7 @@ interface MealItemView {
   id: string;
   quantityG: { toString: () => string };
   householdMeasure: string | null;
+  householdMeasureAuto: boolean;
   preparationNotes: string | null;
   kcal: { toString: () => string } | null;
   proteinG: { toString: () => string } | null;
@@ -288,10 +290,22 @@ function SortableMealItem({
               type="button"
               onClick={startMeasureEdit}
               disabled={pending}
-              title="Clique para editar a medida caseira"
-              className="ml-1 rounded px-1 text-caption font-medium text-brand-primary transition-colors hover:bg-brand-primary-bg disabled:pointer-events-none"
+              title={
+                item.householdMeasureAuto
+                  ? "Medida caseira automática (referência POF/IBGE) — clique para ajustar"
+                  : "Clique para editar a medida caseira"
+              }
+              className="ml-1 inline-flex items-center gap-0.5 rounded px-1 text-caption font-medium text-brand-primary transition-colors hover:bg-brand-primary-bg disabled:pointer-events-none"
             >
-              · {item.householdMeasure}
+              ·{" "}
+              {item.householdMeasureAuto && (
+                <Sparkles
+                  className="h-3 w-3 opacity-70"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+              )}
+              {item.householdMeasure}
             </button>
           ) : (
             <button
@@ -835,9 +849,14 @@ function SortableMeal({
                 onChange={(e) => setAddMeasure(e.target.value)}
                 className="h-9 w-32 rounded-sm border border-border-default bg-bg-surface px-2 text-body focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
                 placeholder="medida caseira"
-                title="Medida caseira (ex: 2 col. sopa) — opcional"
+                title="Medida caseira (ex: 2 col. sopa) — opcional. Em branco = automática."
               />
             </div>
+
+            <p className="mt-1.5 inline-flex items-center gap-1 text-tiny text-text-muted">
+              <Sparkles className="h-3 w-3" strokeWidth={1.75} aria-hidden />
+              Medida caseira em branco é preenchida automaticamente (POF/IBGE).
+            </p>
 
             {searching && (
               <p className="mt-2 text-tiny text-text-muted">Buscando…</p>

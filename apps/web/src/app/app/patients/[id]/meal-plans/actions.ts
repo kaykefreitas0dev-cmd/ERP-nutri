@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@nutricore/db";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { appendAuditLog } from "@nutricore/db/audit";
+import { suggestHouseholdMeasure } from "@nutricore/nutrition";
 
 const DEFAULT_MEALS = [
   { name: "Café da manhã", time: "07:00" },
@@ -131,6 +132,7 @@ export async function addMealItemAction(input: {
         where: { id: parsed.data.foodId, isActive: true },
         select: {
           id: true,
+          name: true,
           version: true,
           kcalPer100g: true,
           proteinG: true,
@@ -141,6 +143,15 @@ export async function addMealItemAction(input: {
         },
       });
       if (!food) throw new Error("Alimento não encontrado");
+
+      // Medida caseira: usa a do nutri se informada (manual); senão tenta
+      // sugerir automaticamente pela referência oficial POF/IBGE.
+      const manualMeasure = parsed.data.householdMeasure?.trim() || null;
+      const autoMeasure = manualMeasure
+        ? null
+        : suggestHouseholdMeasure(food.name, parsed.data.quantityG);
+      const householdMeasure = manualMeasure ?? autoMeasure;
+      const householdMeasureAuto = !manualMeasure && autoMeasure != null;
 
       const factor = parsed.data.quantityG / 100;
       const round2 = (v: number | null) =>
@@ -163,7 +174,8 @@ export async function addMealItemAction(input: {
           foodId: food.id,
           foodVersion: food.version, // Lock 15 snapshot
           quantityG: parsed.data.quantityG,
-          householdMeasure: parsed.data.householdMeasure?.trim() || null,
+          householdMeasure,
+          householdMeasureAuto,
           preparationNotes: parsed.data.preparationNotes ?? null,
           sortOrder: count,
           kcal: round2(kcal),
@@ -418,7 +430,7 @@ export async function updateMealItemQuantityAction(input: {
       // Fetch item to get foodId
       const item = await tx.mealItem.findFirst({
         where: { id: parsed.data.itemId },
-        select: { id: true, foodId: true },
+        select: { id: true, foodId: true, householdMeasureAuto: true },
       });
       if (!item) throw new Error("Item não encontrado");
 
@@ -426,6 +438,7 @@ export async function updateMealItemQuantityAction(input: {
       const food = await tx.food.findFirst({
         where: { id: item.foodId },
         select: {
+          name: true,
           kcalPer100g: true,
           proteinG: true,
           carbG: true,
@@ -446,10 +459,22 @@ export async function updateMealItemQuantityAction(input: {
       const fiber = food.fiberG ? Number(food.fiberG) * factor : null;
       const sodium = food.sodiumMg ? Number(food.sodiumMg) * factor : null;
 
+      // Se a medida caseira foi preenchida automaticamente, recalcula-a para a
+      // nova quantidade. Medidas manuais do nutri NÃO são tocadas.
+      const measureUpdate = item.householdMeasureAuto
+        ? {
+            householdMeasure: suggestHouseholdMeasure(
+              food.name,
+              parsed.data.quantityG,
+            ),
+          }
+        : {};
+
       await tx.mealItem.update({
         where: { id: parsed.data.itemId },
         data: {
           quantityG: parsed.data.quantityG,
+          ...measureUpdate,
           kcal: round2(kcal),
           proteinG: round2(protein),
           carbG: round2(carb),
@@ -656,6 +681,7 @@ export async function duplicateMealPlanAction(input: {
                   foodVersion: item.foodVersion as number, // Lock 15 snapshot preserved
                   quantityG: item.quantityG,
                   householdMeasure: item.householdMeasure as string | null,
+                  householdMeasureAuto: item.householdMeasureAuto as boolean,
                   preparationNotes: item.preparationNotes as string | null,
                   sortOrder: item.sortOrder as number,
                   kcal: item.kcal,
@@ -896,9 +922,14 @@ export async function updateMealItemMeasureAction(input: {
       });
       if (!item) throw new Error("Item não encontrado");
 
+      // Edição manual: desliga o auto-preenchimento para esta linha, para que
+      // mudanças de quantidade não sobrescrevam a medida escolhida pelo nutri.
       await tx.mealItem.update({
         where: { id: input.itemId },
-        data: { householdMeasure: measure || null },
+        data: {
+          householdMeasure: measure || null,
+          householdMeasureAuto: false,
+        },
       });
     });
     return { ok: true };
