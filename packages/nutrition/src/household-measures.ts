@@ -23,6 +23,8 @@
 // como "maçã" casar com "macarrão". Regras ordenadas do mais específico para
 // o mais genérico — a primeira que casar vence.
 
+import { FOOD_MEASURES_BY_EXTERNAL_ID } from "./food-measures-data";
+
 export interface MeasureUnit {
   /** Rótulo no singular, ex.: "colher de sopa". */
   singular: string;
@@ -304,8 +306,26 @@ function matchesRule(tokens: Set<string>, rule: MeasureRule): boolean {
   return true;
 }
 
-/** Encontra a unidade de medida adequada para um alimento, ou null. */
-export function findMeasureUnit(foodName: string): MeasureUnit | null {
+/**
+ * Encontra a unidade de medida para um alimento.
+ * Prioridade: (1) mapa por alimento TACO (externalId) — valores oficiais POF
+ * curados e auditados por alimento; (2) regras por palavra-chave (fallback
+ * para alimentos custom/sem mapeamento). Retorna null se nada casar.
+ */
+export function findMeasureUnit(
+  foodName: string,
+  externalId?: string | null,
+): MeasureUnit | null {
+  if (externalId) {
+    const e = FOOD_MEASURES_BY_EXTERNAL_ID[externalId];
+    if (e) {
+      return {
+        singular: e.singular,
+        plural: e.plural,
+        gramsPerUnit: e.gramsPerUnit,
+      };
+    }
+  }
   const tokens = tokenize(foodName);
   for (const rule of RULES) {
     if (matchesRule(tokens, rule)) return rule.unit;
@@ -326,16 +346,20 @@ function formatCount(n: number): string {
  * pesos oficiais POF/IBGE. Retorna null quando não há correspondência confiável
  * ou quando a quantidade é pequena/grande demais para a medida fazer sentido.
  *
- * Ex.: suggestHouseholdMeasure("Arroz, integral, cozido", 100) → "4 colheres de sopa"
+ * Passe `externalId` (ex.: "TACO_001") para usar o mapa oficial por alimento;
+ * sem ele, cai nas regras por palavra-chave.
+ *
+ * Ex.: suggestHouseholdMeasure("Arroz, integral, cozido", 100) → "5 colheres de sopa"
  *      suggestHouseholdMeasure("Banana, prata, crua", 75)      → "1 unidade"
  *      suggestHouseholdMeasure("Pescada, frita", 80)           → null (sem regra)
  */
 export function suggestHouseholdMeasure(
   foodName: string,
   quantityG: number,
+  externalId?: string | null,
 ): string | null {
-  if (!foodName || !Number.isFinite(quantityG) || quantityG <= 0) return null;
-  const unit = findMeasureUnit(foodName);
+  if (!Number.isFinite(quantityG) || quantityG <= 0) return null;
+  const unit = findMeasureUnit(foodName, externalId);
   if (!unit || unit.gramsPerUnit <= 0) return null;
 
   // Arredonda para a meia-medida mais próxima.

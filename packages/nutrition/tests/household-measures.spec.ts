@@ -122,3 +122,41 @@ describe("suggestHouseholdMeasure — formatação e limites", () => {
     expect(suggestHouseholdMeasure("Pão, francês", 100)).toBe("2 unidades");
   });
 });
+
+describe("suggestHouseholdMeasure — mapa por alimento (externalId / POF)", () => {
+  it("usa o mapa oficial por externalId (TACO) com prioridade sobre keyword", () => {
+    // TACO_001 = Arroz, integral, cozido → POF arroz integral = 20 g/colher.
+    // 100 g / 20 g = 5 colheres (a regra por keyword usaria 25 g = 4 colheres).
+    expect(
+      suggestHouseholdMeasure("Arroz, integral, cozido", 100, "TACO_001"),
+    ).toBe("5 colheres de sopa");
+  });
+
+  it("feijão preto por externalId: concha de 140 g", () => {
+    expect(
+      suggestHouseholdMeasure("Feijão, preto, cozido", 280, "TACO_567"),
+    ).toBe("2 conchas");
+  });
+
+  it("frango peito por externalId: filé de 100 g", () => {
+    expect(
+      suggestHouseholdMeasure(
+        "Frango, peito, sem pele, cozido",
+        150,
+        "TACO_408",
+      ),
+    ).toBe("1½ filés");
+  });
+
+  it("externalId desconhecido cai no fallback por keyword", () => {
+    expect(
+      suggestHouseholdMeasure("Banana, prata, crua", 75, "TACO_999999"),
+    ).toBe("1 unidade");
+  });
+
+  it("findMeasureUnit por externalId retorna a unidade do mapa", () => {
+    const u = findMeasureUnit("nome ignorado", "TACO_222"); // Maçã Fuji = 150 g/unidade
+    expect(u?.singular).toBe("unidade");
+    expect(u?.gramsPerUnit).toBe(150);
+  });
+});
