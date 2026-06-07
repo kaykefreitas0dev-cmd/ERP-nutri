@@ -133,6 +133,7 @@ export async function addMealItemAction(input: {
         select: {
           id: true,
           name: true,
+          externalId: true,
           version: true,
           kcalPer100g: true,
           proteinG: true,
@@ -149,7 +150,11 @@ export async function addMealItemAction(input: {
       const manualMeasure = parsed.data.householdMeasure?.trim() || null;
       const autoMeasure = manualMeasure
         ? null
-        : suggestHouseholdMeasure(food.name, parsed.data.quantityG);
+        : suggestHouseholdMeasure(
+            food.name,
+            parsed.data.quantityG,
+            food.externalId,
+          );
       const householdMeasure = manualMeasure ?? autoMeasure;
       const householdMeasureAuto = !manualMeasure && autoMeasure != null;
 
@@ -439,6 +444,7 @@ export async function updateMealItemQuantityAction(input: {
         where: { id: item.foodId },
         select: {
           name: true,
+          externalId: true,
           kcalPer100g: true,
           proteinG: true,
           carbG: true,
@@ -466,6 +472,7 @@ export async function updateMealItemQuantityAction(input: {
             householdMeasure: suggestHouseholdMeasure(
               food.name,
               parsed.data.quantityG,
+              food.externalId,
             ),
           }
         : {};
