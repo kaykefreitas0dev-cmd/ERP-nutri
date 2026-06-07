@@ -11,7 +11,7 @@ export interface FoodMeasureEntry {
   gramsPerUnit: number;
 }
 
-// Chave = MealItem.food.externalId (ex.: "TACO_001"). 371 alimentos.
+// Chave = MealItem.food.externalId (ex.: "TACO_001"). 441 alimentos.
 export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_001: {
     singular: "colher de sopa",
@@ -38,6 +38,11 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_016: { singular: "fatia", plural: "fatias", gramsPerUnit: 60 }, // Bolo, pronto, chocolate
   TACO_017: { singular: "fatia", plural: "fatias", gramsPerUnit: 60 }, // Bolo, pronto, coco
   TACO_018: { singular: "fatia", plural: "fatias", gramsPerUnit: 60 }, // Bolo, pronto, milho
+  TACO_019: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 25,
+  }, // Canjica, branca, crua
   TACO_020: { singular: "concha", plural: "conchas", gramsPerUnit: 120 }, // Canjica, com leite integral
   TACO_021: {
     singular: "colher de sopa",
@@ -49,6 +54,7 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 4,
   }, // Cereais, milho, flocos, sem sal
+  TACO_023: { singular: "concha", plural: "conchas", gramsPerUnit: 110 }, // Cereais, mingau, milho, infantil
   TACO_025: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -59,11 +65,23 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 4,
   }, // Cereal matinal, milho, açúcar
+  TACO_027: { singular: "concha", plural: "conchas", gramsPerUnit: 110 }, // Creme de arroz, pó
+  TACO_028: { singular: "concha", plural: "conchas", gramsPerUnit: 110 }, // Creme de milho, pó
   TACO_029: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
     gramsPerUnit: 35,
   }, // Curau, milho verde
+  TACO_033: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 12,
+  }, // Farinha, de milho, amarela
+  TACO_036: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 20,
+  }, // Farinha, láctea, de cereais
   TACO_039: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -79,6 +97,12 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 25,
   }, // Macarrão, trigo, cru, com ovos
+  TACO_043: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 35,
+  }, // Milho, fubá, cru
+  TACO_044: { singular: "espiga", plural: "espigas", gramsPerUnit: 100 }, // Milho, verde, cru
   TACO_045: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -89,7 +113,9 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_050: { singular: "fatia", plural: "fatias", gramsPerUnit: 25 }, // Pão, glúten, forma
   TACO_051: { singular: "fatia", plural: "fatias", gramsPerUnit: 35 }, // Pão, milho, forma
   TACO_052: { singular: "fatia", plural: "fatias", gramsPerUnit: 25 }, // Pão, trigo, forma, integral
+  TACO_055: { singular: "unidade", plural: "unidades", gramsPerUnit: 32 }, // Pastel, de carne, cru
   TACO_056: { singular: "unidade", plural: "unidades", gramsPerUnit: 32 }, // Pastel, de carne, frito
+  TACO_057: { singular: "unidade", plural: "unidades", gramsPerUnit: 32 }, // Pastel, de queijo, cru
   TACO_058: { singular: "unidade", plural: "unidades", gramsPerUnit: 32 }, // Pastel, de queijo, frito
   TACO_062: {
     singular: "colher de sopa",
@@ -102,21 +128,51 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 36,
   }, // Abóbora, cabotian, cozida
+  TACO_065: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 36,
+  }, // Abóbora, cabotian, crua
+  TACO_066: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 36,
+  }, // Abóbora, menina brasileira, crua
+  TACO_067: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 36,
+  }, // Abóbora, moranga, crua
   TACO_068: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
     gramsPerUnit: 36,
   }, // Abóbora, moranga, refogada
+  TACO_069: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 36,
+  }, // Abóbora, pescoço, crua
   TACO_070: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
     gramsPerUnit: 30,
   }, // Abobrinha, italiana, cozida
+  TACO_071: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 30,
+  }, // Abobrinha, italiana, crua
   TACO_072: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
     gramsPerUnit: 30,
   }, // Abobrinha, italiana, refogada
+  TACO_073: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 30,
+  }, // Abobrinha, paulista, crua
   TACO_074: { singular: "folha", plural: "folhas", gramsPerUnit: 10 }, // Acelga, crua
   TACO_075: { singular: "folha", plural: "folhas", gramsPerUnit: 5 }, // Agrião, cru
   TACO_076: {
@@ -149,6 +205,16 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_089: { singular: "unidade", plural: "unidades", gramsPerUnit: 355 }, // Batata, doce, crua
   TACO_091: { singular: "unidade", plural: "unidades", gramsPerUnit: 140 }, // Batata, inglesa, cozida
   TACO_092: { singular: "unidade", plural: "unidades", gramsPerUnit: 140 }, // Batata, inglesa, crua
+  TACO_093: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 25,
+  }, // Batata, inglesa, frita
+  TACO_094: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 30,
+  }, // Batata, inglesa, sauté
   TACO_095: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -228,11 +294,21 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 25,
   }, // Espinafre, Nova Zelândia, refogado
+  TACO_121: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 16,
+  }, // Farinha, de mandioca, crua
   TACO_122: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
     gramsPerUnit: 16,
   }, // Farinha, de mandioca, torrada
+  TACO_125: {
+    singular: "colher de servir",
+    plural: "colheres de servir",
+    gramsPerUnit: 54,
+  }, // Feijão, broto, cru
   TACO_126: { singular: "unidade", plural: "unidades", gramsPerUnit: 125 }, // Inhame, cru
   TACO_127: { singular: "unidade", plural: "unidades", gramsPerUnit: 26 }, // Jiló, cru
   TACO_128: { singular: "unidade", plural: "unidades", gramsPerUnit: 10 }, // Jurubeba, crua
@@ -268,6 +344,11 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     gramsPerUnit: 20,
   }, // Repolho, roxo, refogado
   TACO_152: { singular: "folha", plural: "folhas", gramsPerUnit: 6 }, // Rúcula, crua
+  TACO_154: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 25,
+  }, // Seleta de legumes, enlatada
   TACO_155: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -279,6 +360,11 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     gramsPerUnit: 20,
   }, // Taioba, crua
   TACO_157: { singular: "unidade", plural: "unidades", gramsPerUnit: 100 }, // Tomate, com semente, cru
+  TACO_158: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 20,
+  }, // Tomate, extrato
   TACO_159: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -297,15 +383,20 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   }, // Abacate, cru
   TACO_164: { singular: "fatia", plural: "fatias", gramsPerUnit: 75 }, // Abacaxi, cru
   TACO_166: { singular: "unidade", plural: "unidades", gramsPerUnit: 50 }, // Abiu, cru
+  TACO_168: { singular: "tigela", plural: "tigelas", gramsPerUnit: 202 }, // Açaí, polpa, congelada
   TACO_169: { singular: "unidade", plural: "unidades", gramsPerUnit: 12 }, // Acerola, crua
+  TACO_171: { singular: "unidade", plural: "unidades", gramsPerUnit: 42 }, // Ameixa, calda, enlatada
   TACO_172: { singular: "unidade", plural: "unidades", gramsPerUnit: 42 }, // Ameixa, crua
+  TACO_173: { singular: "unidade", plural: "unidades", gramsPerUnit: 42 }, // Ameixa, em calda, enlatada, drenada
   TACO_174: { singular: "unidade", plural: "unidades", gramsPerUnit: 227 }, // Atemóia, crua
   TACO_175: { singular: "unidade", plural: "unidades", gramsPerUnit: 75 }, // Banana, da terra, crua
   TACO_180: { singular: "unidade", plural: "unidades", gramsPerUnit: 75 }, // Banana, ouro, crua
+  TACO_181: { singular: "unidade", plural: "unidades", gramsPerUnit: 100 }, // Banana, pacova, crua
   TACO_182: { singular: "unidade", plural: "unidades", gramsPerUnit: 75 }, // Banana, prata, crua
   TACO_183: { singular: "unidade", plural: "unidades", gramsPerUnit: 91.2 }, // Cacau, cru
   TACO_184: { singular: "unidade", plural: "unidades", gramsPerUnit: 55 }, // Cajá-Manga, cru
   TACO_186: { singular: "unidade", plural: "unidades", gramsPerUnit: 90 }, // Caju, cru
+  TACO_187: { singular: "unidade", plural: "unidades", gramsPerUnit: 90 }, // Caju, polpa, congelada
   TACO_189: { singular: "unidade", plural: "unidades", gramsPerUnit: 110 }, // Caqui, chocolate, cru
   TACO_190: { singular: "unidade", plural: "unidades", gramsPerUnit: 75 }, // Carambola, crua
   TACO_191: { singular: "unidade", plural: "unidades", gramsPerUnit: 10 }, // Ciriguela, crua
@@ -314,11 +405,19 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 20,
   }, // Cupuaçu, cru
+  TACO_193: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 20,
+  }, // Cupuaçu, polpa, congelada
   TACO_194: { singular: "unidade", plural: "unidades", gramsPerUnit: 55 }, // Figo, cru
+  TACO_195: { singular: "unidade", plural: "unidades", gramsPerUnit: 60 }, // Figo, enlatado, em calda
   TACO_196: { singular: "fatia", plural: "fatias", gramsPerUnit: 70 }, // Fruta-pão, crua
   TACO_197: { singular: "unidade", plural: "unidades", gramsPerUnit: 170 }, // Goiaba, branca, com casca, crua
+  TACO_198: { singular: "fatia", plural: "fatias", gramsPerUnit: 60 }, // Goiaba, doce em pasta
   TACO_200: { singular: "unidade", plural: "unidades", gramsPerUnit: 170 }, // Goiaba, vermelha, com casca, crua
   TACO_201: { singular: "unidade", plural: "unidades", gramsPerUnit: 227 }, // Graviola, crua
+  TACO_202: { singular: "pedaço", plural: "pedaços", gramsPerUnit: 56.8 }, // Graviola, polpa, congelada
   TACO_204: { singular: "bago", plural: "bagos", gramsPerUnit: 12 }, // Jaca, crua
   TACO_205: { singular: "unidade", plural: "unidades", gramsPerUnit: 40 }, // Jambo, cru
   TACO_206: { singular: "unidade", plural: "unidades", gramsPerUnit: 5 }, // Jamelão, cru
@@ -331,14 +430,23 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_214: { singular: "gomo", plural: "gomos", gramsPerUnit: 18 }, // Laranja, pêra, crua
   TACO_215: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Laranja, pêra, suco
   TACO_217: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Laranja, valência, suco
+  TACO_220: { singular: "unidade", plural: "unidades", gramsPerUnit: 84 }, // Limão, tahiti, cru
   TACO_221: { singular: "unidade", plural: "unidades", gramsPerUnit: 150 }, // Maçã, Argentina, com casca, crua
   TACO_222: { singular: "unidade", plural: "unidades", gramsPerUnit: 150 }, // Maçã, Fuji, com casca, crua
+  TACO_224: { singular: "pedaço", plural: "pedaços", gramsPerUnit: 57 }, //  Mamão, doce em calda, drenado
   TACO_225: { singular: "fatia", plural: "fatias", gramsPerUnit: 170 }, // Mamão, Formosa, cru
   TACO_226: { singular: "fatia", plural: "fatias", gramsPerUnit: 170 }, // Mamão, Papaia, cru
+  TACO_227: { singular: "pedaço", plural: "pedaços", gramsPerUnit: 57 }, //  Mamão verde, doce em calda, drenado
   TACO_228: { singular: "unidade", plural: "unidades", gramsPerUnit: 140 }, // Manga, Haden, crua
   TACO_229: { singular: "unidade", plural: "unidades", gramsPerUnit: 140 }, // Manga, Palmer, crua
+  TACO_230: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 22,
+  }, // Manga, polpa, congelada
   TACO_231: { singular: "unidade", plural: "unidades", gramsPerUnit: 140 }, // Manga, Tommy Atkins, crua
   TACO_232: { singular: "unidade", plural: "unidades", gramsPerUnit: 45 }, // Maracujá, cru
+  TACO_233: { singular: "unidade", plural: "unidades", gramsPerUnit: 45 }, // Maracujá, polpa, congelada
   TACO_234: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Maracujá, suco concentrado, envasado
   TACO_235: { singular: "fatia", plural: "fatias", gramsPerUnit: 200 }, // Melancia, crua
   TACO_236: { singular: "fatia", plural: "fatias", gramsPerUnit: 90 }, // Melão, cru
@@ -350,6 +458,7 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_242: { singular: "unidade", plural: "unidades", gramsPerUnit: 130 }, // Pêra, Park, crua
   TACO_243: { singular: "unidade", plural: "unidades", gramsPerUnit: 130 }, // Pêra, Williams, crua
   TACO_244: { singular: "unidade", plural: "unidades", gramsPerUnit: 60 }, // Pêssego, Aurora, cru
+  TACO_245: { singular: "unidade", plural: "unidades", gramsPerUnit: 60 }, // Pêssego, enlatado, em calda
   TACO_246: { singular: "unidade", plural: "unidades", gramsPerUnit: 60 }, // Pinha, crua
   TACO_247: { singular: "unidade", plural: "unidades", gramsPerUnit: 10 }, // Pitanga, crua
   TACO_249: { singular: "unidade", plural: "unidades", gramsPerUnit: 70 }, // Romã, crua
@@ -358,8 +467,14 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_252: { singular: "copo", plural: "copos", gramsPerUnit: 100 }, // Tangerina, Poncã, suco
   TACO_253: { singular: "unidade", plural: "unidades", gramsPerUnit: 11.7 }, // Tucumã, cru
   TACO_254: { singular: "unidade", plural: "unidades", gramsPerUnit: 33.3 }, // Umbu, cru
+  TACO_255: { singular: "unidade", plural: "unidades", gramsPerUnit: 33.3 }, // Umbu, polpa, congelada
   TACO_256: { singular: "unidade", plural: "unidades", gramsPerUnit: 8 }, // Uva, Itália, crua
   TACO_257: { singular: "unidade", plural: "unidades", gramsPerUnit: 8 }, // Uva, Rubi, crua
+  TACO_259: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 8,
+  }, // Azeite, de dendê
   TACO_260: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -411,6 +526,8 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 20,
   }, // Bacalhau, salgado, refogado
+  TACO_282: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Cação, posta, cozida
+  TACO_283: { singular: "filé", plural: "filés", gramsPerUnit: 120 }, // Cação, posta, crua
   TACO_284: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -421,8 +538,17 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 20,
   }, // Camarão, Rio Grande, grande, cru
+  TACO_286: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 20,
+  }, // Camarão, Sete Barbas, sem cabeça, com casca, frito
   TACO_287: { singular: "unidade", plural: "unidades", gramsPerUnit: 20 }, // Caranguejo, cozido
+  TACO_291: { singular: "filé", plural: "filés", gramsPerUnit: 120 }, // Corvina de água doce, crua
+  TACO_318: { singular: "unidade", plural: "unidades", gramsPerUnit: 41.5 }, // Sardinha, assada
   TACO_319: { singular: "unidade", plural: "unidades", gramsPerUnit: 41.5 }, // Sardinha, conserva em óleo
+  TACO_320: { singular: "unidade", plural: "unidades", gramsPerUnit: 41.5 }, // Sardinha, frita
+  TACO_321: { singular: "unidade", plural: "unidades", gramsPerUnit: 41.5 }, // Sardinha, inteira, crua
   TACO_323: { singular: "fatia", plural: "fatias", gramsPerUnit: 15 }, // Apresuntado
   TACO_326: {
     singular: "colher de sopa",
@@ -469,6 +595,8 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_362: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, fraldinha, com gordura, crua
   TACO_363: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, lagarto, cozido
   TACO_364: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, lagarto, cru
+  TACO_365: { singular: "fatia", plural: "fatias", gramsPerUnit: 90 }, // Carne, bovina, língua, cozida
+  TACO_366: { singular: "fatia", plural: "fatias", gramsPerUnit: 90 }, // Carne, bovina, língua, crua
   TACO_367: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, maminha, crua
   TACO_368: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, maminha, grelhada
   TACO_369: { singular: "bife", plural: "bifes", gramsPerUnit: 100 }, // Carne, bovina, miolo de alcatra, sem gordura, cru
@@ -522,7 +650,19 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   TACO_418: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, frango, crua
   TACO_419: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, frango, frita
   TACO_420: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, frango, grelhada
+  TACO_421: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, porco, crua
+  TACO_422: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, porco, frita
+  TACO_423: { singular: "gomo", plural: "gomos", gramsPerUnit: 60 }, // Lingüiça, porco, grelhada
   TACO_424: { singular: "fatia", plural: "fatias", gramsPerUnit: 15 }, // Mortadela
+  TACO_427: { singular: "bife", plural: "bifes", gramsPerUnit: 70 }, // Porco, bisteca, crua
+  TACO_428: { singular: "bife", plural: "bifes", gramsPerUnit: 70 }, // Porco, bisteca, frita
+  TACO_429: { singular: "bife", plural: "bifes", gramsPerUnit: 70 }, // Porco, bisteca, grelhada
+  TACO_430: { singular: "pedaço", plural: "pedaços", gramsPerUnit: 25 }, // Porco, costela, assada
+  TACO_431: { singular: "pedaço", plural: "pedaços", gramsPerUnit: 25 }, // Porco, costela, crua
+  TACO_432: { singular: "fatia", plural: "fatias", gramsPerUnit: 190 }, // Porco, lombo, assado
+  TACO_433: { singular: "fatia", plural: "fatias", gramsPerUnit: 190 }, // Porco, lombo, cru
+  TACO_435: { singular: "fatia", plural: "fatias", gramsPerUnit: 90 }, // Porco, pernil, assado
+  TACO_436: { singular: "fatia", plural: "fatias", gramsPerUnit: 90 }, // Porco, pernil, cru
   TACO_438: { singular: "fatia", plural: "fatias", gramsPerUnit: 15 }, // Presunto, com capa de gordura
   TACO_439: { singular: "fatia", plural: "fatias", gramsPerUnit: 15 }, // Presunto, sem capa de gordura
   TACO_440: { singular: "unidade", plural: "unidades", gramsPerUnit: 50 }, // Quibe, assado
@@ -572,10 +712,17 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
   }, // Queijo, requeijão, cremoso
   TACO_469: { singular: "fatia", plural: "fatias", gramsPerUnit: 35 }, // Queijo, ricota
   TACO_471: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Café, infusão 10%
+  TACO_472: {
+    singular: "copo americano",
+    plural: "copos americanos",
+    gramsPerUnit: 150,
+  }, // Cana, aguardente 1
   TACO_473: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Cana, caldo de
   TACO_474: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Cerveja, pilsen 2
   TACO_476: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Chá, mate, infusão 5%
+  TACO_477: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Chá, preto, infusão 5%
   TACO_478: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Coco, água de
+  TACO_479: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Refrigerante, tipo água tônica
   TACO_480: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Refrigerante, tipo cola
   TACO_481: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Refrigerante, tipo guaraná
   TACO_482: { singular: "copo", plural: "copos", gramsPerUnit: 240 }, // Refrigerante, tipo laranja
@@ -674,6 +821,7 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     gramsPerUnit: 17,
   }, // Feijão tropeiro mineiro
   TACO_540: { singular: "concha", plural: "conchas", gramsPerUnit: 225 }, // Feijoada
+  TACO_541: { singular: "filé", plural: "filés", gramsPerUnit: 100 }, // Frango, com açafrão
   TACO_542: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -690,6 +838,11 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 38,
   }, // Salada, de legumes, com maionese
+  TACO_546: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 30,
+  }, // Salada, de legumes, cozida no vapor
   TACO_547: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -709,6 +862,11 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 17,
   }, // Amendoim, grão, cru
+  TACO_558: {
+    singular: "colher de sopa",
+    plural: "colheres de sopa",
+    gramsPerUnit: 16,
+  }, // Amendoim, torrado, salgado
   TACO_559: {
     singular: "colher de sopa",
     plural: "colheres de sopa",
@@ -719,8 +877,12 @@ export const FOOD_MEASURES_BY_EXTERNAL_ID: Record<string, FoodMeasureEntry> = {
     plural: "colheres de sopa",
     gramsPerUnit: 27,
   }, // Ervilha, enlatada, drenada
+  TACO_561: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, carioca, cozido
+  TACO_563: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, fradinho, cozido
+  TACO_565: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, jalo, cozido
   TACO_567: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, preto, cozido
   TACO_568: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, preto, cru
+  TACO_569: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, rajado, cozido
   TACO_571: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, rosinha, cozido
   TACO_572: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, rosinha, cru
   TACO_573: { singular: "concha", plural: "conchas", gramsPerUnit: 140 }, // Feijão, roxo, cozido
