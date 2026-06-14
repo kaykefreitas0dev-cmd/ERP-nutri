@@ -11,6 +11,7 @@ import { headers } from "next/headers";
 import { prisma } from "@nutricore/db";
 import { appendAuditLog } from "@nutricore/db/audit";
 import { checkRateLimitById } from "../../../lib/rate-limit";
+import { sendBookingConfirmationEmail } from "../../../lib/email/send-booking-confirmation";
 
 async function getClientIp(): Promise<string> {
   try {
@@ -119,7 +120,7 @@ export async function submitPublicBookingAction(
         bookingPageId: d.bookingPageId,
         isActive: true,
       },
-      select: { durationMinutes: true },
+      select: { durationMinutes: true, name: true },
     });
 
     if (!service) return { ok: false, message: "Serviço indisponível" };
@@ -231,7 +232,30 @@ export async function submitPublicBookingAction(
         console.error("[/c/:slug booking] notification failed", notifErr);
       }
 
-      // TODO S12b: enviar email de confirmação via Resend
+      // Email de confirmação ao paciente (best-effort: nunca derruba o booking).
+      void (async () => {
+        try {
+          const org = await prisma.organization.findUnique({
+            where: { id: bp.organizationId },
+            select: { name: true },
+          });
+          await sendBookingConfirmationEmail({
+            to: d.patientEmail,
+            patientName: d.patientName,
+            organizationName: org?.name ?? "seu profissional",
+            serviceName: service.name,
+            startsAt,
+            endsAt,
+            timezone: bp.timezone,
+          });
+        } catch (emailErr) {
+          console.error(
+            "[/c/:slug booking] confirmation email failed",
+            emailErr,
+          );
+        }
+      })();
+
       // TODO S6+: webhook Google Calendar para criar evento espelho
 
       return { ok: true, appointmentId: appt.id };

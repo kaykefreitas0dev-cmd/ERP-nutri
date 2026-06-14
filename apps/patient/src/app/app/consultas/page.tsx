@@ -90,6 +90,7 @@ export default async function PatientAppointmentsPage() {
             status: true,
             modality: true,
             timezone: true,
+            meetingUrl: true,
             notes: true,
             patientId: true,
             organizationId: true,
@@ -190,6 +191,7 @@ function AppointmentItem({
     status: string;
     modality: string;
     timezone: string;
+    meetingUrl: string | null;
     notes: string | null;
     organizationName: string;
   };
@@ -278,6 +280,17 @@ function AppointmentItem({
               <p className="mt-1 text-caption italic text-text-secondary">
                 &ldquo;{a.notes}&rdquo;
               </p>
+            )}
+            {a.meetingUrl && !isPast && (
+              <a
+                href={a.meetingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-brand-primary px-3 py-1.5 text-tiny font-medium text-white transition-colors hover:bg-brand-primary-hover"
+              >
+                <Video className="h-3.5 w-3.5" strokeWidth={2} />
+                Entrar na consulta
+              </a>
             )}
           </div>
         </div>

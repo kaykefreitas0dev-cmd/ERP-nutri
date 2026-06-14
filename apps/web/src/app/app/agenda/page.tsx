@@ -68,6 +68,7 @@ export default async function AgendaPage({ searchParams }: Props) {
       endsAt: Date;
       status: string;
       modality: string;
+      meetingUrl: string | null;
       patientId: string | null;
       patientName: string | null;
       externalPatientName: string | null;
@@ -94,6 +95,7 @@ export default async function AgendaPage({ searchParams }: Props) {
           endsAt: true,
           status: true,
           modality: true,
+          meetingUrl: true,
           externalPatientName: true,
           notes: true,
           patientId: true,
