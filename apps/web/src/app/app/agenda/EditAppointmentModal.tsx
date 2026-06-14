@@ -9,6 +9,7 @@ interface Appointment {
   startsAt: Date | string;
   endsAt: Date | string;
   modality: string;
+  meetingUrl: string | null;
   notes: string | null;
 }
 
@@ -170,6 +171,28 @@ export function EditAppointmentModal({ appointment, onClose }: Props) {
               ))}
             </div>
           </fieldset>
+
+          {/* Meeting URL (videochamada) */}
+          <div>
+            <label
+              htmlFor="edit-meetingUrl"
+              className="mb-1 block text-caption font-medium text-text-primary"
+            >
+              Link da videochamada{" "}
+              <span className="font-normal text-text-muted">
+                (para consultas por vídeo)
+              </span>
+            </label>
+            <input
+              id="edit-meetingUrl"
+              name="meetingUrl"
+              type="url"
+              inputMode="url"
+              defaultValue={appointment.meetingUrl ?? ""}
+              placeholder="https://meet.google.com/…  ·  https://zoom.us/j/…"
+              className="h-9 w-full rounded-md border border-border-default bg-bg-surface px-3 text-body text-text-primary placeholder:text-text-muted transition-[border-color,box-shadow] duration-fast focus:border-brand-primary focus:outline-none focus:[box-shadow:var(--shadow-focus-ring)]"
+            />
+          </div>
 
           {/* Notes */}
           <div>

@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
       status: true,
       modality: true,
       timezone: true,
+      meetingUrl: true,
       patientId: true,
     },
   });
@@ -145,6 +146,7 @@ export async function POST(req: NextRequest) {
     endsAt: appt.endsAt,
     modality: appt.modality,
     timezone: appt.timezone,
+    meetingUrl: appt.meetingUrl,
   });
 
   return NextResponse.json({

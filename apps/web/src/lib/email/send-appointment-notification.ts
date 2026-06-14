@@ -40,6 +40,7 @@ interface AppointmentEmailBase {
   endsAt: Date;
   modality: string;
   timezone?: string;
+  meetingUrl?: string | null; // link de videochamada (consultas por vídeo)
 }
 
 // ─── scheduled ───────────────────────────────────────────────────────────────
@@ -224,6 +225,11 @@ function apptInfoBlock(p: AppointmentEmailBase): string {
           </span>
           <span style="display:block;"><strong>Modalidade:</strong> ${escapeHtml(modalityLabel)}</span>
           <span style="display:block;"><strong>Profissional/Clínica:</strong> ${escapeHtml(p.organizationName)}</span>
+          ${
+            p.meetingUrl
+              ? `<span style="display:block;margin-top:12px;"><a href="${escapeHtml(p.meetingUrl)}" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:bold;">🎥 Entrar na videochamada</a></span>`
+              : ""
+          }
         </td>
       </tr>
     </table>`;
@@ -345,9 +351,12 @@ function renderCancelledHtml(p: CancelledParams): string {
 
 function apptInfoText(p: AppointmentEmailBase): string {
   const tz = p.timezone ?? "America/Sao_Paulo";
+  const meetingLine = p.meetingUrl
+    ? `\nLink da videochamada: ${p.meetingUrl}`
+    : "";
   return `Data e hora: ${formatDateTime(p.startsAt, tz)} – ${formatTime(p.endsAt, tz)}
 Modalidade: ${MODALITY_LABEL[p.modality] ?? p.modality}
-Profissional/Clínica: ${p.organizationName}`;
+Profissional/Clínica: ${p.organizationName}${meetingLine}`;
 }
 
 function renderRescheduledText(p: AppointmentEmailBase): string {

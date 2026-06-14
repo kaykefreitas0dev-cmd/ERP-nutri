@@ -69,6 +69,7 @@ const ScheduleSchema = z.object({
   externalPatientPhone: z.string().max(40).optional(),
   serviceOfferingId: z.string().uuid().optional(),
   modality: z.enum(["in_person", "video", "phone"]).default("in_person"),
+  meetingUrl: z.string().url().max(500).optional().or(z.literal("")),
   notes: z.string().max(2000).optional(),
   timezone: z.string().default("America/Sao_Paulo"),
 });
@@ -116,6 +117,7 @@ export async function scheduleAppointmentAction(
               externalPatientEmail: d.externalPatientEmail || null,
               externalPatientPhone: d.externalPatientPhone ?? null,
               modality: d.modality,
+              meetingUrl: d.meetingUrl || null,
               notes: d.notes ?? null,
               status: "SCHEDULED",
               source: "manual",
@@ -183,6 +185,7 @@ export async function scheduleAppointmentAction(
               endsAt,
               modality: d.modality,
               timezone: d.timezone,
+              meetingUrl: d.meetingUrl || null,
             });
           }
         } catch {
@@ -211,6 +214,7 @@ const UpdateAppointmentSchema = z.object({
   startsAt: z.string(), // ISO
   durationMinutes: z.coerce.number().int().min(15).max(480),
   modality: z.enum(["in_person", "video", "phone"]),
+  meetingUrl: z.string().url().max(500).optional().or(z.literal("")),
   notes: z.string().max(2000).optional().or(z.literal("")),
 });
 
@@ -256,6 +260,7 @@ export async function updateAppointmentAction(
             startsAt,
             endsAt,
             modality: d.modality,
+            meetingUrl: d.meetingUrl || null,
             notes: d.notes || null,
           },
         });
@@ -269,7 +274,13 @@ export async function updateAppointmentAction(
           entityType: "Appointment",
           entityId: d.appointmentId,
           patientId: current.patientId,
-          fieldsAccessed: ["startsAt", "endsAt", "modality", "notes"],
+          fieldsAccessed: [
+            "startsAt",
+            "endsAt",
+            "modality",
+            "meetingUrl",
+            "notes",
+          ],
           payload: {},
         });
 
@@ -308,6 +319,7 @@ export async function updateAppointmentAction(
               startsAt,
               endsAt,
               modality: d.modality,
+              meetingUrl: d.meetingUrl || null,
             });
           }
         } catch {
@@ -366,6 +378,7 @@ export async function updateAppointmentStatusAction(input: {
     endsAt: Date;
     modality: string;
     timezone: string;
+    meetingUrl: string | null;
     toStatus: "CONFIRMED" | "COMPLETED" | "CANCELLED";
     reason?: string;
   }
@@ -382,6 +395,7 @@ export async function updateAppointmentStatusAction(input: {
           endsAt: true,
           modality: true,
           timezone: true,
+          meetingUrl: true,
         },
       });
       if (!current) throw new Error("Agendamento não encontrado");
@@ -439,6 +453,7 @@ export async function updateAppointmentStatusAction(input: {
           endsAt: current.endsAt,
           modality: current.modality,
           timezone: current.timezone,
+          meetingUrl: current.meetingUrl,
           toStatus: parsed.data.toStatus as
             | "CONFIRMED"
             | "COMPLETED"
@@ -471,6 +486,7 @@ export async function updateAppointmentStatusAction(input: {
             endsAt: nd.endsAt,
             modality: nd.modality,
             timezone: nd.timezone,
+            meetingUrl: nd.meetingUrl,
           };
 
           if (nd.toStatus === "CONFIRMED") {

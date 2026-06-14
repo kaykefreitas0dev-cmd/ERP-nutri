@@ -25,6 +25,7 @@ interface Appointment {
   endsAt: Date | string;
   status: string;
   modality: string;
+  meetingUrl: string | null;
   patientId: string | null;
   patientName: string | null;
   externalPatientName: string | null;
@@ -255,6 +256,17 @@ export function AppointmentList({ appointments }: Props) {
                         />
                         {mod.label}
                       </p>
+                    )}
+                    {apt.meetingUrl && !isCancelled && (
+                      <a
+                        href={apt.meetingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-caption font-medium text-brand-primary hover:underline"
+                      >
+                        <Video className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        Entrar na videochamada
+                      </a>
                     )}
                     {apt.notes && (
                       <p className="mt-1 text-caption text-text-secondary line-clamp-2">

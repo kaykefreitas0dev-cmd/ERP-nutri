@@ -240,6 +240,25 @@ export function NewAppointmentForm({
           </div>
         </div>
 
+        {/* Meeting URL (videochamada) */}
+        <div>
+          <label
+            htmlFor="meetingUrl"
+            className="block text-tiny font-medium text-text-secondary"
+          >
+            Link da videochamada{" "}
+            <span className="font-normal text-text-muted">(opcional)</span>
+          </label>
+          <input
+            id="meetingUrl"
+            name="meetingUrl"
+            type="url"
+            inputMode="url"
+            placeholder="https://meet.google.com/…"
+            className={inputBase}
+          />
+        </div>
+
         {/* Notes */}
         <div>
           <label

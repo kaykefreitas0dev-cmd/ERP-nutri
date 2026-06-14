@@ -6,6 +6,8 @@ import {
   Palette,
   TriangleAlert,
   ChevronLeft,
+  DatabaseBackup,
+  ChevronRight,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { OrgSettingsForm } from "./OrgSettingsForm";
@@ -173,6 +175,28 @@ export default async function SettingsPage() {
               disabled={!canEdit}
             />
           </div>
+        </section>
+
+        {/* Portabilidade / LGPD */}
+        <section className="mt-6 rounded-lg border border-border-subtle bg-bg-surface p-5 [box-shadow:var(--shadow-xs)]">
+          <h2 className="flex items-center gap-2 text-h3 font-semibold text-text-primary">
+            <DatabaseBackup
+              className="h-4 w-4 text-text-secondary"
+              strokeWidth={1.75}
+            />
+            Dados e portabilidade
+          </h2>
+          <p className="mt-1 text-caption text-text-secondary">
+            Exporte todos os dados da organização em um único arquivo (.zip) —
+            direito de portabilidade da LGPD.
+          </p>
+          <Link
+            href="/app/settings/portabilidade"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border-default bg-bg-surface px-3 py-2 text-caption font-medium text-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary"
+          >
+            Exportar dados da organização
+            <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+          </Link>
         </section>
       </div>
     </main>
