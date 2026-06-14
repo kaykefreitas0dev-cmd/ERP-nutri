@@ -27,10 +27,12 @@
   --color-brand-900: #14532d;
   --color-brand-950: #052e16;
 
-  /* Aliases semânticos */
-  --color-brand-primary: var(--color-brand-600);
-  --color-brand-primary-hover: var(--color-brand-700);
-  --color-brand-primary-bg: var(--color-brand-50);
+  /* Aliases semânticos — Editorial: verde FLORESTA como acento principal,
+   * usado com precisão (botões primários, links, estado ativo). Mais escuro e
+   * sóbrio que o green-600, dá a cara "consultório premium". */
+  --color-brand-primary: #1e5b3c;
+  --color-brand-primary-hover: #184a30;
+  --color-brand-primary-bg: #eef3ee; /* sage tint quente */
   --color-brand-primary-fg: #ffffff;
 
   /* ============================================================
@@ -74,33 +76,33 @@
    * BACKGROUNDS — warm whites (stone), nunca cinza azulado
    * ============================================================
    */
-  --color-bg-page: #fafaf9; /* stone-50 */
+  --color-bg-page: #faf9f6; /* papel quente (warm paper) */
   --color-bg-surface: #ffffff;
-  --color-bg-surface-hover: #f5f5f4; /* stone-100 */
+  --color-bg-surface-hover: #f5f3ee;
   --color-bg-elevated: #ffffff;
-  --color-bg-subtle: #f5f5f4; /* stone-100 */
-  --color-bg-muted: #e7e5e4; /* stone-200 */
-  --color-bg-overlay: rgba(28, 25, 23, 0.5); /* stone-900 / 50 */
+  --color-bg-subtle: #f4f2ec;
+  --color-bg-muted: #e9e5dc;
+  --color-bg-overlay: rgba(26, 23, 18, 0.5);
 
   /* ============================================================
    * BORDERS
    * ============================================================
    */
-  --color-border-subtle: #e7e5e4; /* stone-200 */
-  --color-border-default: #d6d3d1; /* stone-300 */
-  --color-border-strong: #a8a29e; /* stone-400 */
+  --color-border-subtle: #ebe7df; /* hairline quente */
+  --color-border-default: #dbd6cc;
+  --color-border-strong: #b3ac9f;
 
   /* ============================================================
    * TEXT — escala neutra warm
    * ============================================================
    */
-  --color-text-primary: #1c1917; /* stone-900 */
-  --color-text-secondary: #44403c; /* stone-700 */
-  --color-text-muted: #78716c; /* stone-500 */
-  --color-text-subtle: #a8a29e; /* stone-400 */
-  --color-text-inverse: #fafaf9;
+  --color-text-primary: #1a1712; /* tinta quente quase-preta */
+  --color-text-secondary: #423c33;
+  --color-text-muted: #7c756a;
+  --color-text-subtle: #a8a092;
+  --color-text-inverse: #faf9f6;
   --color-text-on-brand: #ffffff;
-  --color-text-link: var(--color-brand-700);
+  --color-text-link: #21704a; /* verde floresta (link) */
 
   /* ============================================================
    * SHADOWS — matiz stone-900 sutil (não preto puro)
@@ -116,8 +118,8 @@
   --shadow-xl:
     0 20px 25px -5px rgb(28 25 23 / 0.1), 0 8px 10px -6px rgb(28 25 23 / 0.06);
 
-  /* Focus glow */
-  --shadow-focus-ring: 0 0 0 3px rgb(22 163 74 / 0.15);
+  /* Focus glow — verde floresta */
+  --shadow-focus-ring: 0 0 0 3px rgb(30 91 60 / 0.18);
   --shadow-focus-ring-danger: 0 0 0 3px rgb(220 38 38 / 0.15);
 
   /* ============================================================
@@ -141,6 +143,12 @@
   --font-mono:
     "JetBrains Mono", "SF Mono", Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+
+  /* Display — Geist (grotesca refinada) p/ títulos e números grandes; cai em
+   * Inter onde Geist não está carregado (apps sem o pacote geist). */
+  --font-display:
+    var(--font-geist-sans, "Inter"), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
 
   --font-scale: 1; /* multiplicador global (acessibilidade) */
 
@@ -202,9 +210,10 @@
  * Inspiração: Linear · Vercel · Stripe (não GitHub — evitar azulado).
  */
 [data-theme="dark"] {
-  --color-brand-primary: var(--color-brand-500);
-  --color-brand-primary-hover: var(--color-brand-400);
-  --color-brand-primary-bg: rgb(22 163 74 / 0.12);
+  /* Verde floresta iluminado p/ contraste no escuro */
+  --color-brand-primary: #3fa06a;
+  --color-brand-primary-hover: #4fb87d;
+  --color-brand-primary-bg: rgb(63 160 106 / 0.14);
   --color-brand-primary-fg: #ffffff;
 
   /* Macros — ligeiramente mais brilhantes no dark pra contraste */
@@ -370,6 +379,43 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+/* ============================================================
+ * EDITORIAL — assinatura do design system "Verde Clínico Editorial"
+ * ============================================================ */
+
+/* Títulos grandes e números de destaque usam a display (Geist→Inter). */
+.text-display,
+.text-h1,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+/* Rótulo de seção: caps espaçado, peso médio, cor discreta. Combine com
+ * <hr class="editorial-rule"> para o cabeçalho editorial (label + régua fina). */
+.section-label {
+  font-size: var(--text-tiny);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Régua/divisor hairline editorial. */
+.editorial-rule {
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 0;
+}
+
+/* Régua de acento curta (decorativa) sob títulos de seção. */
+.accent-rule {
+  height: 2px;
+  width: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-primary);
 }
 
 /* Glassmorphism — usar em topbar, command palette, overlays */

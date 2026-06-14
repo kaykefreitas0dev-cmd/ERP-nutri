@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${GeistSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body
