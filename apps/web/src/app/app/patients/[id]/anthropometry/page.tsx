@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, LineChart, Activity } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { AnthropometryForm } from "./AnthropometryForm";
 import { AnthropometryTrend } from "./AnthropometryTrend";
@@ -83,22 +84,21 @@ export default async function AnthropometryPage({ params }: Props) {
           <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
           {data.patient.fullName}
         </Link>
-        <header className="mt-3">
-          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Avaliação física
-          </p>
-          <h1 className="mt-0.5 flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
-            <Activity
-              className="h-6 w-6 text-text-secondary"
-              strokeWidth={1.75}
-            />
-            Antropometria
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Histórico de medições com cálculos automáticos: IMC, GEB
-            (Mifflin/Harris/FAO), %GC (Pollock).
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          className="mt-3"
+          label="Avaliação física"
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Activity
+                className="h-6 w-6 text-text-secondary"
+                strokeWidth={1.75}
+              />
+              Antropometria
+            </span>
+          }
+          description="Histórico de medições com cálculos automáticos: IMC, GEB (Mifflin/Harris/FAO), %GC (Pollock)."
+        />
 
         {data.records.length >= 2 && (
           <div className="mt-6">

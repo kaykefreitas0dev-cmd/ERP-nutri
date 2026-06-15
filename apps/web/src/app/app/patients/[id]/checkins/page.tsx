@@ -13,6 +13,7 @@ import {
   SmilePlus,
   type LucideIcon,
 } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { CheckinMiniCharts } from "./CheckinMiniCharts";
 
@@ -153,9 +154,12 @@ export default async function PatientCheckinsPage({ params }: Props) {
         >
           ← {patient.fullName}
         </Link>
-        <h1 className="mt-2 text-h1 font-bold text-text-primary">
-          Check-ins do paciente
-        </h1>
+        <SectionHeader
+          as="h1"
+          label="Paciente"
+          title="Check-ins do paciente"
+          className="mt-2"
+        />
 
         {!patient.userId ? (
           <div className="mt-6 rounded-lg border border-warning-border bg-warning-bg p-4 text-body text-warning">

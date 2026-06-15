@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Plus, FileText, Download } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
@@ -86,27 +87,27 @@ export default async function PatientDocumentsPage({ params }: Props) {
           {data.patient.fullName}
         </Link>
 
-        <header className="mt-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-              Prontuário
-            </p>
-            <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
-              Documentos clínicos
-            </h1>
-            <p className="mt-1 text-caption text-text-secondary tabular-nums">
+        <SectionHeader
+          as="h1"
+          className="mt-3"
+          label="Paciente"
+          title="Documentos clínicos"
+          description={
+            <span className="tabular-nums">
               {data.docs.length} documento{data.docs.length === 1 ? "" : "s"} ·
               atestados, receitas e encaminhamentos
-            </p>
-          </div>
-          <Link
-            href={`/app/patients/${id}/documents/new`}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-brand-primary px-4 text-body font-medium text-white [box-shadow:var(--shadow-sm)] transition-all duration-fast hover:bg-brand-primary-hover hover:[box-shadow:var(--shadow-md)] active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2} />
-            Novo documento
-          </Link>
-        </header>
+            </span>
+          }
+          action={
+            <Link
+              href={`/app/patients/${id}/documents/new`}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-brand-primary px-4 text-body font-medium text-white [box-shadow:var(--shadow-sm)] transition-all duration-fast hover:bg-brand-primary-hover hover:[box-shadow:var(--shadow-md)] active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Novo documento
+            </Link>
+          }
+        />
 
         <div className="mt-6">
           {data.docs.length === 0 ? (

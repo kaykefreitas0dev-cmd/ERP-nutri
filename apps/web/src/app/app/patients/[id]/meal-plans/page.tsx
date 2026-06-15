@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Target, Wallet, Utensils } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewMealPlanForm } from "./NewMealPlanForm";
 import { DuplicateMealPlanButton } from "./DuplicateMealPlanButton";
@@ -88,18 +89,18 @@ export default async function PatientMealPlansPage({ params }: Props) {
           <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
           {data.patient.fullName}
         </Link>
-        <header className="mt-3">
-          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Nutrição
-          </p>
-          <h1 className="mt-0.5 text-h1 font-semibold tracking-tight text-text-primary">
-            Planos alimentares
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary tabular-nums">
-            {data.plans.length} plano{data.plans.length === 1 ? "" : "s"}{" "}
-            registrado{data.plans.length === 1 ? "" : "s"}
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          className="mt-3"
+          label="Nutrição"
+          title="Planos alimentares"
+          description={
+            <span className="tabular-nums">
+              {data.plans.length} plano{data.plans.length === 1 ? "" : "s"}{" "}
+              registrado{data.plans.length === 1 ? "" : "s"}
+            </span>
+          }
+        />
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, FilePlus } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { NewDocumentForm } from "./NewDocumentForm";
 
@@ -54,22 +55,21 @@ export default async function NewDocumentPage({ params }: Props) {
           <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
           Documentos de {data.patient.fullName}
         </Link>
-        <header className="mt-3">
-          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Prontuário
-          </p>
-          <h1 className="mt-0.5 flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
-            <FilePlus
-              className="h-6 w-6 text-text-secondary"
-              strokeWidth={1.75}
-            />
-            Novo documento clínico
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Selecione o tipo, escreva o corpo, anexe CIDs e salve como rascunho.
-            A assinatura digital é aplicada ao emitir.
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          className="mt-3"
+          label="Documentos"
+          title={
+            <span className="inline-flex items-center gap-2">
+              <FilePlus
+                className="h-6 w-6 text-text-secondary"
+                strokeWidth={1.75}
+              />
+              Novo documento clínico
+            </span>
+          }
+          description="Selecione o tipo, escreva o corpo, anexe CIDs e salve como rascunho. A assinatura digital é aplicada ao emitir."
+        />
 
         <div className="mt-6">
           <NewDocumentForm

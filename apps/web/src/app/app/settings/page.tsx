@@ -9,6 +9,7 @@ import {
   DatabaseBackup,
   ChevronRight,
 } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { OrgSettingsForm } from "./OrgSettingsForm";
 
@@ -69,18 +70,21 @@ export default async function SettingsPage() {
           <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
           Dashboard
         </Link>
-        <header className="mt-3">
-          <h1 className="flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
-            <Settings
-              className="h-6 w-6 text-text-secondary"
-              strokeWidth={1.75}
-            />
-            Configurações
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Dados básicos da sua organização e branding.
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          className="mt-3"
+          label="Organização"
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Settings
+                className="h-6 w-6 text-text-secondary"
+                strokeWidth={1.75}
+              />
+              Configurações
+            </span>
+          }
+          description="Dados básicos da sua organização e branding."
+        />
 
         {!canEdit && (
           <div className="mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-bg p-3 text-caption text-warning">
