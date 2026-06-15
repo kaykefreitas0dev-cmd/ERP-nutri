@@ -18,6 +18,7 @@ import {
   Target,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { SectionHeader } from "@repo/ui/section-header";
 import { MetricCard, NavCard } from "@/components/dashboard/MetricCard";
 import {
   computeGoalProgress,
@@ -512,18 +513,19 @@ export default async function AppDashboard() {
 
         {/* Agenda do dia */}
         <section aria-label="Agenda de hoje" className="mt-10">
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-h2 font-semibold text-text-primary">
-              Agenda de hoje
-            </h2>
-            <Link
-              href="/app/agenda"
-              className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
-            >
-              Ver agenda completa
-              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
-            </Link>
-          </div>
+          <SectionHeader
+            label="Hoje"
+            title="Agenda de hoje"
+            action={
+              <Link
+                href="/app/agenda"
+                className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
+              >
+                Ver agenda completa
+                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+            }
+          />
 
           {data.agendaHoje.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border-default bg-bg-surface p-6 text-center">
@@ -683,27 +685,27 @@ export default async function AppDashboard() {
         {/* Pacientes para acompanhar — sem check-in em 7+ dias */}
         {data.inactivePatients.length > 0 && (
           <section aria-label="Pacientes para acompanhar" className="mt-10">
-            <div className="mb-4 flex items-baseline justify-between">
-              <div className="flex items-center gap-2">
-                <h2 className="text-h2 font-semibold text-text-primary">
+            <SectionHeader
+              label="Acompanhamento"
+              title={
+                <span className="inline-flex items-center gap-2">
                   Para acompanhar
-                </h2>
-                <span className="rounded-full bg-warning-bg px-2 py-0.5 text-tiny font-medium text-warning ring-1 ring-inset ring-warning-border">
-                  {data.inactivePatients.length}
+                  <span className="rounded-full bg-warning-bg px-2 py-0.5 text-tiny font-medium text-warning ring-1 ring-inset ring-warning-border">
+                    {data.inactivePatients.length}
+                  </span>
                 </span>
-              </div>
-              <Link
-                href="/app/patients"
-                className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
-              >
-                Ver todos os pacientes
-                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </Link>
-            </div>
-            <p className="mb-3 text-tiny text-text-muted">
-              Pacientes com acesso ao app que não registraram check-in nos
-              últimos 7 dias.
-            </p>
+              }
+              description="Pacientes com acesso ao app que não registraram check-in nos últimos 7 dias."
+              action={
+                <Link
+                  href="/app/patients"
+                  className="inline-flex items-center gap-0.5 text-caption text-brand-primary transition-colors hover:text-brand-primary-hover"
+                >
+                  Ver todos os pacientes
+                  <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+                </Link>
+              }
+            />
 
             <ul className="space-y-2">
               {data.inactivePatients.map((patient) => {
@@ -768,16 +770,17 @@ export default async function AppDashboard() {
         {/* Metas a acompanhar — metas ativas com prazo */}
         {data.goals.length > 0 && (
           <section aria-label="Metas a acompanhar" className="mt-10">
-            <div className="mb-4 flex items-baseline justify-between">
-              <div className="flex items-center gap-2">
-                <h2 className="text-h2 font-semibold text-text-primary">
+            <SectionHeader
+              label="Metas"
+              title={
+                <span className="inline-flex items-center gap-2">
                   Metas a acompanhar
-                </h2>
-                <span className="rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary ring-1 ring-inset ring-brand-primary/20">
-                  {data.goals.length}
+                  <span className="rounded-full bg-brand-primary-bg px-2 py-0.5 text-tiny font-medium text-brand-primary ring-1 ring-inset ring-brand-primary/20">
+                    {data.goals.length}
+                  </span>
                 </span>
-              </div>
-            </div>
+              }
+            />
             <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {data.goals.map((goal) => {
                 const dueLabel = goal.dueDate
@@ -833,16 +836,19 @@ export default async function AppDashboard() {
 
         {/* Nav cards — seções principais */}
         <section aria-label="Atalhos" className="mt-10">
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-h2 font-semibold text-text-primary">Atalhos</h2>
-            <p className="text-caption text-text-muted">
-              Pressione{" "}
-              <kbd className="rounded border border-border-subtle bg-bg-muted px-1.5 py-0.5 font-mono text-tiny font-medium text-text-secondary">
-                ⌘K
-              </kbd>{" "}
-              para busca rápida
-            </p>
-          </div>
+          <SectionHeader
+            label="Navegação"
+            title="Atalhos"
+            action={
+              <p className="text-caption text-text-muted">
+                Pressione{" "}
+                <kbd className="rounded border border-border-subtle bg-bg-muted px-1.5 py-0.5 font-mono text-tiny font-medium text-text-secondary">
+                  ⌘K
+                </kbd>{" "}
+                para busca rápida
+              </p>
+            }
+          />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <NavCard
               href="/app/patients"

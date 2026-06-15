@@ -11,6 +11,7 @@
     "./card": "./src/card.tsx",
     "./container": "./src/container.tsx",
     "./badge": "./src/badge.tsx",
+    "./section-header": "./src/section-header.tsx",
     "./alert": "./src/alert.tsx",
     "./code": "./src/code.tsx",
     "./avatar": "./src/avatar.tsx",

@@ -32,7 +32,7 @@ const variantClass: Record<BadgeVariant, string> = {
   neutral:
     "bg-bg-subtle text-text-secondary ring-1 ring-inset ring-border-subtle",
   primary:
-    "bg-brand-primary-bg text-brand-primary-hover ring-1 ring-inset ring-brand-200",
+    "bg-brand-primary-bg text-brand-primary ring-1 ring-inset ring-brand-primary/20",
   success: "bg-success-bg text-success ring-1 ring-inset ring-success-border",
   warning: "bg-warning-bg text-warning ring-1 ring-inset ring-warning-border",
   danger: "bg-danger-bg text-danger ring-1 ring-inset ring-danger-border",
