@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Clock, Users } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { getRecipeAction } from "../actions";
 import { RecipeIngredientEditor } from "./RecipeIngredientEditor";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
@@ -33,31 +34,29 @@ export default async function RecipeDetailPage({ params }: Props) {
           Receitas
         </Link>
 
-        <header className="mt-3 flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-h1 font-semibold tracking-tight text-text-primary">
-              {recipe.name}
-            </h1>
-            {recipe.description && (
-              <p className="mt-1 max-w-2xl text-caption text-text-secondary">
-                {recipe.description}
-              </p>
-            )}
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-tiny text-text-muted tabular-nums">
-              <span className="inline-flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
-                {recipe.servings} porç{recipe.servings === 1 ? "ão" : "ões"}
-              </span>
-              {recipe.prepTimeMinutes != null && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
-                  {recipe.prepTimeMinutes} min
-                </span>
-              )}
-            </div>
-          </div>
-          <DeleteRecipeButton recipeId={recipe.id} name={recipe.name} />
-        </header>
+        <SectionHeader
+          as="h1"
+          className="mt-3 mb-0"
+          label="Receitas"
+          title={recipe.name}
+          description={recipe.description || undefined}
+          action={
+            <DeleteRecipeButton recipeId={recipe.id} name={recipe.name} />
+          }
+        />
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-tiny text-text-muted tabular-nums">
+          <span className="inline-flex items-center gap-1">
+            <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {recipe.servings} porç{recipe.servings === 1 ? "ão" : "ões"}
+          </span>
+          {recipe.prepTimeMinutes != null && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
+              {recipe.prepTimeMinutes} min
+            </span>
+          )}
+        </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

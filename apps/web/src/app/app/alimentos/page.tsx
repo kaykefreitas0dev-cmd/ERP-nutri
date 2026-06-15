@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 
 export const dynamic = "force-dynamic";
@@ -80,22 +81,25 @@ export default async function FoodsPage({ searchParams }: Props) {
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6">
-          <Link
-            href="/app"
-            className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
-            Dashboard
-          </Link>
-          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
-            Biblioteca de Alimentos
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary tabular-nums">
-            {data.foods.length} alimentos · Fontes: TACO (UNICAMP), POF (IBGE),
-            suas receitas
-          </p>
-        </header>
+        <Link
+          href="/app"
+          className="mb-3 inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Dashboard
+        </Link>
+        <SectionHeader
+          as="h1"
+          label="Biblioteca"
+          title="Biblioteca de Alimentos"
+          description={
+            <span className="tabular-nums">
+              {data.foods.length} alimentos · Fontes: TACO (UNICAMP), POF
+              (IBGE), suas receitas
+            </span>
+          }
+          className="mb-6"
+        />
 
         <form className="mb-6 flex flex-wrap gap-2">
           <input

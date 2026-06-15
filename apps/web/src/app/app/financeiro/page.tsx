@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
+import { SectionHeader } from "@repo/ui/section-header";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Financeiro — NutriCore" };
@@ -200,22 +201,22 @@ export default async function FinanceiroPage({ searchParams }: Props) {
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6">
+        <div className="mb-6">
           <Link
             href="/app"
-            className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
+            className="mb-3 inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
           >
             <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
             Dashboard
           </Link>
-          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
-            Financeiro
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Consultas realizadas e pagamentos registrados no período
-            selecionado.
-          </p>
-        </header>
+          <SectionHeader
+            as="h1"
+            label="Gestão"
+            title="Financeiro"
+            description="Consultas realizadas e pagamentos registrados no período selecionado."
+            className="mb-0"
+          />
+        </div>
 
         {/* KPIs */}
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
