@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChefHat, Flame, Utensils, ChevronRight } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { ActionTenantError } from "@/lib/with-tenant-action";
 import { listRecipesAction } from "./actions";
 import { NewRecipeForm } from "./NewRecipeForm";
@@ -21,22 +22,20 @@ export default async function RecipesPage() {
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
-        <header>
-          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Ferramentas
-          </p>
-          <h1 className="mt-0.5 flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
-            <ChefHat
-              className="h-6 w-6 text-text-secondary"
-              strokeWidth={1.75}
-            />
-            Receitas
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Crie receitas reutilizáveis com ingredientes da biblioteca de
-            alimentos. Os macros são calculados automaticamente.
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          label="Biblioteca"
+          title={
+            <span className="inline-flex items-center gap-2">
+              <ChefHat
+                className="h-6 w-6 text-text-secondary"
+                strokeWidth={1.75}
+              />
+              Receitas
+            </span>
+          }
+          description="Crie receitas reutilizáveis com ingredientes da biblioteca de alimentos. Os macros são calculados automaticamente."
+        />
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

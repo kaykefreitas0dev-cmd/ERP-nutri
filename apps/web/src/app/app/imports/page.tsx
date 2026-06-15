@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { ImportWizard } from "./ImportWizard";
 
@@ -45,22 +46,20 @@ export default async function ImportsPage() {
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-6">
-          <Link
-            href="/app"
-            className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
-            Dashboard
-          </Link>
-          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-text-primary">
-            Importar pacientes
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Migre seus pacientes de outros sistemas (Dietbox, Webdiet) ou via
-            CSV genérico.
-          </p>
-        </header>
+        <Link
+          href="/app"
+          className="inline-flex items-center gap-1 text-caption text-text-secondary transition-colors hover:text-text-primary"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+          Dashboard
+        </Link>
+        <SectionHeader
+          as="h1"
+          className="mt-3 mb-6"
+          label="Importação"
+          title="Importar pacientes"
+          description="Migre seus pacientes de outros sistemas (Dietbox, Webdiet) ou via CSV genérico."
+        />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

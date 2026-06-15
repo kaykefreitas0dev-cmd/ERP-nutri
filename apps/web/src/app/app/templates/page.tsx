@@ -1,4 +1,5 @@
 import { LayoutTemplate, Globe, Target, CalendarDays } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { listTemplatesAction } from "../patients/[id]/meal-plans/template-actions";
 import { TemplateManagerCard } from "./TemplateManagerCard";
 
@@ -13,24 +14,20 @@ export default async function TemplatesPage() {
   return (
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
-        <header>
-          <p className="text-tiny font-semibold uppercase tracking-wider text-text-muted">
-            Ferramentas
-          </p>
-          <h1 className="mt-0.5 flex items-center gap-2 text-h1 font-semibold tracking-tight text-text-primary">
-            <LayoutTemplate
-              className="h-6 w-6 text-text-secondary"
-              strokeWidth={1.75}
-            />
-            Modelos de plano
-          </h1>
-          <p className="mt-1 text-caption text-text-secondary">
-            Reutilize estruturas de planos alimentares. Salve um plano como
-            modelo na página de planos de um paciente; aplique-os ao criar novos
-            planos. Modelos públicos ficam disponíveis para todas as
-            organizações.
-          </p>
-        </header>
+        <SectionHeader
+          as="h1"
+          label="Ferramentas"
+          title={
+            <span className="inline-flex items-center gap-2">
+              <LayoutTemplate
+                className="h-6 w-6 text-text-secondary"
+                strokeWidth={1.75}
+              />
+              Modelos de plano
+            </span>
+          }
+          description="Reutilize estruturas de planos alimentares. Salve um plano como modelo na página de planos de um paciente; aplique-os ao criar novos planos. Modelos públicos ficam disponíveis para todas as organizações."
+        />
 
         <section className="mt-8">
           <h2 className="mb-3 text-tiny font-semibold uppercase tracking-wider text-text-muted">

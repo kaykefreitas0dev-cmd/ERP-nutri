@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Search, Lock, Archive, Users, ArrowRight } from "lucide-react";
+import { SectionHeader } from "@repo/ui/section-header";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { PatientsDataTable } from "./PatientsDataTable";
 
@@ -92,27 +93,30 @@ export default async function PatientsListPage({ searchParams }: Props) {
     <main className="p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <header className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-h1 font-semibold tracking-tight text-text-primary">
-              Pacientes
-            </h1>
-            <p className="mt-1 text-caption text-text-secondary tabular-nums">
+        <SectionHeader
+          as="h1"
+          label="Clínica"
+          title="Pacientes"
+          description={
+            <span className="tabular-nums">
               {result.counts.active} ativos · {result.counts.archived}{" "}
               arquivados
               {result.counts.anonymized > 0 && (
                 <> · {result.counts.anonymized} anonimizados</>
               )}
-            </p>
-          </div>
-          <Link
-            href="/app/patients/new"
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-brand-primary px-4 text-body font-medium text-white [box-shadow:var(--shadow-sm)] transition-all duration-base [transition-timing-function:var(--ease-out-expo)] hover:bg-brand-primary-hover hover:[box-shadow:var(--shadow-md)] active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2} />
-            Novo paciente
-          </Link>
-        </header>
+            </span>
+          }
+          action={
+            <Link
+              href="/app/patients/new"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-brand-primary px-4 text-body font-medium text-white [box-shadow:var(--shadow-sm)] transition-all duration-base [transition-timing-function:var(--ease-out-expo)] hover:bg-brand-primary-hover hover:[box-shadow:var(--shadow-md)] active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Novo paciente
+            </Link>
+          }
+          className="mb-6"
+        />
 
         {/* Filtros */}
         <form className="mb-6 flex flex-wrap items-center gap-2" role="search">
