@@ -507,7 +507,12 @@ export async function searchFoodsAction(input: {
   limit?: number;
 }): Promise<{
   ok: boolean;
-  foods?: Array<{ id: string; name: string; source: string }>;
+  foods?: Array<{
+    id: string;
+    name: string;
+    source: string;
+    kcalPer100g: { toString: () => string } | null;
+  }>;
   message?: string;
 }> {
   if (input.query.length < 2) return { ok: true, foods: [] };
@@ -521,7 +526,7 @@ export async function searchFoodsAction(input: {
         },
         orderBy: { name: "asc" },
         take: input.limit ?? 20,
-        select: { id: true, name: true, source: true },
+        select: { id: true, name: true, source: true, kcalPer100g: true },
       });
     });
     return { ok: true, foods };
