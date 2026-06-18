@@ -4,6 +4,7 @@ import { ChevronLeft, FileDown } from "lucide-react";
 import { withTenantAction, ActionTenantError } from "@/lib/with-tenant-action";
 import { MealPlanEditor } from "./MealPlanEditor";
 import { PlanHeaderEditable } from "./PlanHeaderEditable";
+import { SaveAsTemplateButton } from "./SaveAsTemplateButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Editor plano alimentar" };
@@ -129,14 +130,22 @@ export default async function MealPlanEditorPage({ params }: Props) {
         </Link>
 
         <header className="mt-3 flex flex-wrap items-start justify-between gap-4">
-          <PlanHeaderEditable
-            planId={planId}
-            initialName={data.plan.name}
-            initialTargetKcal={
-              data.plan.targetKcal ? Number(data.plan.targetKcal) : null
-            }
-            status={data.plan.status}
-          />
+          <div className="flex flex-wrap items-end gap-3">
+            <PlanHeaderEditable
+              planId={planId}
+              initialName={data.plan.name}
+              initialTargetKcal={
+                data.plan.targetKcal ? Number(data.plan.targetKcal) : null
+              }
+              status={data.plan.status}
+            />
+            <div className="mb-1">
+              <SaveAsTemplateButton
+                mealPlanId={planId}
+                defaultName={data.plan.name}
+              />
+            </div>
+          </div>
 
           <div className="flex flex-col gap-2">
             {/* Baixar PDF */}
